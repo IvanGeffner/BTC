@@ -12,9 +12,21 @@ public class Archon {
     public static void run(RobotController rcc) {
 
         rc = rcc;
+        int currentRound = 10000;
 
         while (true) {
             //code executed continually, don't let it end
+
+            if (rc.getRoundNum() < currentRound){
+                currentRound = rc.getRoundNum();
+                try {
+                    rc.broadcast(Util.MAX_BROADCAST_MESSAGE, 0);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+
             construct();
 
             /*int a = 1;
@@ -23,9 +35,9 @@ public class Archon {
                 a %= a+1;
             }
 
-            System.out.println(Clock.getBytecodeNum());
+            System.out.println(Clock.getBytecodeNum());*/
 
-            Clock.yield();*/
+            Clock.yield();
         }
     }
 
