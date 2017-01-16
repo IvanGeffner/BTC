@@ -7,7 +7,7 @@ public class Util {
     public static float rows_dist = 3.0f;
     public static float eps = 0.01f;
     public static int greedySteps = 10;
-    public static int greedyTries = 4;
+    public static int greedyTries = 6;
     public static int TC = 5; //TreeColumns
     public static int TR = 2; //TRows
     public static int DR = 5; //Distance Row-Row
@@ -20,6 +20,7 @@ public class Util {
     public static MapLocation newTarget;
     public static boolean goLeft;
     public static boolean isUnit;
+    public static boolean finished;
     public static int shootsTries = 2;
     public static float minAngleShoot = (30.0f*(float)Math.PI)/180.0f;
     public static float triadAngle = (20.0f*(float)Math.PI)/180.0f;
@@ -97,13 +98,22 @@ public class Util {
 
 
     public static Direction greedyMove(RobotController rc, Direction dir, int tries, boolean left){
-        if (tries == 0) isUnit = false;
+        if (tries == 0){
+            isUnit = false;
+            finished = false;
+        }
         goLeft = left;
-        if (tries > greedyTries) return null;
+        if (tries > greedyTries){
+            finished = false;
+            return null;
+        }
         float r = rc.getType().strideRadius;
         float R = rc.getType().bodyRadius;
         MapLocation pos = rc.getLocation();
-        if (dir == null) return null;
+        if (dir == null){
+            finished = true;
+            return null;
+        }
         if (rc.canMove(dir)) return dir;
 
         MapLocation nextPos = pos.add(dir, r);
@@ -112,6 +122,7 @@ public class Util {
             if (!rc.onTheMap(nextPos, R)){
                 if (left) goLeft = false;
                 else goLeft = true;
+                finished = true;
                 return null;
             }
 
@@ -123,16 +134,22 @@ public class Util {
         RobotInfo[] Ri = rc.senseNearbyRobots(nextPos, R, null);
         TreeInfo[] Ti = rc.senseNearbyTrees(nextPos, R, null);
 
-        MapLocation m;
-        float rm;
-        boolean isRobot;
         isUnit = false;
 
         if (Ri.length == 0 && Ti.length == 0) {
             if (left) goLeft = false;
             else goLeft = true;
+            finished = true;
             return null;
         }
+
+        Direction currentProDir = null;
+
+        MapLocation m = null;
+
+
+
+
         if (Ri.length > 0){
                 int f = 0;
                 while (f < Ri.length && Ri[f].getID() == rc.getID()){
@@ -141,8 +158,10 @@ public class Util {
                 if (f < Ri.length) {
 
                     m = Ri[f].getLocation();
-                    rm = Ri[f].getType().bodyRadius;
-                    isRobot = (Ri[f].getType() == RobotType.SOLDIER);
+                    float rm = Ri[f].getType().bodyRadius;
+                    float angle = getAngle(pos.distanceTo(m), r, R + rm) + 0.001f;
+                    if (goLeft) currentProDir = pos.directionTo(m).rotateRightRads(angle);
+                    else currentProDir = pos.directionTo(m).rotateLeftRads(angle);
                     if (Ri[f].getTeam() == rc.getTeam()) isUnit = true;
                 }
                 else if (Ti.length == 0){
@@ -152,54 +171,61 @@ public class Util {
                 }
                 else{
                     m = Ti[0].getLocation();
-                    rm = Ti[0].getRadius();
-                    isRobot = false;
+                    float rm = Ti[0].getRadius();
+                    float angle = getAngle(pos.distanceTo(m), r, R + rm)+ 0.001f;
+                    if (goLeft) currentProDir = pos.directionTo(m).rotateRightRads(angle);
+                    else currentProDir = pos.directionTo(m).rotateLeftRads(angle);
+                    isUnit = false;
                 }
         }
         else {
             m = Ti[0].getLocation();
-            rm = Ti[0].getRadius();
-            isRobot = false;
+            float rm = Ti[0].getRadius();
+            float angle = getAngle(pos.distanceTo(m), r, R + rm)+ 0.001f;
+            if (goLeft) currentProDir = pos.directionTo(m).rotateRightRads(angle);
+            else currentProDir = pos.directionTo(m).rotateLeftRads(angle);
+            isUnit = false;
         }
-        Direction currentDir = new Direction (pos, m);
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
             MapLocation m2 = ri.getLocation();
-            Direction newDir = new Direction(pos, m2);
-            if (cclockwise(newDir, currentDir, dir) == goLeft){
+            float angle = getAngle(pos.distanceTo(m2), r, R + ri.getType().bodyRadius)+ 0.001f;
+            Direction newProDir = null;
+            if (goLeft) newProDir = pos.directionTo(m2).rotateRightRads(angle);
+            else newProDir = pos.directionTo(m2).rotateLeftRads(angle);
+
+            if (cclockwise(newProDir, currentProDir, dir) == goLeft){
+                currentProDir = newProDir;
                 m = m2;
-                rm = ri.getType().bodyRadius;
-                currentDir = newDir;
-                isRobot = (ri.getType() == RobotType.SOLDIER);
                 if (ri.getTeam() == rc.getTeam()) isUnit = true;
-                else isUnit = false;
             }
         }
 
         for (TreeInfo ti : Ti){
             MapLocation m2 = ti.getLocation();
-            Direction newDir = new Direction(pos, m2);
-            if (cclockwise(newDir, currentDir, dir) == goLeft){
+            float angle = getAngle(pos.distanceTo(m2), r, R + ti.getRadius())+ 0.001f;
+            Direction newProDir = null;
+            if (goLeft) newProDir = pos.directionTo(m2).rotateRightRads(angle);
+            else newProDir = pos.directionTo(m2).rotateLeftRads(angle);
+
+            if (cclockwise(newProDir, currentProDir, dir) == goLeft){
+                currentProDir = newProDir;
                 m = m2;
-                rm = ti.getRadius();
-                currentDir = newDir;
                 isUnit = false;
-                isRobot = false;
             }
         }
 
-       // if (!isRobot) newTarget = m;
-        //else newTarget = null;
+
         newTarget = m;
 
-        float angle = getAngle(pos.distanceTo(m), r, R + rm) + 0.001f;
-        //float val = (R + rm)/pos.distanceTo(m);
-        //double angle = Math.asin(val) + eps;
-        Direction ultimateDir;
-        if (goLeft) ultimateDir = currentDir.rotateRightRads(angle);
-        else ultimateDir = currentDir.rotateLeftRads(angle);
-        return greedyMove(rc, ultimateDir, tries+1, left);
+        try {
+            rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        return greedyMove(rc, currentProDir, tries+1, left);
     }
 
     public static Direction greedyMoveScout(RobotController rc, Direction dir, int tries, boolean left){

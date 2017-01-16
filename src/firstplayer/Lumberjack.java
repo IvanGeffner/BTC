@@ -76,11 +76,8 @@ public class Lumberjack {
 
                     target = superTarget;
                     free = true;
-                    rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
                 }
-                if (!moved && !chopped && superTarget == null) {
-                    moveRandom(rc);
-                } else if (!moved && !chopped) {
+                if (!moved && !chopped) {
                     rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
                     rc.setIndicatorDot(superTarget, 255, 0, 0);
                     moveGreedy(superTarget);
@@ -103,7 +100,7 @@ public class Lumberjack {
         RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
 
         for (TreeInfo ti: Ti){
-            if (!rc.canChop(ti.getID())) continue;
+            if (!rc.canChop(ti.getID())) continue; //break?
             if (ti.getTeam() == rc.getTeam()) strikeUtil -= 4;
             else if (ti.getTeam() ==  rc.getTeam().opponent()){
                 strikeUtil += 4;
@@ -113,35 +110,33 @@ public class Lumberjack {
                 }
             }
             else {
-                strikeUtil += 2*ti.getRadius();
-                if (chopUtil < 5*ti.getRadius() && rc.canChop(ti.getID())){
-                    chopUtil = 5*ti.getRadius();
+                strikeUtil += 2.0f*ti.getRadius();
+                if (chopUtil < 5.0f*ti.getRadius()){
+                    chopUtil = 5.0f*ti.getRadius();
                     chopID = ti.getID();
                 }
             }
         }
 
         for (RobotInfo ri : Ri){
+            if (ri.getID() == rc.getID()) continue;
             if (ri.getTeam() == rc.getTeam()){
-                strikeUtil -= (ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
+                strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
             else if (ri.getTeam() == rc.getTeam().opponent()){
-                strikeUtil += (ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
+                strikeUtil += ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
         }
 
-        if (chopUtil > strikeUtil){
-
-            try {
-                if (chopUtil > strikeUtil && chopUtil > 0){
-                    rc.chop(chopID);
-                    chopped = true;
-                }
-                else if (strikeUtil >= 0) rc.strike();
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+        try {
+            if (chopUtil > strikeUtil && chopUtil > 0) {
+                rc.chop(chopID);
+                chopped = true;
             }
+            else if (strikeUtil > 0) rc.strike();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
     }
@@ -187,7 +182,13 @@ public class Lumberjack {
     static void moveGreedy(MapLocation superTarget){
 
         try {
-            if (free) checkLeft();
+            if (rc.canSenseLocation(superTarget)){
+                TreeInfo tree = rc.senseTreeAtLocation(superTarget);
+                if (tree != null){
+                    if (rc.getLocation().distanceTo(superTarget) < rc.getType().strideRadius) return;
+                }
+            }
+            if (free) checkLeft(); // change this shit
             MapLocation pos = rc.getLocation();
             Direction naiveDir = new Direction(pos, superTarget);
             if (rc.canMove(superTarget)) {
