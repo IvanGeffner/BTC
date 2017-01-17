@@ -37,14 +37,25 @@ public class Greedy {
                 else if (!rc.isCircleOccupiedExceptByThisRobot(obstacle, rc.getType().bodyRadius)) obstacle = null;
             }
             if (obstacle == null) {
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
                 Direction dir = pos.directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                    return;
+                if (rc.canMove(target)){
+                    float str = rc.getType().strideRadius;
+                    float d = pos.distanceTo(target);
+                    if (str < d) {
+                        Direction dirG = greedyMove(rc, dir, d, left);
+                        if (rc.canMove(dirG)) {
+                            rc.move(dirG);
+                            obstacle = newObstacle;
+                            left = newLeft;
+                        }
+                    } else {
+                        Direction dirG = greedyMove(rc, dir, str, left);
+                        if (rc.canMove(dirG)) {
+                            rc.move(dirG);
+                            obstacle = newObstacle;
+                            left = newLeft;
+                        }
+                    }
                 }
                 else{
                     dirObstacle = dir;
@@ -83,12 +94,28 @@ public class Greedy {
             } else { //GREEDY GENERAL
                 Direction dir = pos.directionTo(target);
                 float dist = pos.distanceTo(target);
-                if (dist < rc.getType().strideRadius && rc.canMove(target)){
+                if (dist < rc.getType().strideRadius && rc.canMove(target)){  //SHIIIT
                     resetObstacle();
-                    rc.move(target);
-                    return;
+                    float str = rc.getType().strideRadius;
+                    float d = pos.distanceTo(target);
+
+                    if (str < d) {
+                        Direction dirG = greedyMove(rc, dir, d, left);
+                        if (rc.canMove(dirG)) {
+                            rc.move(dirG);
+                            obstacle = newObstacle;
+                            left = newLeft;
+                        }
+                    } else {
+                        Direction dirG = greedyMove(rc, dir, str, left);
+                        if (rc.canMove(dirG)) {
+                            rc.move(dirG);
+                            obstacle = newObstacle;
+                            left = newLeft;
+                        }
+                    }
                 }
-                if (dist < minDistToTarget && rc.canMove(dir)){
+                if (dist < minDistToTarget && rc.canMove(dir)){ //SHIIIIIT
                     resetObstacle();
                     rc.move(dir);
                     return;
@@ -219,6 +246,17 @@ public class Greedy {
                 }
             }
         }
+
+        BulletInfo[] Bi = rc.senseNearbyBullets(nextPos, R + Constants.MAXBULLETSPEED);
+
+        for (BulletInfo bi : Bi) {
+            Direction newProDir = Mates.extremeBulletDirection(dir, pos, r, R, bi, left);
+            if (Mates.cclockwise(newProDir, currentProDir, dir, left)){
+                currentProDir = newProDir;
+                m = bi.getLocation();
+            }
+        }
+
 
         if (currentProDir == null){
             newLeft  = !newLeft;

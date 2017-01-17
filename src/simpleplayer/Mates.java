@@ -1,7 +1,8 @@
 package simpleplayer;
 
-import battlecode.common.*;
-import scala.collection.immutable.Stream;
+import battlecode.common.BulletInfo;
+import battlecode.common.Direction;
+import battlecode.common.MapLocation;
 
 /**
  * Created by Ivan on 1/15/2017.
