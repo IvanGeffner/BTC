@@ -29,13 +29,6 @@ public class Archon {
 
             construct();
 
-            /*int a = 1;
-            for (int i = 0; i < 3; ++i){
-                a *= 2;
-                a %= a+1;
-            }
-
-            System.out.println(Clock.getBytecodeNum());*/
 
             Clock.yield();
         }
