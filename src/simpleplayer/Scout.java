@@ -12,11 +12,8 @@ public class Scout {
     static RobotController rc;
 
     static MapLocation realTarget;
-    static MapLocation obstacle;
-    static boolean left = true;
 
     static MapLocation randomTarget;
-    static float minDistToTarget = Constants.INF;
 
     static Direction currentDirection;
 
@@ -26,6 +23,8 @@ public class Scout {
     static int xBase, yBase;
 
     static HashSet<Integer> readMes;
+
+    static int round;
 
 
     @SuppressWarnings("unused")
@@ -39,7 +38,7 @@ public class Scout {
         while (true) {
             //code executed continually, don't let it end
 
-
+            round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
 
@@ -48,7 +47,7 @@ public class Scout {
             MapLocation newTarget = findBestTree();
             updateTarget(newTarget);
             if (realTarget == null) moveInYourDirection();
-            else moveGreedy(realTarget);
+            else Greedy.moveGreedy(rc,realTarget);
 
 
 
@@ -106,106 +105,18 @@ public class Scout {
             if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
                 randomTarget = rc.getLocation();
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
-                resetObstacle();
+                Greedy.resetObstacle();
                 moveInYourDirection();
                 return;
             }
             if (rc.getLocation().distanceTo(randomTarget) < Constants.pushTarget){
                 randomTarget = randomTarget.add(currentDirection, Constants.pushTarget);
-                resetObstacle();
+                Greedy.resetObstacle();
                 moveInYourDirection();
                 return;
             }
             rc.setIndicatorDot(randomTarget, 0, 0, 255);
-            moveGreedy(randomTarget);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-
-    }
-
-    static void moveGreedy(MapLocation target){
-        if (target == null) return;
-        try {
-            randomTarget = rc.getLocation();
-            MapLocation pos = rc.getLocation();
-            float stride = rc.getType().strideRadius;
-            Direction dirObstacle = null;
-            if (obstacle == null) {
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
-                Direction dir = pos.directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                    return;
-                }
-                else{
-                    dirObstacle = dir;
-                }
-            }
-            else dirObstacle = pos.directionTo(obstacle);
-            if (minDistToTarget == Constants.INF) {
-                minDistToTarget = pos.distanceTo(target);
-                Direction dir1 = Greedy.greedyMove(rc, dirObstacle, 0, left, true);
-                obstacle = Greedy.newObstacle;
-                Direction dir2 = Greedy.greedyMove(rc, dirObstacle, 0, !left, true);
-                MapLocation nextPos1 = null;
-                float dist1 = Constants.INF;
-                if (dir1 != null){
-                    nextPos1 = pos.add(dir1, stride);
-                    dist1 = nextPos1.distanceTo(target);
-                }
-                MapLocation nextPos2 = null;
-                float dist2 = Constants.INF;
-                if (dir2 != null){
-                    nextPos2 = pos.add(dir2, stride);
-                    dist2 = nextPos2.distanceTo(target);
-                }
-
-                if (dir2 != null &&  dist2 < dist1 && rc.canMove(dir2)){
-                    left = !left;
-                    rc.move(dir2);
-                    obstacle = Greedy.newObstacle;
-                }
-                else if (dir1 != null && rc.canMove(dir1)){
-                    rc.move(dir1);
-                }
-            } else {
-                Direction dir = pos.directionTo(target);
-                float dist = pos.distanceTo(target);
-                if (dist < rc.getType().strideRadius && rc.canMove(target)){
-                    resetObstacle();
-                    rc.move(target);
-                    return;
-                }
-                if (dist < minDistToTarget && rc.canMove(dir)){
-                    resetObstacle();
-                    rc.move(dir);
-                    return;
-                }
-                Direction dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, true);
-                if (dirGreedy != null){
-                    obstacle = Greedy.newObstacle;
-                    if (dist < minDistToTarget) minDistToTarget = dist;
-                    rc.move(dirGreedy);
-                } else if (Greedy.newLeft != left){
-                    left = Greedy.newLeft;
-                    dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, true);
-                    if (dirGreedy != null) {
-                        obstacle = Greedy.newObstacle;
-                        if (dist < minDistToTarget) minDistToTarget = dist;
-                        rc.move(dirGreedy);
-                    } else if (!Greedy.finished){
-                        if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                    }
-                } else if (!Greedy.finished){
-                    if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                }
-
-            }
+            Greedy.moveGreedy(rc,randomTarget);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -236,19 +147,14 @@ public class Scout {
     static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        resetObstacle();
-    }
-
-    static void resetObstacle(){
-        obstacle = null;
-        minDistToTarget = Constants.INF;
+        Greedy.resetObstacle();
     }
 
     static void readMessages(){
         readMes.clear();
         try {
             int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage; ) {
+            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(i);
                 workMessage(a);
                 readMes.add(a);
@@ -266,20 +172,23 @@ public class Scout {
         return;
     }
 
-    static void broadcastLocations(){
+    static void broadcastLocations() {
+        if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        for (RobotInfo ri : Ri){
+        for (RobotInfo ri : Ri) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x-xBase, y-yBase,a);
+            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
             if (readMes.contains(m)) continue;
             try {
                 rc.broadcast(initialMessage, m);
                 ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
+                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -287,16 +196,18 @@ public class Scout {
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
-        for(TreeInfo ti : Ti){
+        for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x-xBase, y-yBase);
+            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
             if (readMes.contains(m)) continue;
             try {
                 rc.broadcast(initialMessage, m);
                 ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
+                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -304,7 +215,8 @@ public class Scout {
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
-        for(TreeInfo ti : Ti){
+        for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -324,7 +236,7 @@ public class Scout {
                 }
             }
         }
-        try{
+        try {
             rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
         } catch (Exception e) {
             System.out.println(e.getMessage());

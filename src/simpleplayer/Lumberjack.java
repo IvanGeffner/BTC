@@ -14,9 +14,6 @@ public class Lumberjack {
 
     static MapLocation realTarget;
     static MapLocation newTarget;
-    static MapLocation obstacle = null;
-    static boolean left = true;
-    static float minDistToTarget = Constants.INF;
 
     static MapLocation base;
     static MapLocation enemyBase;
@@ -28,6 +25,9 @@ public class Lumberjack {
 
     static float maxUtil;
     static boolean shouldMove;
+
+    static int round;
+
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
         rc = rcc;
@@ -36,6 +36,7 @@ public class Lumberjack {
         while (true) {
             //code executed continually, don't let it end
 
+            round = rc.getRoundNum();
             maxUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
             newTarget = enemyBase;
             shouldMove = true;
@@ -46,7 +47,7 @@ public class Lumberjack {
             broadcastLocations();
             findBestTree();
             updateTarget();
-            if (shouldMove) moveGreedy(realTarget);
+            if (shouldMove) Greedy.moveGreedy(rc,realTarget);
 
             Clock.yield();
         }
@@ -153,14 +154,14 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        resetObstacle();
+        Greedy.resetObstacle();
     }
 
     static void readMessages(){
         readMes.clear();
         try {
             int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage; ) {
+            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(i);
                 workMessage(a);
                 readMes.add(a);
@@ -214,19 +215,16 @@ public class Lumberjack {
     }
 
     static void broadcastLocations() {
+        if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
             int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
-            float val = enemyScore(enemyPos, a);
-            if (val > maxUtil) {
-                maxUtil = val;
-                newTarget = enemyPos;
-            }
             if (readMes.contains(m)) continue;
             try {
                 rc.broadcast(initialMessage, m);
@@ -241,6 +239,7 @@ public class Lumberjack {
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -259,6 +258,7 @@ public class Lumberjack {
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -284,98 +284,6 @@ public class Lumberjack {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    static void moveGreedy(MapLocation target){
-        if (target == null) return;
-        try {
-            MapLocation pos = rc.getLocation();
-            float stride = rc.getType().strideRadius;
-            Direction dirObstacle = null;
-            if (obstacle == null) {
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
-                Direction dir = pos.directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                    return;
-                }
-                else{
-                    dirObstacle = dir;
-                }
-            }
-            else dirObstacle = pos.directionTo(obstacle);
-            if (minDistToTarget == Constants.INF) {
-                minDistToTarget = pos.distanceTo(target);
-                Direction dir1 = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                obstacle = Greedy.newObstacle;
-                Direction dir2 = Greedy.greedyMove(rc, dirObstacle, 0, !left, false);
-                MapLocation nextPos1 = null;
-                float dist1 = Constants.INF;
-                if (dir1 != null){
-                    nextPos1 = pos.add(dir1, stride);
-                    dist1 = nextPos1.distanceTo(target);
-                }
-                MapLocation nextPos2 = null;
-                float dist2 = Constants.INF;
-                if (dir2 != null){
-                    nextPos2 = pos.add(dir2, stride);
-                    dist2 = nextPos2.distanceTo(target);
-                }
-
-                if (dir2 != null &&  dist2 < dist1 && rc.canMove(dir2)){
-                    left = !left;
-                    rc.move(dir2);
-                    obstacle = Greedy.newObstacle;
-                }
-                else if (dir1 != null && rc.canMove(dir1)){
-                    rc.move(dir1);
-                }
-            } else {
-                Direction dir = pos.directionTo(target);
-                float dist = pos.distanceTo(target);
-                if (dist < rc.getType().strideRadius && rc.canMove(target)){
-                    resetObstacle();
-                    rc.move(target);
-                    return;
-                }
-                if (dist < minDistToTarget && rc.canMove(dir)){
-                    resetObstacle();
-                    rc.move(dir);
-                    return;
-                }
-                Direction dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                if (dirGreedy != null){
-                    obstacle = Greedy.newObstacle;
-                    if (dist < minDistToTarget) minDistToTarget = dist;
-                    rc.move(dirGreedy);
-                } else if (Greedy.newLeft != left){
-                    left = Greedy.newLeft;
-                    dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                    if (dirGreedy != null) {
-                        obstacle = Greedy.newObstacle;
-                        if (dist < minDistToTarget) minDistToTarget = dist;
-                        rc.move(dirGreedy);
-                    } else if (!Greedy.finished){
-                        if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                    }
-                } else if (!Greedy.finished){
-                    if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                }
-
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-
-    }
-
-    static void resetObstacle(){
-        obstacle = null;
-        minDistToTarget = Constants.INF;
     }
 
 }

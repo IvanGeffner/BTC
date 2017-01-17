@@ -29,9 +29,13 @@ public class Constants {
     public static int NorthTree = 6;
     public static float minHPWater = 45f;
     public static float minHPGoWater = 25f;
-    public static int TREEBUCLEBYTE = 3000;
-
-    public static float preserveObstacle = (float)Math.PI*2.0f/5.0f;
+    public static int TREEBUCLEBYTE = 1000;
+    public static int BYTECODEPOSTMESSAGES = 9000;
+    public static int SAFETYMARGIN = 8000;
+    public static int CHANGETARGET = 30;
+    public static float NEWTARGET = 2.5f;
+    public static float COLLISIONERROR = 1.25f;
+    public static float BULLETSIGHT = 6.5f;
 
     public static int shootTries = 2;
     public static float minAngleShoot = (30.0f*(float)Math.PI)/180.0f;

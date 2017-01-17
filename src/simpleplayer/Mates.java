@@ -1,6 +1,7 @@
 package simpleplayer;
 
 import battlecode.common.Direction;
+import scala.collection.immutable.Stream;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -12,23 +13,11 @@ public class Mates {
         return (float)Math.acos(x);
     }
 
-    public static boolean cclockwise (Direction a, Direction b, Direction c){ //podem passar directament cx,cy
+    public static boolean cclockwise (Direction a, Direction b, Direction c, boolean left) { //podem passar directament cx,cy
+        if (b == null) return true;
+        if (a == null) return false;
         float da = c.radiansBetween(a);
         float db = c.radiansBetween(b);
-        if (da > db) {
-            float ax = a.getDeltaX(1);
-            float ay = a.getDeltaY(1);
-            float cx = c.getDeltaX(1);
-            float cy = c.getDeltaY(1);
-            if (cx*ay - cy*ax > 0) return true;
-            else return false;
-        }
-        float bx = b.getDeltaX(1);
-        float by = b.getDeltaY(1);
-        float cx = c.getDeltaX(1);
-        float cy = c.getDeltaY(1);
-        if (cx*by - cy*bx > 0) return true;
-        else return false;
+        return ((da > db) == left);
     }
-
 }

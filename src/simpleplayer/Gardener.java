@@ -14,9 +14,6 @@ public class Gardener {
     static RobotController rc;
 
     static MapLocation realTarget;
-    static MapLocation obstacle = null;
-    static boolean left = true;
-    static float minDistToTarget = Constants.INF;
 
     static MapLocation base;
     static int xBase;
@@ -34,6 +31,8 @@ public class Gardener {
 
     static HashSet<Integer> readMes;
 
+    static int round;
+
     static int[] Xsorted = {0, 1, -1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
     static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
 
@@ -48,6 +47,8 @@ public class Gardener {
 
 
             //code executed continually, don't let it end
+
+            round = rc.getRoundNum();
 
             shouldMove = true;
             treeSpending = 0;
@@ -74,7 +75,7 @@ public class Gardener {
 
             if(shouldMove) {
                 if (realTarget == null) randomMove();
-                else moveGreedy(realTarget);
+                else Greedy.moveGreedy(rc, realTarget);
             }
 
             Clock.yield();
@@ -168,12 +169,7 @@ public class Gardener {
     static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        resetObstacle();
-    }
-
-    static void resetObstacle(){
-        obstacle = null;
-        minDistToTarget = Constants.INF;
+        Greedy.resetObstacle();
     }
 
     static void tryConstruct(){
@@ -302,7 +298,7 @@ public class Gardener {
         readMes.clear();
         try {
             int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage; ) {
+            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(i);
                 workMessage(a);
                 readMes.add(a);
@@ -472,20 +468,23 @@ public class Gardener {
         }
     }
 
-    static void broadcastLocations(){
+    static void broadcastLocations() {
+        if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        for (RobotInfo ri : Ri){
+        for (RobotInfo ri : Ri) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x-xBase, y-yBase,a);
+            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
             if (readMes.contains(m)) continue;
             try {
                 rc.broadcast(initialMessage, m);
                 ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
+                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -493,16 +492,18 @@ public class Gardener {
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
-        for(TreeInfo ti : Ti){
+        for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x-xBase, y-yBase);
+            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
             if (readMes.contains(m)) continue;
             try {
                 rc.broadcast(initialMessage, m);
                 ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
+                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -510,7 +511,8 @@ public class Gardener {
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
-        for(TreeInfo ti : Ti){
+        for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -530,99 +532,12 @@ public class Gardener {
                 }
             }
         }
-        try{
+        try {
             rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    static void moveGreedy(MapLocation target){
-        if (target == null) return;
-        try {
-            MapLocation pos = rc.getLocation();
-            float stride = rc.getType().strideRadius;
-            Direction dirObstacle = null;
-            if (obstacle == null) {
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
-                Direction dir = pos.directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                    return;
-                }
-                else{
-                    dirObstacle = dir;
-                }
-            }
-            else dirObstacle = pos.directionTo(obstacle);
-            if (minDistToTarget == Constants.INF) {
-                minDistToTarget = pos.distanceTo(target);
-                Direction dir1 = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                obstacle = Greedy.newObstacle;
-                Direction dir2 = Greedy.greedyMove(rc, dirObstacle, 0, !left, false);
-                MapLocation nextPos1 = null;
-                float dist1 = Constants.INF;
-                if (dir1 != null){
-                    nextPos1 = pos.add(dir1, stride);
-                    dist1 = nextPos1.distanceTo(target);
-                }
-                MapLocation nextPos2 = null;
-                float dist2 = Constants.INF;
-                if (dir2 != null){
-                    nextPos2 = pos.add(dir2, stride);
-                    dist2 = nextPos2.distanceTo(target);
-                }
-
-                if (dir2 != null &&  dist2 < dist1 && rc.canMove(dir2)){
-                    left = !left;
-                    rc.move(dir2);
-                    obstacle = Greedy.newObstacle;
-                }
-                else if (dir1 != null && rc.canMove(dir1)){
-                    rc.move(dir1);
-                }
-            } else {
-                Direction dir = pos.directionTo(target);
-                float dist = pos.distanceTo(target);
-                if (dist < rc.getType().strideRadius && rc.canMove(target)){
-                    resetObstacle();
-                    rc.move(target);
-                    return;
-                }
-                if (dist < minDistToTarget && rc.canMove(dir)){
-                    resetObstacle();
-                    rc.move(dir);
-                    return;
-                }
-                Direction dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                if (dirGreedy != null){
-                    obstacle = Greedy.newObstacle;
-                    if (dist < minDistToTarget) minDistToTarget = dist;
-                    rc.move(dirGreedy);
-                } else if (Greedy.newLeft != left){
-                    left = Greedy.newLeft;
-                    dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left, false);
-                    if (dirGreedy != null) {
-                        obstacle = Greedy.newObstacle;
-                        if (dist < minDistToTarget) minDistToTarget = dist;
-                        rc.move(dirGreedy);
-                    } else if (!Greedy.finished){
-                        if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                    }
-                } else if (!Greedy.finished){
-                    if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
-                }
-
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-
     }
 
 

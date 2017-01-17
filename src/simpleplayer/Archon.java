@@ -103,14 +103,15 @@ public class Archon {
             e.printStackTrace();
         }
 
-        updateTurn();
+        //updateTurn();
 
     }
 
     static boolean myTurn(){
         try {
-            int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
-            return (archonTurn == whoIam);
+            //int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
+            int archonNumber = rc.readBroadcast(Communication.ARCHONNUMBER);
+            return (rc.getRoundNum()%archonNumber == whoIam);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
