@@ -1,6 +1,7 @@
 package simpleplayer;
 
 import battlecode.common.*;
+import java.util.*;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -16,7 +17,7 @@ public class Greedy {
     static float minDistToTarget = Constants.INF;
     static boolean left = true;
 
-    static MapLocation collisionLoc;
+    static HashMap<Integer, Integer> collisionLocations;
 
     static BulletInfo[] bullets;
 
@@ -25,6 +26,7 @@ public class Greedy {
     static void moveGreedy(RobotController rc, MapLocation target){
         if (target == null) return;
         try {
+            //SABER SI ES FA GREEDY O ES VA DIRECTE
             MapLocation pos = rc.getLocation();
             float stride = rc.getType().strideRadius;
             Direction dirObstacle = null;
@@ -49,7 +51,8 @@ public class Greedy {
                 }
             }
             else dirObstacle = pos.directionTo(obstacle);
-            if (minDistToTarget == Constants.INF) {
+            if (minDistToTarget == Constants.INF) { //PRIMER COP GREEDY
+                collisionLocations = new HashMap<>();
                 minDistToTarget = pos.distanceTo(target);
                 Direction dir1 = Greedy.greedyMove(rc, dirObstacle, 0, left);
                 obstacle = Greedy.newObstacle;
@@ -69,14 +72,15 @@ public class Greedy {
 
                 if (dir2 != null &&  dist2 < dist1 && rc.canMove(dir2)){
                     left = !left;
-                    rc.move(dir2);
                     obstacle = Greedy.newObstacle;
+                    addCollisionLocation(rc, left);
+                    rc.move(dir2);
                 }
                 else if (dir1 != null && rc.canMove(dir1)){
+                    addCollisionLocation(rc, left);
                     rc.move(dir1);
                 }
-            } else {
-                if (collisionLoc != null && rc.getLocation().distanceTo(collisionLoc) < Constants.COLLISIONERROR) minDistToTarget = Constants.INF;
+            } else { //GREEDY GENERAL
                 Direction dir = pos.directionTo(target);
                 float dist = pos.distanceTo(target);
                 if (dist < rc.getType().strideRadius && rc.canMove(target)){
@@ -95,6 +99,7 @@ public class Greedy {
                 if (dirGreedy != null){
                     obstacle = Greedy.newObstacle;
                     if (dist < minDistToTarget) minDistToTarget = dist;
+                    addCollisionLocation(rc, left);
                     rc.move(dirGreedy);
                 } else if (Greedy.newLeft != left){
                     left = Greedy.newLeft;
@@ -102,6 +107,7 @@ public class Greedy {
                     if (dirGreedy != null) {
                         obstacle = Greedy.newObstacle;
                         if (dist < minDistToTarget) minDistToTarget = dist;
+                        addCollisionLocation(rc, left);
                         rc.move(dirGreedy);
                     } else if (!Greedy.finished){
                         if (Greedy.newObstacle != null) obstacle = Greedy.newObstacle;
@@ -121,6 +127,24 @@ public class Greedy {
     static void resetObstacle(){
         obstacle = null;
         minDistToTarget = Constants.INF;
+    }
+
+
+    public static void addCollisionLocation(RobotController rc, boolean left){
+        MapLocation pos = rc.getLocation();
+        MapLocation collisionPos = pos.add(pos.directionTo(obstacle), Constants.COLLISIONDIST);
+        int x = Math.round(collisionPos.x/Constants.COLLISIONRANGE), y = Math.round(collisionPos.y/Constants.COLLISIONRANGE);
+        int a = 0;
+        if (left) a = 1;
+        int hash = 2*(x*Constants.COLLISIONHASH + y)+a;
+        if (!collisionLocations.containsKey(hash)){
+            collisionLocations.put(hash, rc.getRoundNum());
+        } else {
+            int round = collisionLocations.get(hash);
+            if (rc.getRoundNum() - round > Constants.COLLISIONROUND){
+                resetObstacle();
+            }
+        }
     }
 
 
@@ -206,7 +230,7 @@ public class Greedy {
         newObstacle = m;
 
         try {
-            rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
+            //rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

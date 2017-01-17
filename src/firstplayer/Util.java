@@ -220,7 +220,7 @@ public class Util {
         newTarget = m;
 
         try {
-            rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
+            //rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

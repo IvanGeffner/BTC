@@ -78,8 +78,8 @@ public class Lumberjack {
                     free = true;
                 }
                 if (!moved && !chopped) {
-                    rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
-                    rc.setIndicatorDot(superTarget, 255, 0, 0);
+                    //rc.setIndicatorDot(rc.getLocation(), 0, 255, 0);
+                    //rc.setIndicatorDot(superTarget, 255, 0, 0);
                     moveGreedy(superTarget);
                 }
             } catch (Exception e) {

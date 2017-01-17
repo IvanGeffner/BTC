@@ -34,11 +34,16 @@ public class Constants {
     public static int SAFETYMARGIN = 8000;
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.5f;
-    public static float COLLISIONERROR = 1.25f;
     public static float BULLETSIGHT = 6.5f;
 
+    public static float COLLISIONDIST = 0.75f;
+    public static float COLLISIONRANGE = 1.2f;
+    public static int COLLISIONHASH = 1000;
+    public static int COLLISIONROUND = 5;
+
     public static int shootTries = 2;
-    public static float minAngleShoot = (30.0f*(float)Math.PI)/180.0f;
+    public static float minAngleShoot = (60.0f*(float)Math.PI)/180.0f;
+
     public static float triadAngle = (20.0f*(float)Math.PI)/180.0f;
     public static float pentadAngle = (15.0f*(float)Math.PI)/180.0f;
     public static float pentadAngle2 = (30.0f*(float)Math.PI)/180.0f;

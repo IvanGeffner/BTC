@@ -194,8 +194,8 @@ public class Soldier {
             if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
-                        rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
+                        //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                        //rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -203,15 +203,15 @@ public class Soldier {
             }
             else if (maxUtilTriad> 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
-                    rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
+                    //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                    //rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             else if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
-                rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
+                //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                //rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {

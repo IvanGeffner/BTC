@@ -146,31 +146,28 @@ public class Soldier {
 
             Direction dir = pos.directionTo(m);
 
-            MapLocation nextPos = pos.add(dir, rc.getType().bodyRadius);
-            float d = m.distanceTo(nextPos);
+            float d = m.distanceTo(pos);
 
-            RobotInfo[] allies = rc.senseNearbyRobots(nextPos, d, rc.getTeam());
+            RobotInfo[] allies = rc.senseNearbyRobots(pos, d, rc.getTeam());
 
-            TreeInfo[] trees = rc.senseNearbyTrees(nextPos, d, null);
+            TreeInfo[] trees = rc.senseNearbyTrees(pos, d, null);
 
-            float a = (float)Math.abs(Math.asin(r.bodyRadius/d));
+            float a = (float)Math.asin(r.bodyRadius/d);
 
             Direction dirRight = dir.rotateRightRads(a);
             Direction dirLeft = dir.rotateLeftRads(a);
-
-            float a2 = a;
 
             for (RobotInfo ally : allies){
                 if (ally.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = ally.getLocation();
-                Direction dir2 = nextPos.directionTo(m2);
+                Direction dir2 = pos.directionTo(m2);
 
-                float d2 = nextPos.distanceTo(m);
+                float d2 = pos.distanceTo(m2);
                 float ang = (float)Math.asin(ally.getType().bodyRadius/d2);
 
-                Direction dirRight2 = dir2.rotateRightDegrees(ang);
-                Direction dirLeft2 = dir2.rotateLeftDegrees(ang);
+                Direction dirRight2 = dir2.rotateRightRads(ang);
+                Direction dirLeft2 = dir2.rotateLeftRads(ang);
 
                 if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
                 if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
@@ -189,13 +186,13 @@ public class Soldier {
                 if (tree.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = tree.getLocation();
-                Direction dir2 = nextPos.directionTo(m2);
+                Direction dir2 = pos.directionTo(m2);
 
-                float d2 = nextPos.distanceTo(m);
+                float d2 = pos.distanceTo(m2);
                 float ang = (float)Math.asin(tree.getRadius()/d2);
 
-                Direction dirRight2 = dir2.rotateRightDegrees(ang);
-                Direction dirLeft2 = dir2.rotateLeftDegrees(ang);
+                Direction dirRight2 = dir2.rotateRightRads(ang);
+                Direction dirLeft2 = dir2.rotateLeftRads(ang);
 
                 if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
                 if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
@@ -211,7 +208,7 @@ public class Soldier {
 
                 float realAngle = dirRight.radiansBetween(dirLeft)/2;
 
-                System.out.println(realAngle);
+                System.out.println("Shooting Angle: " + realAngle);
                 float multiplier = 1;
 
                 if (r == RobotType.SCOUT) multiplier = 0.2f;
@@ -221,6 +218,8 @@ public class Soldier {
                 float x;
                 if (r == RobotType.ARCHON) x = 10;
                 else x = 2.0f*((float)r.bulletCost)/r.maxHealth;
+
+                System.out.println("x = " + x);
 
                 float ut = 0;
                 float utTriad = 0;
@@ -248,12 +247,14 @@ public class Soldier {
 
                 if (utPentad > maxUtilPentad){
                     if (shootPentad) dirPentad = dirRight.rotateLeftRads(realAngle);
-                    else dirPentad = dirRightA.rotateLeftRads(dirRightA.degreesBetween(dirLeftA)/2);
+                    else dirPentad = dirRightA.rotateLeftRads(dirRightA.radiansBetween(dirLeftA)/2);
                     maxUtilPentad = utPentad;
                 }
             }
 
         }
+
+        System.out.println(maxUtilSingle + " " + maxUtilTriad + " " + maxUtilPentad);
 
         try {
             if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
@@ -266,7 +267,7 @@ public class Soldier {
                     }
                 }
             }
-            else if (maxUtilTriad> 0 && rc.canFireTriadShot()) {
+            if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                     rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
@@ -274,7 +275,7 @@ public class Soldier {
                     return;
                 }
             }
-            else if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
+            if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                 rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
