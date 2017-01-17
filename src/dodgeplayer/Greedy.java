@@ -1,7 +1,8 @@
-package simpleplayer;
+package dodgeplayer;
 
 import battlecode.common.*;
-import java.util.*;
+
+import java.util.HashMap;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -37,20 +38,21 @@ public class Greedy {
                 else if (!rc.isCircleOccupiedExceptByThisRobot(obstacle, rc.getType().bodyRadius)) obstacle = null;
             }
             if (obstacle == null) {
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
                 Direction dir = pos.directionTo(target);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                    return;
+                if (rc.canMove(target)){
+                    MapLocation nextPos = target;
+                    if (pos.distanceTo(target) > stride) nextPos = pos.add(dir, stride);
+                    dirObstacle = getExtremalBulletDirection(rc, nextPos, left);
+                    if (dirObstacle == null) {
+                        rc.move(target);
+                        return;
+                    }
                 }
                 else{
                     dirObstacle = dir;
                 }
             }
-            else dirObstacle = pos.directionTo(obstacle);
+            else if (dirObstacle == null) dirObstacle = pos.directionTo(obstacle);
             if (minDistToTarget == Constants.INF) { //PRIMER COP GREEDY
                 collisionLocations = new HashMap<>();
                 minDistToTarget = pos.distanceTo(target);
@@ -83,15 +85,23 @@ public class Greedy {
             } else { //GREEDY GENERAL
                 Direction dir = pos.directionTo(target);
                 float dist = pos.distanceTo(target);
-                if (dist < rc.getType().strideRadius && rc.canMove(target)){
-                    resetObstacle();
-                    rc.move(target);
-                    return;
+                if (dist < stride && rc.canMove(target)){
+                    if (rc.canMove(target)){
+                        dirObstacle = getExtremalBulletDirection(rc, target, left);
+                        if (dirObstacle == null) {
+                            rc.move(target);
+                            return;
+                        }
+                    }
                 }
                 if (dist < minDistToTarget && rc.canMove(dir)){
-                    resetObstacle();
-                    rc.move(dir);
-                    return;
+                    MapLocation nextPos = target;
+                    if (pos.distanceTo(target) > stride) nextPos = pos.add(dir, stride);
+                    dirObstacle = getExtremalBulletDirection(rc, nextPos, left);
+                    if (dirObstacle == null) {
+                        rc.move(target);
+                        return;
+                    }
                 }
                 System.out.println(Clock.getBytecodeNum());
                 Direction dirGreedy = Greedy.greedyMove(rc, dirObstacle, 0, left);
@@ -133,10 +143,10 @@ public class Greedy {
     public static void addCollisionLocation(RobotController rc, boolean left){
         MapLocation pos = rc.getLocation();
         MapLocation collisionPos = pos.add(pos.directionTo(obstacle), Constants.COLLISIONDIST);
-        int x = Math.round(collisionPos.x/Constants.COLLISIONRANGE), y = Math.round(collisionPos.y/Constants.COLLISIONRANGE);
+        int x = Math.round(collisionPos.x/ Constants.COLLISIONRANGE), y = Math.round(collisionPos.y/ Constants.COLLISIONRANGE);
         int a = 0;
         if (left) a = 1;
-        int hash = 2*(x*Constants.COLLISIONHASH + y)+a;
+        int hash = 2*(x* Constants.COLLISIONHASH + y)+a;
         if (!collisionLocations.containsKey(hash)){
             collisionLocations.put(hash, rc.getRoundNum());
         } else {
@@ -165,9 +175,14 @@ public class Greedy {
             finished = true;
             return null;
         }
-        if (rc.canMove(dir)) return dir;
 
         MapLocation nextPos = pos.add(dir, r);
+
+        if (rc.canMove(dir)){
+            Direction newProDir = getExtremalBulletDirection(rc, nextPos, left);
+            if (newProDir == null) return dir;
+            return greedyMove(rc, newProDir, tries+1, left);
+        }
 
         try{
             if (!rc.onTheMap(nextPos, R)){
@@ -220,6 +235,12 @@ public class Greedy {
             }
         }
 
+        Direction newProDir = getExtremalBulletDirection(rc, nextPos, newLeft);
+        if (Mates.cclockwise(newProDir, currentProDir, dir, left)){
+            currentProDir = newProDir;
+        }
+
+
         if (currentProDir == null){
             newLeft  = !newLeft;
             finished = true;
@@ -230,7 +251,7 @@ public class Greedy {
         newObstacle = m;
 
         try {
-            //rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
+            rc.setIndicatorDot(rc.getLocation().add(currentProDir, 2.0f), 0, 0, 255);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -238,20 +259,28 @@ public class Greedy {
         return greedyMove(rc, currentProDir, tries+1, left);
     }
 
-    public static boolean canMoveWithBullers(RobotController rc, Direction dir){
-        if (dir == null) return false;
-        MapLocation pos = rc.getLocation();
-        pos = pos.add(dir, rc.getType().strideRadius);
-        if (!rc.canMove(dir)) return false;
-        for (BulletInfo bullet : bullets){
-            MapLocation loc = bullet.getLocation();
-            Direction bulletDir = bullet.getDir();
-            float v = bullet.getSpeed();
-            loc = loc.add(bulletDir, v/2);
-            if (pos.distanceTo(loc) < v/2 + rc.getType().bodyRadius + Constants.eps) return false;
-        }
-        return true;
-    }
 
+    public static Direction getExtremalBulletDirection(RobotController rc, MapLocation nextPos, boolean l){
+        BulletInfo[] Bi = rc.senseNearbyBullets(nextPos, rc.getType().bodyRadius + Constants.MAXBULLETSPEED);
+
+        MapLocation pos = rc.getLocation();
+
+        Direction dir = pos.directionTo(nextPos);
+
+        Direction ans = null;
+
+
+        int cont = 0;
+        for (BulletInfo bi : Bi) {
+            System.out.println("Bytecode1: " + cont + " " +  Clock.getBytecodeNum());
+            ++cont;
+            Direction newProDir = Mates.extremeBulletDirection(dir, pos, nextPos, rc.getType().strideRadius, rc.getType().bodyRadius , bi, l);
+            System.out.println("Bytecode2: " + Clock.getBytecodeNum());
+            if (Mates.cclockwise(newProDir, ans , dir, l)){
+                ans = newProDir;
+            }
+        }
+        return ans;
+    }
 
 }

@@ -1,5 +1,7 @@
-package simpleplayer;
-import battlecode.common.*;
+package dodgeplayer;
+
+import battlecode.common.Direction;
+import battlecode.common.RobotType;
 
 /**
  * Created by Ivan on 1/15/2017.

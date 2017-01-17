@@ -1,8 +1,9 @@
-package simpleplayer;
+package dodgeplayer;
 
 import battlecode.common.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 
 /**
@@ -70,7 +71,7 @@ public class Soldier {
 
             System.out.println(maxUtil);
 
-            tryShoot();
+            //tryShoot();
 
             Clock.yield();
         }
