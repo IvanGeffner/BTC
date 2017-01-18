@@ -276,7 +276,7 @@ public class Tank {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
                         rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         Greedy.resetObstacle();
                         rc.firePentadShot(dirPentad);
                         return;
@@ -286,7 +286,7 @@ public class Tank {
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     Greedy.resetObstacle();
                     rc.fireTriadShot(dirTriad);
                     return;
@@ -294,7 +294,7 @@ public class Tank {
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 Greedy.resetObstacle();
                 rc.fireSingleShot(dirSingle);
             }

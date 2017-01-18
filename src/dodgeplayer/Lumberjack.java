@@ -117,13 +117,8 @@ public class Lumberjack {
         try {
             if (chopUtil > strikeUtil && chopUtil > 0) {
                 rc.chop(chopID);
-                TreeInfo treeInfo = rc.senseTree(chopID);
-                rc.setIndicatorLine(rc.getLocation(),treeInfo.getLocation(),255,0,0);
             }
-            else if (strikeUtil > 0) {
-                rc.strike();
-                rc.setIndicatorDot(rc.getLocation(),255,0,0);
-            }
+            else if (strikeUtil > 0) rc.strike();
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
