@@ -9,44 +9,44 @@ import java.util.HashSet;
  */
 public class Gardener {
 
-    static RobotController rc;
+    private static RobotController rc;
 
-    static MapLocation realTarget;
+    private static MapLocation realTarget;
 
-    static MapLocation base;
-    static int xBase;
-    static int yBase;
+    private static int xBase;
+    private static int yBase;
+    private static MapLocation basePos;
+    private static MapLocation centerPos;
 
-    static int whatShouldIConstruct;
-    static int whatUnitShouldIConstruct;
+    private static int zoneX = (int) Constants.INF;
+    private static int zoneY = (int) Constants.INF;
 
-    static int treeSpending;
-    static int initialMessage = 0;
+    private static int whatShouldIConstruct;
+    private static int whatUnitShouldIConstruct;
 
-    static MapLocation treeToPlant = null;
-    static MapLocation treeToWater = null;
-    static boolean shouldMove;
+    private static float maxDistToCenter = 4.25f;
 
-    static HashSet<Integer> readMes;
+    private static int treeSpending;
+    private static int initialMessage = 0;
 
-    static int round;
+    private static MapLocation treeToPlant = null;
+    private static MapLocation treeToWater = null;
+    private static boolean shouldMove;
 
-    static int[] Xsorted = {0, 1, -1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
-    static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
+    private static HashSet<Integer> readMes;
 
-    @SuppressWarnings("unused")
+    private static int initLoopRound; //serveix per mirar que no es passi de bytecode
+
+    private static int[] Xsorted = {0, 1, -1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
+    private static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
+
+
     public static void run(RobotController rcc) {
-
         rc = rcc;
         Initialize();
-        //code executed onece at the begining
 
         while (true) {
-
-
-            //code executed continually, don't let it end
-
-            round = rc.getRoundNum();
+            initLoopRound = rc.getRoundNum();
 
             shouldMove = true;
             treeSpending = 0;
@@ -60,12 +60,30 @@ public class Gardener {
             if (!tryPlant()) tryConstruct();
 
             MapLocation newTarget = findTreeToWater();
-            if (newTarget == null) newTarget = findTreeToPlant();
+            if (newTarget == null) {
+                newTarget = findTreeToPlant();
+            }
+
+            if (newTarget == null && zoneX != Constants.INF){
+                newTarget = basePos;
+            }
+
+            if (zoneX != Constants.INF){
+                if (Math.abs(rc.getLocation().x - centerPos.x) > maxDistToCenter || Math.abs(rc.getLocation().y - centerPos.y) > maxDistToCenter){
+                    newTarget = centerPos;
+                    if (realTarget != centerPos) Greedy.resetObstacle();
+                }
+            }
+
             updateTarget(newTarget);
 
             try {
-                if (realTarget == null) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-                else rc.setIndicatorDot(realTarget, 0, 255, 0);
+                if (realTarget == null) {
+                    rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                }
+                else {
+                    rc.setIndicatorDot(realTarget, 0, 255, 0);
+                }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
@@ -80,10 +98,9 @@ public class Gardener {
         }
     }
 
-
-
+    //nomes es fa la primera ronda
     static void Initialize(){
-        base = rc.getInitialArchonLocations(rc.getTeam())[0];
+        MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
         readMes = new HashSet<>();
@@ -95,6 +112,24 @@ public class Gardener {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static int[] getZoneFromPos(MapLocation pos){
+        int[] z = {0,0};
+        z[0] = (Math.round(pos.x) - xBase + 127*Constants.ModulC - 1) / Constants.ModulC;
+        z[0] -= 127;
+        z[1] = (Math.round(pos.y) - yBase + 127*Constants.ModulR - 5) / Constants.ModulR;
+        z[1] -= 127;
+        return z;
+    }
+
+    static MapLocation getBasePosFromZone(int zx, int zy){
+        return new MapLocation((float) Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 8);
+    }
+
+
+    static MapLocation getCenterPosFromZone(int zx, int zy){
+        return new MapLocation((float)Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 9.5f);
     }
 
     static void tryWatering(){
@@ -127,7 +162,6 @@ public class Gardener {
     }
 
     static MapLocation findTreeToWater(){
-
         try {
             if (treeToWater != null) {
                 if (rc.canSenseLocation(treeToWater)) {
@@ -139,8 +173,6 @@ public class Gardener {
                     }
                 }
             }
-
-
             TreeInfo[] Ti = rc.senseNearbyTrees (-1, rc.getTeam());
             float maxDist = 1000f;
             TreeInfo m = null;
@@ -154,6 +186,13 @@ public class Gardener {
                 }
             }
             if (m != null){
+                if (zoneX != Constants.INF){
+                    int[] z = getZoneFromPos(m.getLocation());
+                    if (zoneX == z[0] && zoneY == z[1]){
+                        treeToWater = m.getLocation();
+                        return treeToWater;
+                    }else return null;
+                }
                 treeToWater = m.getLocation();
                 return treeToWater;
             }
@@ -351,6 +390,14 @@ public class Gardener {
                         return false;
                     } else if (rc.canPlantTree(treeDir)){
                         rc.plantTree(treeDir);
+                        if (zoneX == Constants.INF){
+                            int z[] = getZoneFromPos(treePos);
+                            zoneX = z[0];
+                            zoneY = z[1];
+                            basePos = getBasePosFromZone(zoneX,zoneY);
+                            centerPos = getCenterPosFromZone(zoneX,zoneY);
+                            System.out.println("assignen la zone " + zoneX + "  " + zoneY);
+                        }
                         updateConstruct(5);
                         return true;
                     }
@@ -365,8 +412,8 @@ public class Gardener {
 
     static MapLocation findTreeToPlant(){
         if (treeToPlant != null) {
-            int tx = (int) Math.round(treeToPlant.x);
-            int ty = (int) Math.round(treeToPlant.y);
+            int tx = Math.round(treeToPlant.x);
+            int ty = Math.round(treeToPlant.y);
             int tyy = ty + 1000* Constants.ModulR - yBase;
             boolean posFound = false;
             if (tyy % (Constants.ModulR) == Constants.SouthTree - 2){
@@ -390,11 +437,18 @@ public class Gardener {
             int xx = x+Xsorted[i];
             int yy = y+Ysorted[i];
             MapLocation m = emptySpot(xx,yy);
-            try {
-                if (m != null) return m;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
+            if (m != null) {
+                int[] z = getZoneFromPos(m);
+                if (zoneX != Constants.INF){
+                    //System.out.println("zone = " + zoneX + zoneY + ", z = "+ z[0] + " " + z[1]);
+                    if (zoneX == z[0] && zoneY == z[1]) {
+                        treeToPlant = m;
+                        return m;
+                    }
+                    return null;
+                }
+                treeToPlant = m;
+                return m;
             }
         }
         return null;
@@ -403,11 +457,13 @@ public class Gardener {
     static MapLocation emptySpot (int x, int y){
         int a = x + 1000* Constants.ModulC - xBase;
         int b = y + 1000* Constants.ModulR - yBase;
-        if ((a% Constants.ModulC)%2 == 1 || a% Constants.ModulC <= 2 || a% Constants.ModulC >= (Constants.ModulC) - 2) return null;
-        if ((b% Constants.ModulR)%2 == 1 || b% Constants.ModulR <= 2 || b% Constants.ModulR >= (Constants.ModulR) - 2) return null;
-        float extraY = (float)((a% Constants.ModulC) -2) * 0.02f;
+        int amod = a % Constants.ModulC;
+        int bmod = b % Constants.ModulR;
+        if (amod%2 == 1 || amod <= 2 || amod >= (Constants.ModulC) - 2) return null;
+        if (bmod%2 == 1 || bmod <= 2 || bmod >= (Constants.ModulR) - 2) return null;
+        float extraY = (amod -2) * 0.02f;
         float extraextraY = 2.0f;
-        if (b% Constants.ModulR == Constants.SouthTree){
+        if (bmod == Constants.SouthTree){
             extraY = -extraY;
             extraextraY = -extraextraY;
         }
@@ -467,7 +523,7 @@ public class Gardener {
     }
 
     static void broadcastLocations() {
-        if (round != rc.getRoundNum()) return;
+        if (initLoopRound != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;

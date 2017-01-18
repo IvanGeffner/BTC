@@ -23,7 +23,7 @@ public class Mates {
     public static float getAngle (float a, float b, float c){
         //double x = (a*a + b*b - c*c)/(2.0f*a*b);
         //return acos[(int)Math.floor((1.0f+x)*1000)];
-        return arccos((a*a + b*b - c*c)/(2.0f*a*b));
+        return (float) Math.acos((a*a + b*b - c*c)/(2.0f*a*b));
     }
 
     public static boolean cclockwise (Direction a, Direction b, Direction c, boolean left) { //si a esta a l'esquerra de b (left)
@@ -118,8 +118,7 @@ public class Mates {
             distToRect2 = -distToRect2;
         }
 
-        boolean ori = (dirToV4.radiansBetween(dirToV3) >= 0);
-        System.out.println("  abans del segon if d <= stride "+ Clock.getBytecodeNum());
+//        System.out.println("  abans del segon if d <= stride "+ Clock.getBytecodeNum());
         if (distToRect2 <= stride) {
             float angle = arccos(distToRect2/stride);
             Direction tangentDirLeft = perp2.rotateLeftRads(angle);

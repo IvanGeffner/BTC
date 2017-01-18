@@ -1,6 +1,23 @@
-producte de ints: 2 bytecode
-producte de floats: 2 bytecode
-declarar maplocation: 0 bytecode
++,-,*,/: 2 bytecode
+declarar: 0 bytecode
 fors: 6 per iteracio
 sqrt: 4 
 arc cos: 4
+ifs: 2
+assignacio: 2
+<, >, <=, >=, ==, &&, ||: 3
+&, |: 2
+salt de funcio: 1 + 1 per parametre passat
+accedir a un array: 2
+inicialitzar (crear) una array: 5*size
+Math.PI = 0
+crear hashmap: 10
+hashmap.get(): 30 (en un de buit)
+hashmap.containskey(): 27 (en un buit)
+hashmap.put: 147 (en un buit)
+
+crear hashset: 20
+hashset.contains: 31 (en un buit)
+hashset.add: 154 (en un buit)
+
+
