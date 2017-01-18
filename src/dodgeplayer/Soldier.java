@@ -42,10 +42,13 @@ public class Soldier {
             //code executed continually, don't let it end
             targetUpdated = false;
             if (realTarget != null && rc.canSenseLocation(realTarget)){
-                newTarget = realTarget;
+                newTarget = null;
                 maxUtil = 0;
             } else if (realTarget != null && rc.getRoundNum() - roundTarget < Constants.CHANGETARGET){
                 newTarget = realTarget;
+            } else{
+                newTarget = null;
+                maxUtil = 0;
             }
 
             float val = 5.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
@@ -57,8 +60,15 @@ public class Soldier {
 
             round = rc.getRoundNum();
 
+            System.out.println("PreMessages " + Clock.getBytecodeNum());
+
             readMessages();
+
+            System.out.println("PostMessages " + Clock.getBytecodeNum());
             broadcastLocations();
+
+            System.out.println("PostBroadcast " + Clock.getBytecodeNum());
+
             updateTarget();
             try {
                 if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
@@ -69,9 +79,9 @@ public class Soldier {
 
             Greedy.moveGreedy(rc, realTarget);
 
-            System.out.println(maxUtil);
+            tryShoot();
 
-            //tryShoot();
+            System.out.println(maxUtil);
 
             Clock.yield();
         }
@@ -143,17 +153,21 @@ public class Soldier {
             RobotInfo ri = rArray.get(i);
             RobotType r = ri.getType();
             MapLocation m = ri.getLocation();
+            float R = r.bodyRadius;
 
 
             Direction dir = pos.directionTo(m);
 
             float d = m.distanceTo(pos);
 
-            RobotInfo[] allies = rc.senseNearbyRobots(pos, d, rc.getTeam());
+            float a = (float)Math.asin(R/d);
 
-            TreeInfo[] trees = rc.senseNearbyTrees(pos, d, null);
+            float l = (float)Math.sqrt(R*R*(1.0f + (float)Math.cos(2*a)));
+            float rad = l/(2.0f*(float)Math.sin(2*a));
 
-            float a = (float)Math.asin(r.bodyRadius/d);
+            RobotInfo[] allies = rc.senseNearbyRobots(pos.add(rad), rad, rc.getTeam());
+
+            TreeInfo[] trees = rc.senseNearbyTrees(pos.add(rad), rad, null);
 
             Direction dirRight = dir.rotateRightRads(a);
             Direction dirLeft = dir.rotateLeftRads(a);
@@ -261,8 +275,9 @@ public class Soldier {
             if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
-                        //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        //rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
+                        rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
+                        Greedy.resetObstacle();
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -270,15 +285,17 @@ public class Soldier {
             }
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
-                    //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    //rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
+                    rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
+                    Greedy.resetObstacle();
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
-                //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                //rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
+                rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
+                Greedy.resetObstacle();
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {
@@ -325,12 +342,12 @@ public class Soldier {
         if (m == null) return 0;
         float d = rc.getLocation().distanceTo(m);
         float s = 0;
-        if (a == 5) s = Constants.INF;
-        else if (a == 4) s = 1;
-        else if (a == 3) s = 40;
-        else if (a == 2) s = 5;
-        else if (a == 1) s = 15;
-        else if (a == 0) s = 20;
+        if (a == 5) s = 8;
+        else if (a == 4) s = 20;
+        else if (a == 3) s = 15;
+        else if (a == 2) s = 20;
+        else if (a == 1) s = 8;
+        else if (a == 0) s = 15;
         return s/(1.0f + d);
     }
 

@@ -22,7 +22,7 @@ public class Constants {
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;
 
-    public static int TC = 5; //TreeColumns
+    public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows
     public static int DR = 5; //Distance Row-Row
     public static int ModulR = 2*TR + DR;
@@ -35,7 +35,7 @@ public class Constants {
     public static int BYTECODEPOSTMESSAGES = 9000;
     public static int SAFETYMARGIN = 8000;
     public static int CHANGETARGET = 30;
-    public static float NEWTARGET = 2.5f;
+    public static float NEWTARGET = 2.01f;
     public static float BULLETSIGHT = 6f;
     public static int ANGLEFACTOR = (1 << 13);
 
@@ -44,6 +44,7 @@ public class Constants {
     public static int COLLISIONHASH = 1000;
     public static int COLLISIONROUND = 5;
     public static float MAXBULLETSPEED = 3.0f;
+    public static int MAXSORT = 22;
 
     public static int NUMELEMENTS = 5;
 
@@ -63,6 +64,12 @@ public class Constants {
         else if (r == RobotType.TANK) return 3;
         else if (r == RobotType.SCOUT) return 4;
         else if (r == RobotType.ARCHON) return 5;
+        return 0;
+    }
+
+    static float safetyDistance(RobotType r){
+        if (r == RobotType.LUMBERJACK) return 1f;
+        else if (r == RobotType.SOLDIER) return 2.2f;
         return 0;
     }
 
