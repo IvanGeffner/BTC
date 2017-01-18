@@ -1,0 +1,6 @@
+producte de ints: 2 bytecode
+producte de floats: 2 bytecode
+declarar maplocation: 0 bytecode
+fors: 6 per iteracio
+sqrt: 4 
+arc cos: 4
