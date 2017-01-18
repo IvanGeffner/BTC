@@ -80,10 +80,9 @@ public class Gardener {
             try {
                 if (realTarget == null) {
                     rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-                    randomMove();
                 }
                 else {
-                    rc.setIndicatorLine(rc.getLocation(),realTarget, 0, 255, 0);
+                    rc.setIndicatorDot(realTarget, 0, 255, 0);
                 }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
