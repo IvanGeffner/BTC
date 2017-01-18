@@ -116,7 +116,7 @@ public class Scout {
                 moveInYourDirection();
                 return;
             }
-            rc.setIndicatorDot(randomTarget, 0, 0, 255);
+            rc.setIndicatorLine(rc.getLocation(),randomTarget, 0, 0, 255);
             Greedy.moveGreedy(rc,randomTarget);
         } catch (Exception e) {
             System.out.println(e.getMessage());
