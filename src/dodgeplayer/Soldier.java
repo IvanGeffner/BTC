@@ -165,9 +165,9 @@ public class Soldier {
             float l = (float)Math.sqrt(R*R*(1.0f + (float)Math.cos(2*a)));
             float rad = l/(2.0f*(float)Math.sin(2*a));
 
-            RobotInfo[] allies = rc.senseNearbyRobots(pos.add(rad), rad, rc.getTeam());
+            RobotInfo[] allies = rc.senseNearbyRobots(pos.add(dir, rad), rad, rc.getTeam());
 
-            TreeInfo[] trees = rc.senseNearbyTrees(pos.add(rad), rad, null);
+            TreeInfo[] trees = rc.senseNearbyTrees(pos.add(dir, rad), rad, null);
 
             Direction dirRight = dir.rotateRightRads(a);
             Direction dirLeft = dir.rotateLeftRads(a);
