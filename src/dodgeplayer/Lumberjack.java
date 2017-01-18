@@ -48,6 +48,7 @@ public class Lumberjack {
             findBestTree();
             updateTarget();
             if (shouldMove) Greedy.moveGreedy(rc,realTarget);
+            else Greedy.moveGreedy(rc, rc.getLocation());
 
             Clock.yield();
         }

@@ -89,10 +89,9 @@ public class Gardener {
                 e.printStackTrace();
             }
 
-            if(shouldMove) {
-                if (realTarget == null) randomMove();
-                else Greedy.moveGreedy(rc, realTarget);
-            }
+            if (!shouldMove) realTarget = rc.getLocation();
+
+            Greedy.moveGreedy(rc, realTarget);
 
             Clock.yield();
         }

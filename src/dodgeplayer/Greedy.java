@@ -17,6 +17,8 @@ public class Greedy {
     static float minDistToTarget = Constants.INF;
     static int left = 0;
 
+    static boolean shouldMove = true;
+
     static HashMap<Integer, Integer> collisionLocations = new HashMap<>();
     static int[] intervals;
 
@@ -45,7 +47,7 @@ public class Greedy {
             Direction dirGreedy = greedyStep(rc, dirObstacle);
             if (dist < minDistToTarget) minDistToTarget = dist;
             if (left != 0) addCollisionLocation(rc);
-            if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(target))) < Constants.eps){
+            if ((!shouldMove && dirObstacle == null) || Math.abs(dirGreedy.radiansBetween(pos.directionTo(target))) < Constants.eps){
                 if (rc.canMove(target)){
                     rc.move(target);
                     return;
@@ -87,6 +89,12 @@ public class Greedy {
     }
 
     public static Direction greedyStep(RobotController rc, Direction dir){
+
+
+        if (dir == null){
+            dir = new Direction ((float)Math.random(), (float)Math.random());
+            shouldMove = false;
+        }
 
         int inter = 0; //position at intervals
 
@@ -276,6 +284,8 @@ public class Greedy {
             }*/
 
         }
+
+        if (contBullets > 0) shouldMove = true;
 
         if (inter < maxLength) intervals = Arrays.copyOf(intervals, inter);
 

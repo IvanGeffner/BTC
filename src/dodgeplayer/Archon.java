@@ -34,7 +34,7 @@ public class Archon {
             tryConstruct();
             //tryMove();
 
-
+            Greedy.moveGreedy(rc, rc.getLocation());
 
             Clock.yield();
         }
