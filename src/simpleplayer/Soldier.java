@@ -70,7 +70,9 @@ public class Soldier {
 
             System.out.println(maxUtil);
 
+            System.out.println("Before shooting: " + Clock.getBytecodeNum());
             tryShoot();
+            System.out.println("After shooting: " + Clock.getBytecodeNum());
 
             Clock.yield();
         }
@@ -142,17 +144,21 @@ public class Soldier {
             RobotInfo ri = rArray.get(i);
             RobotType r = ri.getType();
             MapLocation m = ri.getLocation();
+            float R = r.bodyRadius;
 
 
             Direction dir = pos.directionTo(m);
 
             float d = m.distanceTo(pos);
 
-            RobotInfo[] allies = rc.senseNearbyRobots(pos, d, rc.getTeam());
+            float a = (float)Math.asin(R/d);
 
-            TreeInfo[] trees = rc.senseNearbyTrees(pos, d, null);
+            float l = (float)Math.sqrt(R*R*(1.0f + (float)Math.cos(2*a)));
+            float rad = l/(2.0f*(float)Math.sin(2*a));
 
-            float a = (float)Math.asin(r.bodyRadius/d);
+            RobotInfo[] allies = rc.senseNearbyRobots(pos.add(rad), rad, rc.getTeam());
+
+            TreeInfo[] trees = rc.senseNearbyTrees(pos.add(rad), rad, null);
 
             Direction dirRight = dir.rotateRightRads(a);
             Direction dirLeft = dir.rotateLeftRads(a);
