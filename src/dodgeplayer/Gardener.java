@@ -1,12 +1,13 @@
 package dodgeplayer;
 
 import battlecode.common.*;
+import scala.collection.immutable.Stream;
+import sun.reflect.generics.tree.Tree;
 
 import java.util.HashSet;
+import java.util.Map;
 
-/**
- * Created by Ivan on 1/9/2017.
- */
+
 public class Gardener {
 
     private static RobotController rc;
@@ -20,6 +21,22 @@ public class Gardener {
 
     private static int zoneX = (int) Constants.INF;
     private static int zoneY = (int) Constants.INF;
+    private static int[] zone = {(int) Constants.INF, (int) Constants.INF};
+    private static int zoneRows = 12;
+    private static int zoneColumns = 10;
+    private static int zonesPerChannel = 8;
+
+    private static MapLocation myTarget;
+
+    private static int[] zoneIWant = {-1,-1};
+
+    private static int emptyZone = 0;
+    private static int busyZone = 1;
+    private static int abandonedZone = 2;
+    private static int outOfMapZone = 3;
+
+    private static HashSet<MapLocation> neutralTreesInMyZone = new HashSet<>();
+    private static float[] bulletTreeHP;
 
     private static int whatShouldIConstruct;
     private static int whatUnitShouldIConstruct;
@@ -47,7 +64,32 @@ public class Gardener {
 
         while (true) {
             initLoopRound = rc.getRoundNum();
+/*          NO BORRAR, ES EL NOU CODI
+            broadcastMyZone();
 
+            if (zone[0] == Constants.INF) {
+                searchZone();
+                if (zoneIWant[0] != -1){
+                    myTarget = getBasePosFromZone(zoneIWant[0],zoneIWant[1]);
+                }
+
+                if (getZoneFromPos(rc.getLocation()) == zoneIWant){
+                    if (getZoneTypeFromBroadcast(zoneIWant) != busyZone) {
+                        zone = zoneIWant;
+                        broadcastZone(zone, busyZone);
+                    }else{
+                        zoneIWant = new int[]{-1, -1};
+                    }
+                }
+            }else{
+                checkNeutralTreesInZone();
+                MapLocation newTarget;
+                newTarget = checkNearbyEnemies();
+                if (newTarget == null) newTarget = findLowHPTree();
+            }
+            waterNearbyTree();
+
+*/
             shouldMove = true;
             treeSpending = 0;
 
@@ -98,8 +140,9 @@ public class Gardener {
         }
     }
 
+
     //nomes es fa la primera ronda
-    static void Initialize(){
+    private static void Initialize(){
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
@@ -114,7 +157,151 @@ public class Gardener {
         }
     }
 
-    static int[] getZoneFromPos(MapLocation pos){
+    private static void broadcastZone(int[] z, int newZoneType){
+        if (z[0] == Constants.INF) return;
+        int zone_id = z[0] + zoneColumns * z[1];
+        if (zone_id < 0) zone_id += zoneColumns*zoneRows;
+        int channel_id = zone_id / zonesPerChannel;
+        int info = (rc.getRoundNum() & 0x03) * 4 + newZoneType;
+        info = info << (4* (zone_id % zonesPerChannel));
+        try {
+            int old_channel_info = rc.readBroadcast(channel_id + Communication.ZONE_FIRST_POSITION);
+            int mask = ~((0x0F) << (4 * (zone_id % zonesPerChannel)));
+            int new_channel_info = (old_channel_info & mask) + info;
+            rc.broadcast(channel_id + Communication.ZONE_FIRST_POSITION, new_channel_info);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int getZoneTypeFromBroadcast(int[] z){
+        int zone_id = z[0] + zoneColumns * z[1];
+        if (zone_id < 0) zone_id += zoneColumns*zoneRows;
+        int channel_id = zone_id / zonesPerChannel;
+        try {
+            int info = rc.readBroadcast(channel_id);
+            info = info >> (4*(zone_id % zonesPerChannel));
+            return info & 0x3;
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private static void broadcastMyZone(){
+        if (zone[0] == Constants.INF) return;
+        broadcastZone(zone, busyZone);
+
+    }
+
+    private static void searchZone() {
+        if (zoneIWant[0] != -1) return;
+        int[] ch_info = new int[Communication.ZONE_CHANNELS];
+        for (int i = Communication.ZONE_FIRST_POSITION; i < Communication.ZONE_FIRST_POSITION + Communication.ZONE_CHANNELS; i++){
+            try {
+                ch_info[i - Communication.ZONE_FIRST_POSITION] = rc.readBroadcast(i);
+            } catch (GameActionException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+        int[] closest_empty_zone = {-1,-1};
+        int[] myZone = getZoneFromPos(rc.getLocation());
+        for (int i = 0; i < Xsorted.length; i++){
+            if (i > 25 && closest_empty_zone[0] != -1){
+                zoneIWant = closest_empty_zone;
+                return;
+            }
+            int[] newZone = {myZone[0] + Xsorted[i], myZone[1] + Ysorted[i]};
+            int new_zone_id = newZone[0] + zoneColumns * newZone[1];
+            if (new_zone_id < 0) new_zone_id += zoneColumns*zoneRows;
+            int channel_id = new_zone_id / zonesPerChannel;
+            int info = ch_info[channel_id];
+            info = info >> (4*(new_zone_id % zonesPerChannel));
+            int zoneType = info & 0x3;
+            int lastTurn = (info >> 2) & 0x3;
+            int thisTurn = rc.getRoundNum();
+            if (zoneType == busyZone){
+                if ((lastTurn & 0x3) == ((thisTurn + 2) & 0x3) || ((lastTurn+3) & 0x3) == (thisTurn & 0x3) ){
+                    zoneType = abandonedZone;
+                    broadcastZone(newZone, abandonedZone);
+                }
+            }
+            if (zoneType == abandonedZone){
+                zoneIWant = newZone;
+                return;
+            }
+            if (zoneType == emptyZone && closest_empty_zone[0] == -1){
+                closest_empty_zone = newZone;
+            }
+
+        }
+    }
+
+    private static void waterNearbyTree(){
+        if (!rc.canWater()) return;
+        TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().strideRadius);
+        float minHP = Constants.INF;
+        int minID = -1;
+        for (TreeInfo tree: myTrees){
+            if (tree.getHealth() < minHP){
+                minHP = tree.getHealth();
+                minID = tree.getID();
+            }
+        }
+        if (minID != -1) try {
+            rc.water(minID);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void checkNeutralTreesInZone(){
+        TreeInfo[] neutralTrees = rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL);
+        for (TreeInfo ti: neutralTrees){
+            MapLocation treeLocation = ti.getLocation();
+            int[] treeZone = getZoneFromPos(treeLocation);
+            if (treeZone == zone){
+                if (neutralTreesInMyZone.contains(treeLocation)){
+                    messageCutNeutralTree(treeLocation);
+                    neutralTreesInMyZone.add(treeLocation);
+                }
+            }
+        }
+    }
+
+    private static void messageCutNeutralTree(MapLocation treeLocation) {
+        //TODO
+    }
+
+    private static MapLocation checkNearbyEnemies(){
+        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().sensorRadius, rc.getTeam().opponent());
+        MapLocation myPos = rc.getLocation();
+        MapLocation escapePos = rc.getLocation();
+        for (RobotInfo enemy: enemies){
+            if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER) continue;
+            Direction enemyDir = myPos.directionTo(enemy.getLocation());
+            escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
+        }
+        if (myPos.isWithinDistance(escapePos, Constants.eps)) return null;
+        escapePos = escapePos.add(myPos.directionTo(escapePos), 100);
+        return escapePos;
+    }
+
+    private static MapLocation findLowHPTree(){
+        MapLocation[] treeLocations = getTreeLocationsInZone(zone);
+        for (int i = 0; i < treeLocations.length; i++){
+            if (bulletTreeHP[i] < Constants.minHPGoWater) return treeLocations[i];
+        }
+        return null;
+    }
+
+    private static MapLocation[] getTreeLocationsInZone(int[] zone) {
+        return null;
+    }
+
+
+    private static int[] getZoneFromPos(MapLocation pos){
         int[] z = {0,0};
         z[0] = (Math.round(pos.x) - xBase + 127*Constants.ModulC - 1) / Constants.ModulC;
         z[0] -= 127;
@@ -123,16 +310,17 @@ public class Gardener {
         return z;
     }
 
-    static MapLocation getBasePosFromZone(int zx, int zy){
+    private static MapLocation getBasePosFromZone(int zx, int zy){
         return new MapLocation((float) Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 8);
     }
 
 
-    static MapLocation getCenterPosFromZone(int zx, int zy){
+
+    private static MapLocation getCenterPosFromZone(int zx, int zy){
         return new MapLocation((float)Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 9.5f);
     }
 
-    static void tryWatering(){
+    private static void tryWatering(){
         TreeInfo[] Ti = rc.senseNearbyTrees(2 + Constants.eps, rc.getTeam());
         float minHP = 1000f;
         TreeInfo t = null;
@@ -213,6 +401,7 @@ public class Gardener {
         try{
             if (!allowedToConstruct(whatUnitShouldIConstruct)) return;
             RobotType t = Constants.ProductionUnits[whatUnitShouldIConstruct];
+
             for (int i = 0; i < 4; ++i){
                 if (rc.canBuildRobot(t, Constants.main_dirs[i])){
                     rc.buildRobot(t, Constants.main_dirs[i]);

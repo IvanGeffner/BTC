@@ -1,0 +1,42 @@
+Tipus de zona: 
+ - 00: lliure / no explorada
+ - 01: ocupada
+ - 10: abandonada
+ - 11: fora del mapa
+
+Te una array amb els arbres que planta i va apuntant la vida que tenen
+
+Sempre:
+ok	- Si esta al costat d'algun arbre, rega al que tingui menys vida
+ok	- Fa broadcast de la seva zona 
+ok	- Si no te cap zona assignada, en busca una lliure (abandonada -> no ocupada) i hi va
+ok	- Si hi ha algun arbre neutral a la seva zona, envia un missatge als lumberjacks
+
+Per ordre d'importancia:
+ok	- Si hi ha un enemic, fuig (decideix la posicio mes allunyada dels enemics).
+
+	Si té una zona:
+	- Si troba un arbre de la seva zona amb poca vida, el posa com a target
+		- Si ha de construir un robot, va al carrer vertical a construir-lo (es posa a la posició que seria per construir un arbre de la punta)
+		- Si ha de plantar un arbre, va a la posició de just a sobre/sota i s'espera a tenir bales
+	- Si no té res a fer, va al centre de la seva zona
+
+	
+codificació de zones en els broadcasts:
+
+posició (px,py) -> zona (zx,zy), amb 0 <= zx < 10, 0 <= zy < 12, => zx*12 + zy < 120 ->
+
+info d'una zona: 4 bits:
+	- b1b0: tipus de zona
+	- b3b2: ultim torn que s'ha actualitzat l'estat de la zona
+	
+per tant podem tenir 8 zones en cada int:
+	- Definim zone id = zx*12+zy, 0 <= id < 120 
+	- channel(zone id) = zone id / 8
+	- si tenim els 4 bits hem de fer
+	
+	
+	
+vector amb sentit oposat i modul 1/(dist+1)
+	
+	

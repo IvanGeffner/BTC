@@ -15,6 +15,7 @@ public class Communication {
     static final int UNITTREE = 0x60000000;
 
 
+
     //BC parameters
 
     static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
@@ -22,6 +23,11 @@ public class Communication {
 
     static final int ARCHONTURN = 508;
     static final int ARCHONNUMBER = 509;
+
+    // ocupa de la 600 a la 614 teoricament
+    static final int ZONE_FIRST_POSITION = 600;
+    static final int ZONE_CHANNELS = 15;
+
 
     static final int MAX_BROADCAST_MESSAGE = 500;
 
@@ -31,7 +37,6 @@ public class Communication {
     static final int iOffShift = 20;
     static final int jOffShift = 12;
     static final int valueMask = 0x00000FFF; // at most 4095
-
 
 
     public static int encodeFinding(int type, int iOffset, int jOffset, int value) {
