@@ -107,6 +107,7 @@ public class Lumberjack {
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
+            //aixo esta bug perque el stride radius es mes gran que el strike radius llavors es pensa que arriba a arbres que en realitat no
             if (ri.getTeam() == rc.getTeam()){
                 strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
