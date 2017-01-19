@@ -111,7 +111,7 @@ public class Soldier {
         if(targetUpdated) roundTarget = rc.getRoundNum();
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.NEWTARGET) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void tryShoot(){
@@ -277,7 +277,6 @@ public class Soldier {
                     if (maxUtilPentad > maxUtilSingle) {
                         rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                         rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle();
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -287,7 +286,6 @@ public class Soldier {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                     rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle();
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
@@ -295,7 +293,6 @@ public class Soldier {
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                 rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle();
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {

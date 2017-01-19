@@ -71,7 +71,7 @@ public class Gardener {
             if (zoneX != Constants.INF){
                 if (Math.abs(rc.getLocation().x - centerPos.x) > maxDistToCenter || Math.abs(rc.getLocation().y - centerPos.y) > maxDistToCenter){
                     newTarget = centerPos;
-                    if (realTarget != centerPos) Greedy.resetObstacle();
+                    if (realTarget != centerPos) Greedy.resetObstacle(rc);
                 }
             }
 
@@ -205,7 +205,7 @@ public class Gardener {
     static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void tryConstruct(){

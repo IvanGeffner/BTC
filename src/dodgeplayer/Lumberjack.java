@@ -76,8 +76,8 @@ public class Lumberjack {
         float strikeUtil = 0;
         float chopUtil = 0;
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius+rc.getType().bodyRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius+rc.getType().bodyRadius);
+        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius);
+        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
 
         int cont = 0;
 
@@ -155,7 +155,7 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void readMessages(){

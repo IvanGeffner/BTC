@@ -106,13 +106,13 @@ public class Scout {
             if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
                 randomTarget = rc.getLocation();
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
-                Greedy.resetObstacle();
+                Greedy.resetObstacle(rc);
                 moveInYourDirection();
                 return;
             }
             if (rc.getLocation().distanceTo(randomTarget) < Constants.pushTarget){
                 randomTarget = randomTarget.add(currentDirection, Constants.pushTarget);
-                Greedy.resetObstacle();
+                Greedy.resetObstacle(rc);
                 moveInYourDirection();
                 return;
             }
@@ -148,7 +148,7 @@ public class Scout {
     static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void readMessages(){
