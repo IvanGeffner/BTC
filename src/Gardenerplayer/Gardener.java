@@ -1,6 +1,7 @@
 package Gardenerplayer;
 
 import battlecode.common.*;
+import com.sun.tools.internal.jxc.ap.Const;
 
 import java.util.HashSet;
 
@@ -22,8 +23,6 @@ public class Gardener {
     private static int zoneRows = 12;
     private static int zoneColumns = 10;
     private static int zonesPerChannel = 8;
-
-    private static MapLocation myTarget;
 
     private static int[] zoneIWant = {-1,-1};
 
@@ -63,10 +62,11 @@ public class Gardener {
             initLoopRound = rc.getRoundNum();
             broadcastMyZone();
 
+            MapLocation newTarget = rc.getLocation();
             if (zone[0] == Constants.INF) {
-                searchZone();
+                searchZone(); //aqui se li dona un valor a zoneIWant 99.99999999% segur
                 if (zoneIWant[0] != -1){
-                    myTarget = getBasePosFromZone(zoneIWant[0],zoneIWant[1]);
+                    newTarget = getBasePosFromZone(zoneIWant[0],zoneIWant[1]);
                 }
 
                 if (getZoneFromPos(rc.getLocation()) == zoneIWant){
@@ -74,55 +74,26 @@ public class Gardener {
                         zone = zoneIWant;
                         broadcastZone(zone, busyZone);
                     }else{
+                        //he arribat a la zona que volia pero ara ja esta ocupada
                         zoneIWant = new int[]{-1, -1};
                     }
                 }
             }else{
                 updateTreeHP();
                 checkNeutralTreesInZone();
-                MapLocation newTarget;
                 newTarget = checkNearbyEnemies();
+                if (newTarget == null) newTarget = returnToZone();
                 if (newTarget == null) newTarget = findLowHPTree();
                 if (newTarget == null) newTarget = tryBuilding();
-            }
-            waterNearbyTree();
-
-
-
-
-            shouldMove = true;
-            treeSpending = 0;
-
-            readMessages();
-            broadcastLocations();
-
-            tryWatering();
-            updateWhatConstruct();
-
-            //if (!tryPlant()) tryConstruct();
-
-            MapLocation newTarget = findTreeToWater();
-            if (newTarget == null) {
-                newTarget = findTreeToPlant();
-            }
-
-            if (newTarget == null && zoneX != Constants.INF){
-                newTarget = zoneBasePos;
-            }
-
-            if (zoneX != Constants.INF){
-                if (Math.abs(rc.getLocation().x - zoneCenterPos.x) > maxDistToCenter || Math.abs(rc.getLocation().y - zoneCenterPos.y) > maxDistToCenter){
-                    newTarget = zoneCenterPos;
-                    if (realTarget != zoneCenterPos) Greedy.resetObstacle();
-                }
+                if (newTarget == null) newTarget = zoneBasePos;
             }
 
             updateTarget(newTarget);
+            waterNearbyTree();
 
             try {
                 if (realTarget == null) {
                     rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-                    randomMove();
                 }
                 else {
                     rc.setIndicatorLine(rc.getLocation(),realTarget, 0, 255, 0);
@@ -133,9 +104,7 @@ public class Gardener {
             }
 
             if (!shouldMove) realTarget = rc.getLocation();
-
             Greedy.moveGreedy(rc, realTarget);
-
             Clock.yield();
         }
     }
@@ -209,6 +178,7 @@ public class Gardener {
         int[] myZone = getZoneFromPos(rc.getLocation());
         for (int i = 0; i < Xsorted.length; i++){
             if (i > 25 && closest_empty_zone[0] != -1){
+                //nomes busquem zones abandonades fins a 25 per bytecode
                 zoneIWant = closest_empty_zone;
                 return;
             }
@@ -296,6 +266,12 @@ public class Gardener {
         return escapePos;
     }
 
+    private static MapLocation returnToZone(){
+        if (Math.abs(rc.getLocation().x - zoneCenterPos.x) < maxDistToCenter &&
+            Math.abs(rc.getLocation().y - zoneCenterPos.y) < maxDistToCenter) return null;
+        return zoneCenterPos;
+    }
+
     private static MapLocation findLowHPTree(){
         MapLocation[] treeLocations = getTreeLocationsInZone(zone);
         for (int i = 0; i < treeLocations.length; i++){
@@ -371,8 +347,42 @@ public class Gardener {
     private static MapLocation tryBuild(int unit_to_build){
         float buildPosX[] = {-3f,3f,-3f,3f};
         float buildPosY[] = {-1.5f,-1.5f,1.5f,1.5f};
+        float newRobotPosX[] = {-4f,4f,-4f,4f};
         MapLocation myPos = rc.getLocation();
+        float minDist = Constants.INF;
+        int minIndex = -1;
 
+        for (int i = 0; i < 4; i++){
+            MapLocation buildingPos = new MapLocation(zoneCenterPos.x + buildPosX[i], zoneCenterPos.y + buildPosY[i]);
+            if (!rc.canSenseLocation(buildingPos)) continue;
+            try {
+                if (rc.isLocationOccupied(buildingPos)) continue;
+                if (myPos.distanceTo(buildingPos) < minDist){
+                    minDist = myPos.distanceTo(buildingPos);
+                    minIndex = i;
+                }
+
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }
+        if (minIndex == -1) return null;
+
+        MapLocation bestBuildLocation = new MapLocation(zoneCenterPos.x + buildPosX[minIndex], zoneCenterPos.y + buildPosY[minIndex]);
+        MapLocation newRobotLocation  = new MapLocation(zoneCenterPos.x + newRobotPosX[minIndex], zoneCenterPos.y + buildPosY[minIndex]);
+        RobotType newRobotType = Constants.getRobotTypeFromIndex(unit_to_build);
+        Direction buildDirection = bestBuildLocation.directionTo(newRobotLocation);
+
+        if (myPos.distanceTo(bestBuildLocation) < Constants.eps && rc.canBuildRobot(newRobotType,buildDirection)){
+            try {
+                rc.buildRobot(newRobotType,buildDirection);
+                incrementUnitsBuilt();
+                return null;
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }
+        return bestBuildLocation;
     }
 
 
@@ -384,7 +394,7 @@ public class Gardener {
 
 
     private static MapLocation[] getTreeLocationsInZone(int[] zone) {
-
+        return null;
     }
 
 

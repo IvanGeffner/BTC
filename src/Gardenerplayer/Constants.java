@@ -76,6 +76,19 @@ public class Constants {
         return 0;
     }
 
+    public static RobotType getRobotTypeFromIndex(int i){
+        switch (i){
+            case 0: return RobotType.GARDENER;
+            case 1: return RobotType.LUMBERJACK;
+            case 2: return RobotType.SOLDIER;
+            case 3: return RobotType.TANK;
+            case 4: return RobotType.SCOUT;
+            case 5: return RobotType.ARCHON;
+            default: return null;
+        }
+
+    }
+
     static float safetyDistance(RobotType r){
         if (r == RobotType.LUMBERJACK) return 1f;
         else if (r == RobotType.SOLDIER) return 2.2f;

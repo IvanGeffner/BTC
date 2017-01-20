@@ -11,15 +11,16 @@ ok	- Si esta al costat d'algun arbre, rega al que tingui menys vida
 ok	- Fa broadcast de la seva zona 
 ok	- Si no te cap zona assignada, en busca una lliure (abandonada -> no ocupada) i hi va
 ok	- Si hi ha algun arbre neutral a la seva zona, envia un missatge als lumberjacks
-	- Actualitzar la vida dels arbres de la zona
+ok	- Actualitzar la vida dels arbres de la zona
 
 Per ordre d'importancia:
 ok	- Si hi ha un enemic, fuig (decideix la posicio mes allunyada dels enemics).
 
 	Si té una zona:
-	- Si troba un arbre de la seva zona amb poca vida, el posa com a target
-		- Si ha de construir un robot, va al carrer vertical a construir-lo (es posa a la posició que seria per construir un arbre de la punta)
-		- Si ha de plantar un arbre, va a la posició de just a sobre/sota i s'espera a tenir bales
+ok	- Si no està a la zona, hi va
+ok~	- Si troba un arbre de la seva zona amb poca vida, el posa com a target
+ok		- Si ha de construir un robot, va al carrer vertical a construir-lo (es posa a la posició que seria per construir un arbre de la punta)
+ok		- Si ha de plantar un arbre, va a la posició de just a sobre/sota i s'espera a tenir bales
 	- Si no té res a fer, va al centre de la seva zona
 
 	
