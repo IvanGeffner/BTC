@@ -77,7 +77,7 @@ public class Soldier {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget);
+            Greedy.moveGreedy(rc, realTarget, 7000);
 
             tryShoot();
 
@@ -111,7 +111,7 @@ public class Soldier {
         if(targetUpdated) roundTarget = rc.getRoundNum();
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.NEWTARGET) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void tryShoot(){
@@ -132,8 +132,8 @@ public class Soldier {
             RobotType a = ri.getType();
             MapLocation m = ri.getLocation();
             float d = pos.distanceTo(m);
-            if (a == RobotType.SCOUT && d > 5) continue;
-            if (a == RobotType.SOLDIER && d > 7) continue;
+            //if (a == RobotType.SCOUT && d > 5) continue;
+            //if (a == RobotType.SOLDIER && d > 7) continue;
             Direction dir = pos.directionTo(m);
             boolean addIt = true;
             for (int i = 0; i < cont && !addIt; ++i){
@@ -149,7 +149,7 @@ public class Soldier {
             }
         }
 
-        for (int i = 0; i < cont; ++i){
+        for (int i = 0; i < cont && Clock.getBytecodesLeft() > 1500; ++i){
             RobotInfo ri = rArray.get(i);
             RobotType r = ri.getType();
             MapLocation m = ri.getLocation();
@@ -276,8 +276,7 @@ public class Soldier {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
                         rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle();
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -286,16 +285,14 @@ public class Soldier {
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle();
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle();
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {

@@ -77,7 +77,7 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget);
+            Greedy.moveGreedy(rc, realTarget, 7000);
 
             tryShoot();
 
@@ -111,7 +111,7 @@ public class Tank {
         if(targetUpdated) roundTarget = rc.getRoundNum();
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.NEWTARGET) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void tryShoot(){
@@ -276,8 +276,7 @@ public class Tank {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
                         rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle();
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -286,16 +285,14 @@ public class Tank {
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle();
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle();
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {

@@ -48,7 +48,7 @@ public class Scout {
             MapLocation newTarget = findBestTree();
             updateTarget(newTarget);
             if (realTarget == null) moveInYourDirection();
-            else Greedy.moveGreedy(rc,realTarget);
+            else Greedy.moveGreedy(rc,realTarget, 9200);
 
 
 
@@ -106,18 +106,18 @@ public class Scout {
             if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
                 randomTarget = rc.getLocation();
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
-                Greedy.resetObstacle();
+                Greedy.resetObstacle(rc);
                 moveInYourDirection();
                 return;
             }
             if (rc.getLocation().distanceTo(randomTarget) < Constants.pushTarget){
                 randomTarget = randomTarget.add(currentDirection, Constants.pushTarget);
-                Greedy.resetObstacle();
+                Greedy.resetObstacle(rc);
                 moveInYourDirection();
                 return;
             }
             rc.setIndicatorDot(randomTarget, 0, 0, 255);
-            Greedy.moveGreedy(rc,randomTarget);
+            Greedy.moveGreedy(rc,randomTarget, 9200);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -148,7 +148,7 @@ public class Scout {
     static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void readMessages(){

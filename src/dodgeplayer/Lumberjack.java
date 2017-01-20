@@ -1,7 +1,6 @@
 package dodgeplayer;
 
 import battlecode.common.*;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.HashSet;
 
@@ -48,8 +47,10 @@ public class Lumberjack {
             broadcastLocations();
             findBestTree();
             updateTarget();
-            if (shouldMove) Greedy.moveGreedy(rc,realTarget);
-            else Greedy.moveGreedy(rc, rc.getLocation());
+            if (shouldMove) Greedy.moveGreedy(rc,realTarget, 9200);
+            else {
+                Greedy.moveToSelf(rc, 9200);
+            }
 
             Clock.yield();
         }
@@ -77,8 +78,8 @@ public class Lumberjack {
         float strikeUtil = 0;
         float chopUtil = 0;
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius+rc.getType().bodyRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius+rc.getType().bodyRadius);
+        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius);
+        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
 
         int cont = 0;
 
@@ -107,7 +108,6 @@ public class Lumberjack {
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
-            //aixo esta bug perque el stride radius es mes gran que el strike radius llavors es pensa que arriba a arbres que en realitat no
             if (ri.getTeam() == rc.getTeam()){
                 strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
@@ -119,13 +119,8 @@ public class Lumberjack {
         try {
             if (chopUtil > strikeUtil && chopUtil > 0) {
                 rc.chop(chopID);
-                TreeInfo treeInfo = rc.senseTree(chopID);
-                rc.setIndicatorLine(rc.getLocation(),treeInfo.getLocation(),255,0,0);
             }
-            else if (strikeUtil > 0) {
-                rc.strike();
-                rc.setIndicatorDot(rc.getLocation(),255,0,0);
-            }
+            else if (strikeUtil > 0) rc.strike();
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -162,7 +157,7 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void readMessages(){
