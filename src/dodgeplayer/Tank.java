@@ -77,7 +77,7 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget);
+            Greedy.moveGreedy(rc, realTarget, 7000);
 
             tryShoot();
 

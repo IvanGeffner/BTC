@@ -91,7 +91,7 @@ public class Gardener {
 
             if (!shouldMove) realTarget = rc.getLocation();
 
-            Greedy.moveGreedy(rc, realTarget);
+            Greedy.moveGreedy(rc, realTarget, 9200);
 
             Clock.yield();
         }

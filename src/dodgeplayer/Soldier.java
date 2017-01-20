@@ -77,7 +77,7 @@ public class Soldier {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget);
+            Greedy.moveGreedy(rc, realTarget, 7000);
 
             tryShoot();
 
@@ -132,8 +132,8 @@ public class Soldier {
             RobotType a = ri.getType();
             MapLocation m = ri.getLocation();
             float d = pos.distanceTo(m);
-            if (a == RobotType.SCOUT && d > 5) continue;
-            if (a == RobotType.SOLDIER && d > 7) continue;
+            //if (a == RobotType.SCOUT && d > 5) continue;
+            //if (a == RobotType.SOLDIER && d > 7) continue;
             Direction dir = pos.directionTo(m);
             boolean addIt = true;
             for (int i = 0; i < cont && !addIt; ++i){
@@ -149,7 +149,7 @@ public class Soldier {
             }
         }
 
-        for (int i = 0; i < cont; ++i){
+        for (int i = 0; i < cont && Clock.getBytecodesLeft() > 1500; ++i){
             RobotInfo ri = rArray.get(i);
             RobotType r = ri.getType();
             MapLocation m = ri.getLocation();

@@ -48,7 +48,7 @@ public class Scout {
             MapLocation newTarget = findBestTree();
             updateTarget(newTarget);
             if (realTarget == null) moveInYourDirection();
-            else Greedy.moveGreedy(rc,realTarget);
+            else Greedy.moveGreedy(rc,realTarget, 9200);
 
 
 
@@ -117,7 +117,7 @@ public class Scout {
                 return;
             }
             rc.setIndicatorDot(randomTarget, 0, 0, 255);
-            Greedy.moveGreedy(rc,randomTarget);
+            Greedy.moveGreedy(rc,randomTarget, 9200);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

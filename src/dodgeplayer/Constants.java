@@ -36,7 +36,7 @@ public class Constants {
     public static int SAFETYMARGIN = 8000;
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.01f;
-    public static float BULLETSIGHT = 6f;
+    public static float BULLETSIGHT = 7f;
     public static int ANGLEFACTOR = (1 << 13);
     public static int INTINF = (1 << 27);
 
@@ -44,8 +44,12 @@ public class Constants {
     public static float COLLISIONRANGE = 1.2f;
     public static int COLLISIONHASH = 1000;
     public static int COLLISIONROUND = 5;
-    public static float MAXBULLETSPEED = 3.0f;
     public static int MAXSORT = 22;
+
+    public static final int COSTCYCLE1 = 130;
+    public static final int COSTCYCLE2 = 230;
+    public static final int COSTSORT = 95;
+    public static final int COSTSELECTION = 30;
 
     public static int NUMELEMENTS = 5;
 

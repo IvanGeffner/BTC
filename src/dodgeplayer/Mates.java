@@ -46,8 +46,8 @@ public class Mates {
     }
 
     // Diu si les tres direccions estan en l'ordre en que es passen (d2 esta al mig)
-    private static boolean areOrdered(Direction d1, Direction d2, Direction d3) {
-        boolean ori = d1.radiansBetween(d3) >= 0;
+    static boolean areOrdered(Direction d1, Direction d2, Direction d3) {
+        boolean ori = (d1.radiansBetween(d3) >= 0);
         return ((d1.radiansBetween(d2) >= 0) == ori) && ((d2.radiansBetween(d3) >= 0) == ori);
     }
 
