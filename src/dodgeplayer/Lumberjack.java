@@ -1,7 +1,6 @@
 package dodgeplayer;
 
 import battlecode.common.*;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.HashSet;
 
@@ -109,7 +108,6 @@ public class Lumberjack {
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
-            //aixo esta bug perque el stride radius es mes gran que el strike radius llavors es pensa que arriba a arbres que en realitat no
             if (ri.getTeam() == rc.getTeam()){
                 strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
@@ -121,13 +119,8 @@ public class Lumberjack {
         try {
             if (chopUtil > strikeUtil && chopUtil > 0) {
                 rc.chop(chopID);
-                TreeInfo treeInfo = rc.senseTree(chopID);
-                rc.setIndicatorLine(rc.getLocation(),treeInfo.getLocation(),255,0,0);
             }
-            else if (strikeUtil > 0) {
-                rc.strike();
-                rc.setIndicatorDot(rc.getLocation(),255,0,0);
-            }
+            else if (strikeUtil > 0) rc.strike();
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

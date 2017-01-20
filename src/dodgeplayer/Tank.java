@@ -275,8 +275,8 @@ public class Tank {
             if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
-                        rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle(rc);
+                        rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -284,15 +284,15 @@ public class Tank {
             }
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
-                    rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle(rc);
+                    rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle(rc);
+                rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {
