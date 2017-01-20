@@ -1,4 +1,4 @@
-package dodgeplayer;
+package Gardenerplayer;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

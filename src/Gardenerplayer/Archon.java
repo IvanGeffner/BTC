@@ -33,10 +33,27 @@ public class Archon {
 
             tryConstruct();
             //tryMove();
+            randomMove();
 
-            Greedy.moveGreedy(rc, rc.getLocation());
+            //Greedy.moveGreedy(rc, rc.getLocation());
 
             Clock.yield();
+        }
+    }
+
+    //ho fico nomes perque no em molesti, estic provant gardeners
+    static void randomMove(){
+        try {
+            int a = (int) Math.floor(Math.random() * 4.0);
+            for (int i = 0; i < 4; ++i) {
+                if (rc.canMove(Constants.main_dirs[(a + i) % 4])) {
+                    rc.move(Constants.main_dirs[(a + i) % 4]);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 

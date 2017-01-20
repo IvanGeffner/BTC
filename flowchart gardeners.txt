@@ -16,6 +16,8 @@ ok	- Actualitzar la vida dels arbres de la zona
 Per ordre d'importancia:
 ok	- Si hi ha un enemic, fuig (decideix la posicio mes allunyada dels enemics).
 
+-Si esta anant a la seva zona per primer cop i troba un enemic, reseteja
+
 	Si té una zona:
 ok	- Si no està a la zona, hi va
 ok~	- Si troba un arbre de la seva zona amb poca vida, el posa com a target

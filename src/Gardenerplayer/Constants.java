@@ -1,6 +1,7 @@
 package Gardenerplayer;
 
 import battlecode.common.Direction;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 
 /**
@@ -10,6 +11,7 @@ public class Constants {
 
     public static float eps = 0.001f;
     public static float INF = 9999f;
+    public static MapLocation INFPOS = new MapLocation(INF,INF);
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
@@ -39,7 +41,7 @@ public class Constants {
     public static int SouthTree = 4;
     public static int NorthTree = 6;
     public static float minHPWater = 45f;
-    public static float minHPGoWater = 25f;
+    public static float minHPGoWater = 35f;
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
     public static int SAFETYMARGIN = 8000;
