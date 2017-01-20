@@ -1,11 +1,8 @@
 package Gardenerplayer;
 
 import battlecode.common.*;
-import scala.collection.immutable.Stream;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.HashSet;
-import java.util.Map;
 
 
 public class Gardener {
@@ -16,8 +13,8 @@ public class Gardener {
 
     private static int xBase;
     private static int yBase;
-    private static MapLocation basePos;
-    private static MapLocation centerPos;
+    private static MapLocation zoneBasePos;
+    private static MapLocation zoneCenterPos;
 
     private static int zoneX = (int) Constants.INF;
     private static int zoneY = (int) Constants.INF;
@@ -64,7 +61,6 @@ public class Gardener {
 
         while (true) {
             initLoopRound = rc.getRoundNum();
-/*          NO BORRAR, ES EL NOU CODI*/
             broadcastMyZone();
 
             if (zone[0] == Constants.INF) {
@@ -82,17 +78,18 @@ public class Gardener {
                     }
                 }
             }else{
+                updateTreeHP();
                 checkNeutralTreesInZone();
                 MapLocation newTarget;
                 newTarget = checkNearbyEnemies();
                 if (newTarget == null) newTarget = findLowHPTree();
+                if (newTarget == null) newTarget = tryBuilding();
             }
             waterNearbyTree();
 
 
 
 
-//*/
             shouldMove = true;
             treeSpending = 0;
 
@@ -102,7 +99,7 @@ public class Gardener {
             tryWatering();
             updateWhatConstruct();
 
-            if (!tryPlant()) tryConstruct();
+            //if (!tryPlant()) tryConstruct();
 
             MapLocation newTarget = findTreeToWater();
             if (newTarget == null) {
@@ -110,13 +107,13 @@ public class Gardener {
             }
 
             if (newTarget == null && zoneX != Constants.INF){
-                newTarget = basePos;
+                newTarget = zoneBasePos;
             }
 
             if (zoneX != Constants.INF){
-                if (Math.abs(rc.getLocation().x - centerPos.x) > maxDistToCenter || Math.abs(rc.getLocation().y - centerPos.y) > maxDistToCenter){
-                    newTarget = centerPos;
-                    if (realTarget != centerPos) Greedy.resetObstacle();
+                if (Math.abs(rc.getLocation().x - zoneCenterPos.x) > maxDistToCenter || Math.abs(rc.getLocation().y - zoneCenterPos.y) > maxDistToCenter){
+                    newTarget = zoneCenterPos;
+                    if (realTarget != zoneCenterPos) Greedy.resetObstacle();
                 }
             }
 
@@ -259,6 +256,14 @@ public class Gardener {
         }
     }
 
+    private static void updateTreeHP(){
+        for (int i = 0; i < bulletTreeHP.length; i++){
+            if (bulletTreeHP[i] >= 0){
+                bulletTreeHP[i] -= GameConstants.BULLET_TREE_DECAY_RATE;
+            }
+        }
+    }
+
     private static void checkNeutralTreesInZone(){
         TreeInfo[] neutralTrees = rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL);
         for (TreeInfo ti: neutralTrees){
@@ -294,13 +299,92 @@ public class Gardener {
     private static MapLocation findLowHPTree(){
         MapLocation[] treeLocations = getTreeLocationsInZone(zone);
         for (int i = 0; i < treeLocations.length; i++){
-            if (bulletTreeHP[i] < Constants.minHPGoWater) return treeLocations[i];
+            if (bulletTreeHP[i] < Constants.minHPGoWater && bulletTreeHP[i] >= 0) return treeLocations[i];
         }
         return null;
     }
 
-    private static MapLocation[] getTreeLocationsInZone(int[] zone) {
+    private static MapLocation tryBuilding(){
+        try {
+            int unit_index = rc.readBroadcast(Communication.UNITS_BUILT);
+            int unit_to_build;
+            if (unit_index < Constants.initialBuild.length){
+                unit_to_build = Constants.initialBuild[unit_index];
+            }else{
+                int aux = unit_index - Constants.initialBuild.length;
+                unit_to_build = Constants.sequenceBuild[aux%(Constants.sequenceBuild.length)];
+            }
+            //aixo s'ha de millorar
+            if (unit_to_build == Constants.UNIT_TREE){
+                return tryPlant();
+            }else if (unit_to_build == Constants.UNIT_GARDENER) return null;
+            else return tryBuild(unit_to_build);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
         return null;
+    }
+
+    private static MapLocation tryPlant(){
+        float[] treePosX = {-3f,-1f,1f,3f,-3f,-1f,1f,3f};
+        float[] treePosY = {-3.5f,-3.49f,-3.48f,-3.47f,3.47f,3.48f,3.49f,3.5f};
+        MapLocation myPos = rc.getLocation();
+        float minDist = Constants.INF;
+        int minIndex = -1;
+        for (int i = 0; i < 8; i++){
+            if (bulletTreeHP[i] > 0) continue;
+            //falta fer continue si la posicio de plantar esta ocupada
+            MapLocation treePos = new MapLocation(zoneCenterPos.x + treePosX[i],zoneCenterPos.y + treePosY[i]);
+            if (myPos.distanceTo(treePos) < minDist){
+                minDist = myPos.distanceTo(treePos);
+                minIndex = i;
+            }
+        }
+        if (minIndex == -1) return null;
+        MapLocation bestTreePos = new MapLocation(zoneCenterPos.x + treePosX[minIndex],zoneCenterPos.y + treePosY[minIndex]);
+        if (rc.canPlantTree(myPos.directionTo(bestTreePos))){
+            try {
+                //Si pot plantar l'arbre, el planta i no cal que retorni cap direccio
+                rc.plantTree(myPos.directionTo(bestTreePos));
+                incrementUnitsBuilt();
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }else {
+            Direction offsetDir;
+            if (minIndex < 4) offsetDir = Direction.NORTH;
+            else offsetDir = Direction.SOUTH;
+            return bestTreePos.add(offsetDir,2f);
+        }
+        return null;
+    }
+
+    private static void incrementUnitsBuilt(){
+        try {
+            int units_built = rc.readBroadcast(Communication.UNITS_BUILT);
+            rc.broadcast(Communication.UNITS_BUILT, units_built + 1);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static MapLocation tryBuild(int unit_to_build){
+        float buildPosX[] = {-3f,3f,-3f,3f};
+        float buildPosY[] = {-1.5f,-1.5f,1.5f,1.5f};
+        MapLocation myPos = rc.getLocation();
+
+    }
+
+
+
+
+
+
+
+
+
+    private static MapLocation[] getTreeLocationsInZone(int[] zone) {
+
     }
 
 
@@ -563,7 +647,7 @@ public class Gardener {
         }
     }
 
-    static boolean tryPlant(){
+    /*static boolean tryPlant(){
         if (whatShouldIConstruct != 5) return false;
         try {
             MapLocation pos = rc.getLocation();
@@ -586,8 +670,8 @@ public class Gardener {
                             int z[] = getZoneFromPos(treePos);
                             zoneX = z[0];
                             zoneY = z[1];
-                            basePos = getBasePosFromZone(zoneX,zoneY);
-                            centerPos = getCenterPosFromZone(zoneX,zoneY);
+                            zoneBasePos = getBasePosFromZone(zoneX,zoneY);
+                            zoneCenterPos = getCenterPosFromZone(zoneX,zoneY);
                             System.out.println("assignen la zone " + zoneX + "  " + zoneY);
                         }
                         updateConstruct(5);
@@ -600,7 +684,7 @@ public class Gardener {
             e.printStackTrace();
         }
         return false;
-    }
+    }*/
 
     static MapLocation findTreeToPlant(){
         if (treeToPlant != null) {

@@ -22,6 +22,15 @@ public class Constants {
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;
 
+    public static int UNIT_GARDENER = 0;
+    public static int UNIT_LUMBERJACK = 1;
+    public static int UNIT_SOLDIER = 2;
+    public static int UNIT_TANK = 3;
+    public static int UNIT_SCOUT = 4;
+    public static int UNIT_TREE = 5;
+
+
+
     public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows
     public static int DR = 5; //Distance Row-Row

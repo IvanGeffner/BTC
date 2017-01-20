@@ -28,6 +28,7 @@ public class Communication {
     static final int ZONE_FIRST_POSITION = 600;
     static final int ZONE_CHANNELS = 15;
 
+    static final int UNITS_BUILT = 620;
 
     static final int MAX_BROADCAST_MESSAGE = 500;
 
