@@ -1,4 +1,4 @@
-package dodgeplayer;
+package Gardenerplayer;
 
 import battlecode.common.*;
 
@@ -77,7 +77,7 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget, 7000);
+            Greedy.moveGreedy(rc, realTarget);
 
             tryShoot();
 
@@ -111,7 +111,7 @@ public class Tank {
         if(targetUpdated) roundTarget = rc.getRoundNum();
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.NEWTARGET) return;
         realTarget = newTarget;
-        Greedy.resetObstacle(rc);
+        Greedy.resetObstacle();
     }
 
     static void tryShoot(){
@@ -275,8 +275,9 @@ public class Tank {
             if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
+                        rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                         rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle(rc);
+                        Greedy.resetObstacle();
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -284,15 +285,17 @@ public class Tank {
             }
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
+                    rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                     rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle(rc);
+                    Greedy.resetObstacle();
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
+                rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                 rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle(rc);
+                Greedy.resetObstacle();
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {

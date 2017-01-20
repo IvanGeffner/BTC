@@ -1,7 +1,6 @@
-package dodgeplayer;
+package Gardenerplayer;
 
 import battlecode.common.*;
-import sun.reflect.generics.tree.Tree;
 
 import java.util.HashSet;
 
@@ -9,56 +8,57 @@ import java.util.HashSet;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Lumberjack {
+public class Scout {
 
     static RobotController rc;
 
     static MapLocation realTarget;
-    static MapLocation newTarget;
+
+    static MapLocation randomTarget;
+
+    static Direction currentDirection;
+
+    static int initialMessage;
 
     static MapLocation base;
-    static MapLocation enemyBase;
-    static int xBase;
-    static int yBase;
+    static int xBase, yBase;
 
     static HashSet<Integer> readMes;
-    static int initialMessage = 0;
-
-    static float maxUtil;
-    static boolean shouldMove;
 
     static int round;
 
+
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
+        //code executed onece at the begining
+
         rc = rcc;
+
         Initialize();
 
         while (true) {
             //code executed continually, don't let it end
 
             round = rc.getRoundNum();
-            maxUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
-            newTarget = enemyBase;
-            shouldMove = true;
-
-            tryChop();
-
             readMessages();
             broadcastLocations();
-            findBestTree();
-            updateTarget();
-            if (shouldMove) Greedy.moveGreedy(rc,realTarget, 9200);
-            else {
-                Greedy.moveToSelf(rc, 9200);
-            }
+
+            tryShake();
+
+            MapLocation newTarget = findBestTree();
+            updateTarget(newTarget);
+            if (realTarget == null) moveInYourDirection();
+            else Greedy.moveGreedy(rc,realTarget);
+
+
 
             Clock.yield();
         }
     }
 
     static void Initialize(){
-        enemyBase = rc.getInitialArchonLocations(rc.getTeam().opponent())[0];
+        currentDirection = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
+        randomTarget = rc.getLocation();
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
@@ -73,98 +73,82 @@ public class Lumberjack {
         }
     }
 
-    static void tryChop(){
 
-        int chopID = -1;
-        float strikeUtil = 0;
-        float chopUtil = 0;
+    static void tryShake(){
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
+        float maxBullets = 0;
+        int id = -1;
 
-        int cont = 0;
-
-        for (TreeInfo ti: Ti){
-            if (!rc.canChop(ti.getID())) continue; //break?
-            int x = (int)(ti.maxHealth - ti.getHealth());
-            cont += x/(int)GameConstants.LUMBERJACK_CHOP_DAMAGE;
-            if (ti.getTeam() == rc.getTeam()) strikeUtil -= 4;
-            else if (ti.getTeam() ==  rc.getTeam().opponent()){
-                strikeUtil += 4;
-                if (chopUtil < 10 && rc.canChop(ti.getID())){
-                    chopUtil = 10;
-                    chopID = ti.getID();
-                }
-            }
-            else {
-                strikeUtil += 2.0f*ti.getRadius();
-                if (chopUtil < 5.0f*ti.getRadius()){
-                    chopUtil = 5.0f*ti.getRadius();
-                    chopID = ti.getID();
-                }
+        TreeInfo[] Ti = rc.senseNearbyTrees (rc.getType().strideRadius, Team.NEUTRAL);
+        for (TreeInfo ti : Ti){
+            if (ti.getContainedBullets() > maxBullets){
+                if (!rc.canShake(ti.getID())) continue;
+                maxBullets = ti.getContainedBullets();
+                id = ti.getID();
             }
         }
 
-        if(cont > 1) shouldMove = false;
-
-        for (RobotInfo ri : Ri){
-            if (ri.getID() == rc.getID()) continue;
-            //aixo esta bug perque el stride radius es mes gran que el strike radius llavors es pensa que arriba a arbres que en realitat no
-            if (ri.getTeam() == rc.getTeam()){
-                strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
-            }
-            else if (ri.getTeam() == rc.getTeam().opponent()){
-                strikeUtil += ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
-            }
-        }
 
         try {
-            if (chopUtil > strikeUtil && chopUtil > 0) {
-                rc.chop(chopID);
-                TreeInfo treeInfo = rc.senseTree(chopID);
-                rc.setIndicatorLine(rc.getLocation(),treeInfo.getLocation(),255,0,0);
-            }
-            else if (strikeUtil > 0) {
-                rc.strike();
-                rc.setIndicatorDot(rc.getLocation(),255,0,0);
-            }
+            if (maxBullets > 0) rc.shake(id);
+            else return;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+
+        if (rc.canShake()) tryShake();
+
+    }
+
+    static void moveInYourDirection(){
+        try {
+            if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
+                randomTarget = rc.getLocation();
+                currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
+                Greedy.resetObstacle();
+                moveInYourDirection();
+                return;
+            }
+            if (rc.getLocation().distanceTo(randomTarget) < Constants.pushTarget){
+                randomTarget = randomTarget.add(currentDirection, Constants.pushTarget);
+                Greedy.resetObstacle();
+                moveInYourDirection();
+                return;
+            }
+            rc.setIndicatorDot(randomTarget, 0, 0, 255);
+            Greedy.moveGreedy(rc,randomTarget);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
     }
 
 
-    static void findBestTree(){
 
+    static MapLocation findBestTree() {
+        MapLocation target2 = null;
         MapLocation pos = rc.getLocation();
-        TreeInfo[] Ti = rc.senseNearbyTrees();
-
-        for (TreeInfo ti : Ti){
-            if (ti.getTeam() == rc.getTeam()) continue;
-            else if (ti.getTeam() == rc.getTeam().opponent()){
-                float newUtil = 2.5f/(1.0f + pos.distanceTo(ti.getLocation()));
-                if (newUtil > maxUtil){
-                    maxUtil = newUtil;
-                    newTarget = ti.getLocation();
-                }
-            }
-            else{
-                float newUtil = (2.0f*ti.getRadius())/(1.0f + pos.distanceTo(ti.getLocation()));
-                if (newUtil > maxUtil){
-                    maxUtil = newUtil;
-                    newTarget = ti.getLocation();
-                }
+        float maxUtil = 0;
+        TreeInfo[] Ti = rc.senseNearbyTrees (-1, Team.NEUTRAL);
+        for (TreeInfo ti : Ti) {
+            float f = ti.getContainedBullets() / (1 + pos.distanceTo(ti.getLocation()));
+            if (f > maxUtil) {
+                maxUtil = f;
+                target2 = ti.getLocation();
             }
         }
+
+
+        if (maxUtil > 0) return target2;
+        return null;
     }
 
-
-
-    static void updateTarget(){
+    static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle(rc);
+        Greedy.resetObstacle();
     }
 
     static void readMessages(){
@@ -186,42 +170,7 @@ public class Lumberjack {
     }
 
     static void workMessage(int a){
-        int[] m = Communication.decode(a);
-        if (m[0] == Communication.ENEMY){
-            MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
-            float val = enemyScore(enemyPos, m[3]);
-            if (val > maxUtil){
-                maxUtil = val;
-                newTarget = enemyPos;
-            }
-        } else if (m[0] == Communication.UNITTREE){
-            MapLocation treePos = new MapLocation(m[1]+xBase, m[2]+yBase);
-            float val = m[3]/10/ (1.0f + rc.getLocation().distanceTo(treePos));
-            if (val > maxUtil){
-                maxUtil = val;
-                newTarget = treePos;
-            }
-        } else if (m[0] == Communication.ENEMYTREE){
-            MapLocation treePos = new MapLocation(m[1]+xBase, m[2]+yBase);
-            float val = 2.5f/(1.0f + rc.getLocation().distanceTo(treePos));
-            if (val > maxUtil){
-                maxUtil = val;
-                newTarget = treePos;
-            }
-        }
-    }
-
-    static float enemyScore (MapLocation m, int a){
-        if (m == null) return 0;
-        float d = rc.getLocation().distanceTo(m);
-        float s = 0;
-        if (a == 5) s = 5;
-        else if (a == 4) s = 0.1f;
-        else if (a == 3) s = 0.1f;
-        else if (a == 2) s = 0.2f;
-        else if (a == 1) s = 0.5f;
-        else if (a == 0) s = 3;
-        return s/(d+1);
+        return;
     }
 
     static void broadcastLocations() {
@@ -295,5 +244,4 @@ public class Lumberjack {
             e.printStackTrace();
         }
     }
-
 }

@@ -1,4 +1,4 @@
-package dodgeplayer;
+package Gardenerplayer;
 
 import battlecode.common.*;
 import sun.reflect.generics.tree.Tree;
@@ -48,10 +48,8 @@ public class Lumberjack {
             broadcastLocations();
             findBestTree();
             updateTarget();
-            if (shouldMove) Greedy.moveGreedy(rc,realTarget, 9200);
-            else {
-                Greedy.moveToSelf(rc, 9200);
-            }
+            if (shouldMove) Greedy.moveGreedy(rc,realTarget);
+            else Greedy.moveGreedy(rc, rc.getLocation());
 
             Clock.yield();
         }
@@ -79,8 +77,8 @@ public class Lumberjack {
         float strikeUtil = 0;
         float chopUtil = 0;
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
+        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius+rc.getType().bodyRadius);
+        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius+rc.getType().bodyRadius);
 
         int cont = 0;
 
@@ -164,7 +162,7 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle(rc);
+        Greedy.resetObstacle();
     }
 
     static void readMessages(){
