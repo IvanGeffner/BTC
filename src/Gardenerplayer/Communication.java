@@ -25,15 +25,19 @@ public class Communication {
     static final int ARCHONNUMBER = 509;
 
     // ocupa de la 600 a la 614 teoricament
+    // tinc 18*18 zones => 324
+    // cada zone ocupa 5 bits => 6 zones per int
+    // necessito 54 channels
+
     static final int ZONE_FIRST_POSITION = 600;
-    static final int ZONE_CHANNELS = 15;
+    static final int ZONE_CHANNELS = 60;
 
-    static final int UNITS_BUILT = 620;
+    static final int UNITS_BUILT = 670;
 
-    static int MIN_ZONE_X = 630;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
-    static int MIN_ZONE_Y = 631;
-    static int MAX_ZONE_X = 632;
-    static int MAX_ZONE_Y = 633;
+    static int MIN_ZONE_X = 671;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
+    static int MIN_ZONE_Y = 672;
+    static int MAX_ZONE_X = 673;
+    static int MAX_ZONE_Y = 674;
     static int ZONE_LIMIT_OFFSET = 20;
 
 
