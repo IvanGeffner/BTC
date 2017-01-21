@@ -1,10 +1,8 @@
 package Gardenerplayer;
 
 import battlecode.common.*;
-import com.sun.tools.internal.jxc.ap.Const;
 
 import java.util.HashSet;
-import java.util.Map;
 
 
 public class Gardener {
@@ -15,13 +13,22 @@ public class Gardener {
 
     private static int xBase;
     private static int yBase;
-    private static MapLocation zoneBasePos;
     private static MapLocation zoneCenterPos;
 
+    private static float STREET_WIDTH = 5f;
+    private static float STREET_HEIGHT = 5f;
+    private static float zoneWidth = 11f;
+    private static float zoneHeight = 11f;
+
     private static int[] zone = {(int) Constants.INF, (int) Constants.INF};
-    private static int zoneRows = 12;
-    private static int zoneColumns = 10;
+    private static int zoneRows = GameConstants.MAP_MAX_WIDTH / (int) zoneWidth;
+    private static int zoneColumns = GameConstants.MAP_MAX_HEIGHT / (int) zoneHeight;
     private static int zonesPerChannel = 8;
+
+    private static int treesPerZone = 6;
+    private static int buildPositionsPerZone = 2;
+
+    private static float interaction_dist_from_edge = 1f;
 
     private static int[] zoneIWant = {-1,-1};
 
@@ -31,22 +38,32 @@ public class Gardener {
     private static int outOfMapZone = 3;
 
     private static HashSet<MapLocation> neutralTreesInMyZone = new HashSet<>();
-    private static float[] bulletTreeHP = {-1,-1,-1,-1,-1,-1,-1,-1};
+    private static float[] bulletTreeHP = {-1,-1,-1,-1,-1,-1};
 
-    private static float maxDistToCenter = 4.25f;
+    private static float maxDistToCenter = 3f;
 
-    private static float treePosX[] = new float[8];
-    private static float treePosY[] = new float[8];
-    private static MapLocation[] treePos = new MapLocation[8];
-    private static float plantingPosX[] = new float[8];
-    private static float plantingPosY[] = new float[8];
-    private static MapLocation[] plantingPos = new MapLocation[8];
-    private static float buildPosX[] = new float[4];
-    private static float buildPosY[] = new float[4];
-    private static MapLocation[] buildPos = new MapLocation[4];
-    private static float newRobotPosX[] = new float[4];
-    private static float newRobotPosY[] = new float[4];
-    private static MapLocation[] newRobotPos = new MapLocation[4];
+    private static float treePosX[] = new float[treesPerZone];
+    private static float treePosY[] = new float[treesPerZone];
+    private static MapLocation[] treePos = new MapLocation[treesPerZone];
+    private static float plantingPosX[] = new float[treesPerZone];
+    private static float plantingPosY[] = new float[treesPerZone];
+    private static MapLocation[] plantingPos = new MapLocation[treesPerZone];
+    private static float wateringPosX[] = new float[treesPerZone];
+    private static float wateringPosY[] = new float[treesPerZone];
+    private static MapLocation[] wateringPos = new MapLocation[treesPerZone];
+    private static float buildPosX[] = new float[buildPositionsPerZone];
+    private static float buildPosY[] = new float[buildPositionsPerZone];
+    private static MapLocation[] buildPos = new MapLocation[buildPositionsPerZone];
+    private static float newRobotPosX[] = new float[buildPositionsPerZone];
+    private static float newRobotPosY[] = new float[buildPositionsPerZone];
+    private static MapLocation[] newRobotPos = new MapLocation[buildPositionsPerZone];
+    private static float buildTankPosX[] = new float[buildPositionsPerZone];
+    private static float buildTankPosY[] = new float[buildPositionsPerZone];
+    private static MapLocation[] buildTankPos = new MapLocation[buildPositionsPerZone];
+    private static float newTankPosX[] = new float[buildPositionsPerZone];
+    private static float newTankPosY[] = new float[buildPositionsPerZone];
+    private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
+
 
     private static float mapMinX = -Constants.INF;
     private static float mapMinY = -Constants.INF;
@@ -69,10 +86,11 @@ public class Gardener {
             MapLocation newTarget = rc.getLocation();
             if (zone[0] == Constants.INF) {
                 searchZone(); //aqui se li dona un valor a zoneIWant 99.99999999% segur
+                System.out.println("He decidit anar a " + zoneIWant[0] + "," + zoneIWant[1]);
                 //System.out.println("despres de searchzone " + Clock.getBytecodeNum());
                 if (zoneIWant[0] != -1){
-                    newTarget = getCenterPosFromZone(zoneIWant[0],zoneIWant[1]);
-                    System.out.println("Va a zona " + rc.getLocation() + " a " + newTarget + ", " + isZoneInMap(zoneIWant));
+                    newTarget = getCenterPosFromZone(zoneIWant);
+                    System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget + ", " + isZoneInMap(zoneIWant));
                     rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 255, 255);
                 }
                 //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
@@ -84,20 +102,17 @@ public class Gardener {
                 if (newTarget != null) {
                     System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                     rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 0, 0);
-                }
-                else {
+                }else {
                     newTarget = returnToZone();
                     if (newTarget != null) {
                         System.out.println("Retorna: de " + rc.getLocation() + " a " + newTarget);
                         rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 220, 28);
-                    }
-                    else {
+                    }else {
                         newTarget = findLowHPTree();
                         if (newTarget != null) {
                             System.out.println("Rega, de " + rc.getLocation() + " a " + newTarget);
                             rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 0);
-                        }
-                        else {
+                        }else {
                             newTarget = tryBuilding();
                             if (newTarget != null) {
                                 System.out.println("Builds, de " + rc.getLocation() + " a " + newTarget);
@@ -105,7 +120,8 @@ public class Gardener {
                             }
                             else {
                                 System.out.println("No tinc res a fer");
-                                newTarget = zoneBasePos;
+                                newTarget = zoneCenterPos;
+                                Greedy.resetObstacle(rc);
                                 rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 0, 0);
                             }
                         }
@@ -131,7 +147,9 @@ public class Gardener {
             }
 
             //System.out.println("Estic a " + rc.getLocation() + " i vaig a " + realTarget);
-            Greedy.moveGreedy(rc, realTarget);
+            if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
+                Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
+            } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
             Clock.yield();
         }
     }
@@ -210,39 +228,52 @@ public class Gardener {
     private static void broadcastMyZone(){
         if (zone[0] == Constants.INF) return;
         broadcastZone(zone, busyZone);
-
     }
 
     private static void assignZone(int[] assignedZone){
-        float[] treeOffsetX = {-3f,-1f,1f,3f,-3f,-1f,1f,3f};
-        float[] treeOffsetY = {-3.5f,-3.49f,-3.48f,-3.47f,3.47f,3.48f,3.49f,3.5f};
-        float[] plantingOffsetX = {-3f,-1f,1f,3f,-3f,-1f,1f,3f};
-        float[] plantingOffsetY = {-1.5f,-1.49f,-1.48f,-1.47f,1.47f,1.48f,1.49f,1.5f};
-        float[] buildOffsetX= {-3f,3f,-3f,3f};
-        float[] buildOffsetY= {-1.45f,-1.45f,1.45f,1.45f};
-        float[] newRobotOffsetX= {-4f,4f,-4f,4f};
-        float[] newRobotOffsetY= {-1.45f,-1.45f,1.45f,1.45f};
+        float[] treeOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f};
+        float[] treeOffsetY = {-2.2f,-2.2f,-2.2f,2.2f,2.2f,2.2f};
+        float[] plantingOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f};
+        float[] plantingOffsetY = {-0.2f,-0.2f,-0.2f,0.2f,0.2f,0.2f};
+        float[] wateringOffsetX = {0f,0f,0f,0f,0f,0f};
+        float[] wateringOffsetY = {0f,0f,0f,0f,0f,0f};
+        float[] buildOffsetX = {0f,0f};
+        float[] buildOffsetY = {0f,0f};
+        float[] newRobotOffsetX= {-2f,2f};
+        float[] newRobotOffsetY= {0f,0f};
+        float[] buildTankOffsetX= {-2f,2f};
+        float[] buildTankOffsetY= {0f,0f};
+        float[] newTankOffsetX = {-4f,4f};
+        float[] newTankOffsetY = {0f,0f};
 
         zone = assignedZone;
-        zoneBasePos = getBasePosFromZone(zone[0],zone[1]);
-        zoneCenterPos = getCenterPosFromZone(zone[0],zone[1]);
+        zoneCenterPos = getCenterPosFromZone(zone);
         broadcastZone(zone, busyZone);
 
-        for (int i = 0; i < 8; i++){
+        for (int i = 0; i < treesPerZone; i++){
             treePosX[i] = zoneCenterPos.x + treeOffsetX[i];
             treePosY[i] = zoneCenterPos.y + treeOffsetY[i];
             treePos[i] = new MapLocation(treePosX[i], treePosY[i]);
             plantingPosX[i] = zoneCenterPos.x + plantingOffsetX[i];
             plantingPosY[i] = zoneCenterPos.y + plantingOffsetY[i];
             plantingPos[i] = new MapLocation(plantingPosX[i], plantingPosY[i]);
+            wateringPosX[i] = zoneCenterPos.x + wateringOffsetX[i];
+            wateringPosY[i] = zoneCenterPos.y + wateringOffsetY[i];
+            wateringPos[i] = new MapLocation(wateringPosX[i], wateringPosY[i]);
         }
-        for (int i = 0; i < 4; i++){
+        for (int i = 0; i < buildPositionsPerZone; i++){
             buildPosX[i] = zoneCenterPos.x + buildOffsetX[i];
             buildPosY[i] = zoneCenterPos.y + buildOffsetY[i];
             buildPos[i] = new MapLocation(buildPosX[i], buildPosY[i]);
             newRobotPosX[i] = zoneCenterPos.x + newRobotOffsetX[i];
             newRobotPosY[i] = zoneCenterPos.y + newRobotOffsetY[i];
             newRobotPos[i] = new MapLocation(newRobotPosX[i],newRobotPosY[i]);
+            buildTankPosX[i] = zoneCenterPos.x + buildTankOffsetX[i];
+            buildTankPosY[i] = zoneCenterPos.y + buildTankOffsetY[i];
+            buildTankPos[i] = new MapLocation(buildTankPosX[i],buildTankPosY[i]);
+            newTankPosX[i] = zoneCenterPos.x + newTankOffsetX[i];
+            newTankPosY[i] = zoneCenterPos.y + newTankOffsetY[i];
+            newTankPos[i] = new MapLocation(newTankPosX[i],newTankPosY[i]);
         }
 
     }
@@ -261,23 +292,27 @@ public class Gardener {
         }
 
         int[] closest_empty_zone = {-1,-1};
+        float minDist = Constants.INF;
         int[] myZone = getZoneFromPos(rc.getLocation());
         for (int i = 0; i < Xsorted.length; i++){
             if (i > 25 && closest_empty_zone[0] != -1){
-                //nomes busquem zones abandonades fins a 25 per bytecode
+                //nomes busquem zones abandonades fins a 25 pel bytecode
                 zoneIWant = closest_empty_zone;
                 return;
             }
             int[] newZone = {myZone[0] + Xsorted[i], myZone[1] + Ysorted[i]};
+            System.out.println("Prova la zona " + newZone[0] + "," + newZone[1] + " a " + rc.getLocation().distanceTo(getCenterPosFromZone(newZone)));
+            rc.setIndicatorDot(getCenterPosFromZone(newZone), Math.min(255,(int)(10f*rc.getLocation().distanceTo(getCenterPosFromZone(newZone)))),0,0);
             int new_zone_id = newZone[0] + zoneColumns * newZone[1];
             if (new_zone_id < 0) new_zone_id += zoneColumns*zoneRows;
             int channel_id = new_zone_id / zonesPerChannel;
+            if (channel_id >= ch_info.length) System.out.println(channel_id + ">" + ch_info.length);
             int info = ch_info[channel_id];
             info = info >> (4*(new_zone_id % zonesPerChannel));
             int zoneType = info & 0x3;
             int lastTurn = (info >> 2) & 0x3;
             int thisTurn = rc.getRoundNum();
-            //System.out.println("zone "+new_zone_id+" type " + zoneType);
+            System.out.println("zone "+newZone[0] + "," + newZone[1] + " id " + new_zone_id +" type " + zoneType);
             if (zoneType != outOfMapZone) updateZoneInMap(newZone);
             if (zoneType == busyZone){
                 if ((lastTurn & 0x3) == ((thisTurn + 2) & 0x3) || ((lastTurn+3) & 0x3) == (thisTurn & 0x3) ){
@@ -289,8 +324,10 @@ public class Gardener {
                 zoneIWant = newZone;
                 return;
             }
-            if (zoneType == emptyZone && closest_empty_zone[0] == -1){
+            float distToZone = rc.getLocation().distanceTo(getCenterPosFromZone(newZone));
+            if (zoneType == emptyZone && distToZone < minDist){
                 closest_empty_zone = newZone;
+                minDist = distToZone;
             }
 
         }
@@ -335,7 +372,7 @@ public class Gardener {
     }
 
     private static void updateZoneInMap(int[] z){
-        MapLocation center = getCenterPosFromZone(z[0],z[1]);
+        MapLocation center = getCenterPosFromZone(z);
         if (!onCurrentMap(center)){
             broadcastZone(z,outOfMapZone);
             if (center.x < mapMinX) {
@@ -351,8 +388,8 @@ public class Gardener {
                 broadcastZoneLimit(Communication.MAX_ZONE_Y, z[1] - 1);
             }
         }else {
-            System.out.println("El centre " + center + " esta dintre de:");
-            System.out.println(mapMinX + "-" + mapMaxX + ", " + mapMinY + "-" +mapMaxY);
+            //System.out.println("El centre " + center + " esta dintre de:");
+            //System.out.println(mapMinX + "-" + mapMaxX + ", " + mapMinY + "-" +mapMaxY);
         }
     }
 
@@ -364,8 +401,8 @@ public class Gardener {
     }
 
     private static void checkIfArrivedToZone(){
-        MapLocation centerIWant = getCenterPosFromZone(zoneIWant[0],zoneIWant[1]);
-        if (!rc.canSenseLocation(centerIWant)) return;
+        MapLocation centerIWant = getCenterPosFromZone(zoneIWant);
+        if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) return;
         int zoneType = getZoneTypeFromBroadcast(zoneIWant);
         try{
             if (zoneType == busyZone) {
@@ -376,6 +413,9 @@ public class Gardener {
                 updateZoneInMap(zoneIWant);
                 zoneIWant[0] = zoneIWant[1] = -1;
                 return;
+            }
+            if (rc.isCircleOccupiedExceptByThisRobot(centerIWant,rc.getType().bodyRadius)){
+
             }
             System.out.println("El punt " + centerIWant + " esta dintre el mapa");
             rc.setIndicatorDot(centerIWant,255,255,255);
@@ -388,7 +428,7 @@ public class Gardener {
     private static void waterNearbyTree(){
         if (!rc.canWater()) return;
         //System.out.println("entra regar");
-        TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().bodyRadius + rc.getType().strideRadius, rc.getTeam());
+        TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().bodyRadius + interaction_dist_from_edge, rc.getTeam());
         float minHP = Constants.INF;
         int minID = -1;
         for (TreeInfo tree: myTrees){
@@ -406,7 +446,7 @@ public class Gardener {
     }
 
     private static void updateTreeHP(){
-        for (int i = 0; i < bulletTreeHP.length; i++){
+        for (int i = 0; i < treesPerZone; i++){
             if (rc.canSenseLocation(treePos[i])){
                 try {
                     TreeInfo tree = rc.senseTreeAtLocation(treePos[i]);
@@ -457,7 +497,7 @@ public class Gardener {
             escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
         }
         if (myPos.isWithinDistance(escapePos, Constants.eps)) return null;
-        escapePos = escapePos.add(myPos.directionTo(escapePos), 100);
+        escapePos = myPos.add(myPos.directionTo(escapePos), 100);
         return escapePos;
     }
 
@@ -470,10 +510,11 @@ public class Gardener {
     private static MapLocation findLowHPTree(){
         for (int i = 0; i < treePos.length; i++){
             if (treePosX[i] == Constants.INF) continue;
-            if (rc.canWater(treePos[i]) && bulletTreeHP[i] < Constants.minHPWater) return plantingPos[i];
+            if (rc.canWater(treePos[i]) && bulletTreeHP[i] < Constants.minHPWater) return wateringPos[i];
+                                                                                    //canviar-ho pel centre?
         }
         for (int i = 0; i < treePos.length; i++){
-            if (bulletTreeHP[i] < Constants.minHPGoWater && bulletTreeHP[i] >= 0) return plantingPos[i];
+            if (bulletTreeHP[i] < Constants.minHPGoWater && bulletTreeHP[i] >= 0) return wateringPos[i];
         }
         return null;
     }
@@ -509,7 +550,7 @@ public class Gardener {
         MapLocation myPos = rc.getLocation();
         float minDist = Constants.INF;
         int minIndex = -1;
-        for (int i = 0; i < 8; i++){
+        for (int i = 0; i < treesPerZone; i++){
             if (bulletTreeHP[i] > 0) continue;
             if (!onCurrentMap(treePos[i]) || !onCurrentMap(plantingPos[i])) {
                 System.out.println("arbre " + i + " fora del mapa");
@@ -554,12 +595,7 @@ public class Gardener {
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
-        }else {
-            Direction offsetDir;
-            if (minIndex < 4) offsetDir = Direction.NORTH;
-            else offsetDir = Direction.SOUTH;
-            return bestTreePos.add(offsetDir,2f);
-        }
+        }else return plantingPos[minIndex];
         return null;
     }
 
@@ -575,20 +611,29 @@ public class Gardener {
     private static MapLocation tryBuild(int unit_to_build){
         System.out.println("Vol construir un " + Constants.getRobotTypeFromIndex(unit_to_build));
         MapLocation myPos = rc.getLocation();
+        MapLocation myBuildingPos[];
+        MapLocation robotSpawnPos[];
+        if (unit_to_build == Constants.UNIT_TANK){
+            myBuildingPos = buildTankPos;
+            robotSpawnPos = newTankPos;
+        }else{
+            myBuildingPos = buildPos;
+            robotSpawnPos = newRobotPos;
+        }
         float minDist = Constants.INF;
         int minIndex = -1;
 
-        for (int i = 0; i < 4; i++){
-            if (!onCurrentMap(buildPos[i]) || !onCurrentMap(newRobotPos[i])) {
+        for (int i = 0; i < buildPositionsPerZone; i++){
+            if (!onCurrentMap(myBuildingPos[i]) || !onCurrentMap(robotSpawnPos[i])) {
                 System.out.println("fora del mapa");
-                rc.setIndicatorDot(buildPos[i], 255,0,0);
+                rc.setIndicatorDot(myBuildingPos[i], 255,0,0);
                 continue;
             }
             try {
-                if (rc.canSenseAllOfCircle(buildPos[i],rc.getType().bodyRadius) &&
-                    rc.isCircleOccupiedExceptByThisRobot(buildPos[i],rc.getType().bodyRadius)) continue;
-                if (myPos.distanceTo(buildPos[i]) < minDist){
-                    minDist = myPos.distanceTo(buildPos[i]);
+                if (rc.canSenseAllOfCircle(myBuildingPos[i],rc.getType().bodyRadius) &&
+                    rc.isCircleOccupiedExceptByThisRobot(myBuildingPos[i],rc.getType().bodyRadius)) continue;
+                if (myPos.distanceTo(myBuildingPos[i]) < minDist){
+                    minDist = myPos.distanceTo(myBuildingPos[i]);
                     minIndex = i;
                 }
             } catch (GameActionException e) {
@@ -598,8 +643,8 @@ public class Gardener {
         System.out.println("min index de build = "+minIndex);
         if (minIndex == -1) return null;
 
-        MapLocation bestBuildLocation = buildPos[minIndex];
-        MapLocation newRobotLocation  = newRobotPos[minIndex];
+        MapLocation bestBuildLocation = myBuildingPos[minIndex];
+        MapLocation newRobotLocation  = robotSpawnPos[minIndex];
         //System.out.println("Estic a "+ rc.getLocation() + " i vull anar a " + bestBuildLocation + " per construir a " +newRobotLocation);
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit_to_build);
         Direction buildDirection = bestBuildLocation.directionTo(newRobotLocation);
@@ -622,27 +667,23 @@ public class Gardener {
 
     private static int[] getZoneFromPos(MapLocation pos){
         int[] z = {0,0};
-        z[0] = (Math.round(pos.x) - xBase + 127*Constants.ModulC - 1) / Constants.ModulC;
+        z[0] = (int) (Math.round(pos.x) - xBase + STREET_WIDTH/2 + 127*zoneWidth) / (int)zoneWidth;
         z[0] -= 127;
-        z[1] = (Math.round(pos.y) - yBase + 127*Constants.ModulR - 5) / Constants.ModulR;
+        z[1] = (int) (Math.round(pos.y) - yBase + STREET_HEIGHT/2 + 127*zoneHeight) / (int) zoneHeight;
         z[1] -= 127;
         return z;
     }
 
-    private static MapLocation getBasePosFromZone(int zx, int zy){
-        return new MapLocation((float) Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 8);
-    }
 
-
-
-    private static MapLocation getCenterPosFromZone(int zx, int zy){
-        return new MapLocation((float)Constants.ModulC * zx + xBase + (Constants.ModulC + 1)/2,Constants.ModulR * zy + yBase + 9.5f);
+    private static MapLocation getCenterPosFromZone(int[] z){
+        return new MapLocation(zoneWidth * z[0] + xBase + (STREET_WIDTH + 6)/2,
+                               zoneHeight * z[1] + yBase + (STREET_HEIGHT + 6)/2);
     }
 
     private static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
 

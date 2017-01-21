@@ -48,8 +48,8 @@ public class Lumberjack {
             broadcastLocations();
             findBestTree();
             updateTarget();
-            if (shouldMove) Greedy.moveGreedy(rc,realTarget);
-            else Greedy.moveGreedy(rc, rc.getLocation());
+            if (shouldMove) Greedy.moveGreedy(rc,realTarget,Clock.getBytecodesLeft() - 500);
+            else Greedy.moveGreedy(rc, rc.getLocation(), Clock.getBytecodesLeft() - 500);
 
             Clock.yield();
         }
@@ -162,7 +162,7 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
-        Greedy.resetObstacle();
+        Greedy.resetObstacle(rc);
     }
 
     static void readMessages(){
