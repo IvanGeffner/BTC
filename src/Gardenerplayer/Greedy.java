@@ -61,9 +61,11 @@ public class Greedy {
 
             //SI L'OBSTACLE JA NO HI ES, RESET!
             if (obstacle != null) {
-                if (!rc.canSenseAllOfCircle(obstacle, rc.getType().bodyRadius)) resetObstacle(rc);
-                else if (!rc.onTheMap(obstacle, rc.getType().bodyRadius)) resetObstacle(rc);
-                else if (!rc.isCircleOccupiedExceptByThisRobot(obstacle, rc.getType().bodyRadius)) resetObstacle(rc);
+                rc.setIndicatorDot(obstacle, 0, 255, 0);
+                MapLocation nextPos = pos.add(pos.directionTo(obstacle), r);
+                //if (!rc.canSenseAllOfCircle(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
+                if (!rc.onTheMap(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
+                else if (!rc.isCircleOccupiedExceptByThisRobot(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
             }
 
             //ESCOLLIM LA DIRECCIO PRINCIPAL
@@ -84,9 +86,9 @@ public class Greedy {
                 Ti = rc.senseNearbyTrees(R + r, null);
             }
 
-            //System.out.println("Pre Bullets: " + Clock.getBytecodeNum());
+            System.out.println("Pre Bullets: " + Clock.getBytecodeNum());
             getBullets(rc);
-            //System.out.println("Post Bullets: " + Clock.getBytecodeNum());
+            System.out.println("Post Bullets: " + Clock.getBytecodeNum());
 
 
             float expectedByteCode = Clock.getBytecodeNum();
@@ -131,11 +133,11 @@ public class Greedy {
     static void getBullets(RobotController rc){
         bullets = rc.senseNearbyBullets(Constants.BULLETSIGHT + R+r);
         BulletInfo[] bulletAux = new BulletInfo[bullets.length];
-        //System.out.println(bullets.length);
+        System.out.println(bullets.length);
         int cont = 0;
         for (BulletInfo bi : bullets){
 
-            //System.out.println(Clock.getBytecodeNum());
+            System.out.println(Clock.getBytecodeNum());
             if (bi.getLocation().distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(bi.getLocation()).radiansBetween(bi.getDir())) < Math.PI/2) continue;
             if (bi.getLocation().distanceTo(pos) > r+R+Constants.eps + bi.getSpeed()) continue;
             bulletAux[cont] = bi;
@@ -145,6 +147,8 @@ public class Greedy {
     }
 
     static void resetObstacle(RobotController rc){
+
+        System.out.println ("Fent reset!!!");
         collisionLocations = new HashMap<>();
         obstacle = null;
         minDistToTarget = Constants.INF;
@@ -171,7 +175,7 @@ public class Greedy {
 
     public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
 
-        if (tries == 0) //System.out.println("SUPER LOW BYTECODE");
+        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
 
         //if (tries >= Constants.GREEDYTRIES) return null;
 
@@ -365,7 +369,7 @@ public class Greedy {
 
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
 
-        //System.out.println("SUPER HIGH BYTECODEE!!");
+        System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -516,7 +520,7 @@ public class Greedy {
 
     public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
 
-        //System.out.println("LOW BYTECODE");
+        System.out.println("LOW BYTECODE");
 
 
         if (dir == null){
@@ -829,7 +833,7 @@ public class Greedy {
 
     static void addIntervals(BulletInfo b){
 
-        //System.out.println("Bytecode pls1: " + Clock.getBytecodeNum());
+        System.out.println("Bytecode pls1: " + Clock.getBytecodeNum());
 
         try {
 
@@ -929,7 +933,7 @@ public class Greedy {
         }
 
 
-        //System.out.println("Bytecode pls2: " + Clock.getBytecodeNum());
+        System.out.println("Bytecode pls2: " + Clock.getBytecodeNum());
 
 
 

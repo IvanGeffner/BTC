@@ -78,8 +78,8 @@ public class Lumberjack {
         float strikeUtil = 0;
         float chopUtil = 0;
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius);
+        TreeInfo[] Ti = rc.senseNearbyTrees(2);
+        RobotInfo[] Ri = rc.senseNearbyRobots(2);
 
         int cont = 0;
 

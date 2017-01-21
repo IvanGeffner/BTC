@@ -77,7 +77,7 @@ public class Gardener {
 
             updateTarget(newTarget);
 
-            try {
+            /*try {
                 if (realTarget == null) {
                     rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
                 }
@@ -87,11 +87,25 @@ public class Gardener {
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
+            }*/
+
+            if (!shouldMove) Greedy.moveToSelf(rc, 9200);
+
+
+            else {
+                try {
+                    if (realTarget == null) {
+                        rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                    }
+                    else {
+                        rc.setIndicatorDot(realTarget, 0, 255, 0);
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                Greedy.moveGreedy(rc, realTarget, 9200);
             }
-
-            if (!shouldMove) realTarget = rc.getLocation();
-
-            Greedy.moveGreedy(rc, realTarget, 9200);
 
             Clock.yield();
         }

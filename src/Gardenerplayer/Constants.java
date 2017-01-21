@@ -42,6 +42,7 @@ public class Constants {
     public static float BULLETSIGHT = 4;
     public static int ANGLEFACTOR = (1 << 13);
     public static int INTINF = (1 << 27);
+    public static final int BYTECODEATSHOOTING = 7500;
 
     public static float COLLISIONDIST = 0.75f;
     public static float COLLISIONRANGE = 1.2f;
