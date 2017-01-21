@@ -13,6 +13,7 @@ public class Communication {
     static final int ENEMYTREE = 0x40000000;
     static final int BULLETTREE = 0x50000000;
     static final int UNITTREE = 0x60000000;
+    static final int TREEZONE = 0x70000000;
 
 
     //BC parameters
