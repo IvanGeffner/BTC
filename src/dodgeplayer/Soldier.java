@@ -77,9 +77,13 @@ public class Soldier {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget, 7000);
+            Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+
+            System.out.println("Preshooting" + Clock.getBytecodeNum());
 
             tryShoot();
+
+            System.out.println("Postshooting" + Clock.getBytecodeNum());
 
             System.out.println(maxUtil);
 
@@ -149,7 +153,7 @@ public class Soldier {
             }
         }
 
-        for (int i = 0; i < cont && Clock.getBytecodesLeft() > 1500; ++i){
+        for (int i = 0; i < cont; ++i){
             RobotInfo ri = rArray.get(i);
             RobotType r = ri.getType();
             MapLocation m = ri.getLocation();
@@ -173,6 +177,8 @@ public class Soldier {
             Direction dirLeft = dir.rotateLeftRads(a);
 
             for (RobotInfo ally : allies){
+
+                if (Clock.getBytecodesLeft() < 400)  break;
                 if (ally.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = ally.getLocation();
@@ -198,6 +204,7 @@ public class Soldier {
             Direction dirLeftA = dirLeft;
 
             for (TreeInfo tree : trees){
+                if (Clock.getBytecodesLeft() < 400)  break;
                 if (tree.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = tree.getLocation();
@@ -218,6 +225,8 @@ public class Soldier {
                     }
                 }
             }
+
+            if (Clock.getBytecodesLeft() < 400)  break;
 
             if (dirRight.radiansBetween(dirLeft) > Constants.eps){
 
