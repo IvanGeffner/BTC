@@ -77,9 +77,13 @@ public class Soldier {
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+            Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+
+            System.out.println("Preshooting" + Clock.getBytecodeNum());
 
             tryShoot();
+
+            System.out.println("Postshooting" + Clock.getBytecodeNum());
 
             System.out.println(maxUtil);
 
@@ -132,8 +136,8 @@ public class Soldier {
             RobotType a = ri.getType();
             MapLocation m = ri.getLocation();
             float d = pos.distanceTo(m);
-            if (a == RobotType.SCOUT && d > 5) continue;
-            if (a == RobotType.SOLDIER && d > 7) continue;
+            //if (a == RobotType.SCOUT && d > 5) continue;
+            //if (a == RobotType.SOLDIER && d > 7) continue;
             Direction dir = pos.directionTo(m);
             boolean addIt = true;
             for (int i = 0; i < cont && !addIt; ++i){
@@ -173,6 +177,8 @@ public class Soldier {
             Direction dirLeft = dir.rotateLeftRads(a);
 
             for (RobotInfo ally : allies){
+
+                if (Clock.getBytecodesLeft() < 400)  break;
                 if (ally.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = ally.getLocation();
@@ -198,6 +204,7 @@ public class Soldier {
             Direction dirLeftA = dirLeft;
 
             for (TreeInfo tree : trees){
+                if (Clock.getBytecodesLeft() < 400)  break;
                 if (tree.getID() == rc.getID()) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = tree.getLocation();
@@ -218,6 +225,8 @@ public class Soldier {
                     }
                 }
             }
+
+            if (Clock.getBytecodesLeft() < 400)  break;
 
             if (dirRight.radiansBetween(dirLeft) > Constants.eps){
 
@@ -276,8 +285,7 @@ public class Soldier {
                 if (maxUtilPentad > maxUtilTriad) {
                     if (maxUtilPentad > maxUtilSingle) {
                         rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirPentad), 0,255, 0);
-                        Greedy.resetObstacle(rc);
+                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                         rc.firePentadShot(dirPentad);
                         return;
                     }
@@ -286,16 +294,14 @@ public class Soldier {
             if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                 if (maxUtilTriad > maxUtilSingle) {
                     rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirTriad), 0,0, 255);
-                    Greedy.resetObstacle(rc);
+                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
                     rc.fireTriadShot(dirTriad);
                     return;
                 }
             }
             if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
                 rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirSingle), 120,120, 0);
-                Greedy.resetObstacle(rc);
+                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
                 rc.fireSingleShot(dirSingle);
             }
         } catch (Exception e) {
