@@ -20,6 +20,7 @@ public class Greedy {
     static int[] intervals;
 
     static boolean shouldMove = true; //Si t'has de moure
+    static int trueBullets;
 
     static int bulletDodge = -10; //Ultim torn on has esquivat una bala
 
@@ -82,7 +83,10 @@ public class Greedy {
             if (!(rc.getType() == RobotType.SCOUT)) {
                 Ti = rc.senseNearbyTrees(R + r, null);
             }
-            bullets = rc.senseNearbyBullets(Constants.BULLETSIGHT);
+
+            System.out.println("Pre Bullets: " + Clock.getBytecodeNum());
+            getBullets(rc);
+            System.out.println("Post Bullets: " + Clock.getBytecodeNum());
 
 
             float expectedByteCode = Clock.getBytecodeNum();
@@ -92,7 +96,13 @@ public class Greedy {
 
             Direction dirGreedy;
             if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
-            else dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2)*bullets.length < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
+
+            //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
+            //dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+
+            if (dirGreedy == null) return;
 
             //ACTUALITZEM
             if (left != 0) {
@@ -116,6 +126,22 @@ public class Greedy {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static void getBullets(RobotController rc){
+        bullets = rc.senseNearbyBullets(Constants.BULLETSIGHT + R+r);
+        BulletInfo[] bulletAux = new BulletInfo[bullets.length];
+        System.out.println(bullets.length);
+        int cont = 0;
+        for (BulletInfo bi : bullets){
+
+            System.out.println(Clock.getBytecodeNum());
+            if (bi.getLocation().distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(bi.getLocation()).radiansBetween(bi.getDir())) < Math.PI/2) continue;
+            if (bi.getLocation().distanceTo(pos) > r+R+Constants.eps + bi.getSpeed()) continue;
+            bulletAux[cont] = bi;
+            ++cont;
+        }
+        bullets = Arrays.copyOf(bulletAux, cont);
     }
 
     static void resetObstacle(RobotController rc){
@@ -143,7 +169,203 @@ public class Greedy {
         }
     }
 
+    public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
+
+        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
+
+        //if (tries >= Constants.GREEDYTRIES) return null;
+
+        if (tries == 0 && mainDir == null){
+            mainDir = new Direction ((float)Math.random(), (float)Math.random());
+            shouldMove = false;
+        } else if (tries == 0) shouldMove = true;
+
+        if (tries > 0 && rc.canMove(mainDir)) return mainDir;
+
+        obstacle = null;
+
+        MapLocation nextPos = pos.add(mainDir, r);
+
+        RobotInfo[] RI = rc.senseNearbyRobots(nextPos, R, null);
+
+        Direction dirL = mainDir, dirR = mainDir;
+        boolean scout = (rc.getType() == RobotType.SCOUT);
+
+        MapLocation obstacleLeft = null, obstacleRight = null;
+
+        for (RobotInfo ri : RI){
+
+            if (Clock.getBytecodeNum() > bytecodeLeft) break;
+
+            if (ri.getID() == rc.getID())continue;
+            MapLocation m2 = ri.getLocation();
+            Direction dir2 = pos.directionTo(m2);
+
+            float l = (R+ri.getType().bodyRadius);
+            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+            if (t <= 1 && t >= -1) {
+
+                float angle = (float) Math.acos(t) + 0.001f;
+                Direction newDirL = dir2.rotateLeftRads(angle);
+                Direction newDirR = dir2.rotateRightRads(angle);
+                if (dirL.radiansBetween(newDirL) > 0){
+                    dirL = newDirL;
+                    obstacleLeft = m2;
+                }
+                if (dirR.radiansBetween(newDirR) < 0){
+                    obstacleRight = m2;
+                    dirR = newDirR;
+                }
+            }
+        }
+
+        if (!scout){
+            TreeInfo[] TI = rc.senseNearbyTrees(nextPos, R, null);
+            for (TreeInfo ti : TI){
+                if (Clock.getBytecodeNum() > bytecodeLeft) break;
+                MapLocation m2 = ti.getLocation();
+                Direction dir2 = pos.directionTo(m2);
+
+                float l = (R+ti.getRadius());
+                float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+                if (t <= 1 && t >= -1) {
+
+                    float angle = (float) Math.acos(t) + 0.001f;
+                    Direction newDirL = dir2.rotateLeftRads(angle);
+                    Direction newDirR = dir2.rotateRightRads(angle);
+                    if (dirL.radiansBetween(newDirL) > 0){
+                        dirL = newDirL;
+                        obstacleLeft = m2;
+                    }
+                    if (dirR.radiansBetween(newDirR) < 0){
+                        obstacleRight = m2;
+                        dirR = newDirR;
+                    }
+                }
+            }
+        }
+
+        BulletInfo[] BI = rc.senseNearbyBullets(Constants.BULLETSIGHT);
+
+        float angL = getPositiveAngle(mainDir, dirL), angR = getPositiveAngle(mainDir, dirR);
+        if (angR == 0) angR = Constants.PI2;
+
+        for (BulletInfo bi : BI){
+            if (Clock.getBytecodeNum() > bytecodeLeft) break;
+            MapLocation m2 = bi.getLocation().add(bi.getDir(),(bi.getSpeed()/2));
+            Direction dir2 = pos.directionTo(m2);
+            float l = (R+bi.getSpeed()/2);
+
+            if (!shouldMove && pos.distanceTo(m2) <= l) shouldMove = true;
+
+            //if (nextPos.distanceTo(m2) > l) continue;
+
+
+            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+            if (t <= 1 && t >= -1) {
+
+                float angle = (float) Math.acos(t) + 0.001f;
+
+
+                Direction newDirL = dir2.rotateLeftRads(angle);
+                Direction newDirR = dir2.rotateRightRads(angle);
+
+
+                float newAngL = getPositiveAngle(mainDir, newDirL);
+                float newAngR = getPositiveAngle(mainDir, newDirR);
+
+                if (newAngL > angL){
+                    if (newAngL < angR) {
+                        angL = newAngL;
+                        dirL = newDirL;
+                    }
+                }
+
+                if (newAngR < angR){
+                    if (newAngR > angL){
+                        angR = newAngR;
+                        dirR = newDirR;
+
+                    }
+                }
+            }
+        }
+
+        if (left == 0) {
+            if (Clock.getBytecodeNum() > bytecodeLeft) return dirL;
+            left = -1;
+            Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
+            MapLocation auxObs;
+            if (obstacle == null) auxObs = obstacleRight;
+            else auxObs = obstacle;
+            left = 1;
+            Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
+            if (obstacle == null) obstacle = obstacleLeft;
+            if (UltimateLeft != null) {
+                if (UltimateRight == null || !rc.canMove(UltimateRight) || pos.add(UltimateLeft, r).distanceTo(target) < pos.add(UltimateRight, r).distanceTo(target))
+                    return UltimateLeft;
+                obstacle = auxObs;
+                left = -1;
+                return UltimateRight;
+            }
+            obstacle = auxObs;
+            left = -1;
+            return UltimateRight;
+
+        } else if (left == -1) {
+            if (Clock.getBytecodeNum() > bytecodeLeft) return dirR;
+            if (Math.abs(dirR.radiansBetween(mainDir)) < Constants.eps) {
+                if (rc.canMove(dirR)) {
+                    obstacle = obstacleRight;
+                    return dirR;
+                } else return null;
+            } else {
+                Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
+                if (UltimateRight != null && rc.canMove(UltimateRight)) {
+                    if (obstacle == null) obstacle = obstacleRight;
+                    return UltimateRight;
+                } else{
+                    left = 1;
+                    Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
+                    if (UltimateLeft != null && rc.canMove(UltimateLeft)) {
+                        if (obstacle == null) obstacle = obstacleLeft;
+                    }
+                    return UltimateLeft;
+                }
+            }
+        } else {
+            if (Clock.getBytecodeNum() > bytecodeLeft) return dirL;
+            if (Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps) {
+                if (rc.canMove(dirL)) {
+                    obstacle = obstacleLeft;
+                    return dirL;
+                } else return null;
+            } else {
+                Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
+                if (UltimateLeft != null && rc.canMove(UltimateLeft)) {
+                    if (obstacle == null) obstacle = obstacleLeft;
+                    return UltimateLeft;
+                } else {
+                    left = -1;
+                    Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
+                    if (UltimateRight != null && rc.canMove(UltimateRight)) {
+                        if (obstacle == null) obstacle = obstacleRight;
+                    }
+                    return UltimateRight;
+                }
+            }
+        }
+    }
+
+    public static float getPositiveAngle(Direction A, Direction B){
+        float a = A.radiansBetween(B);
+        if (a < 0) a += Constants.PI2;
+        return a;
+    }
+
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
+
+        System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -242,7 +464,6 @@ public class Greedy {
         contBullets = 0;
 
         for (BulletInfo bul : bullets) {
-            if (maxLength - inter <= 3) break;
             if (Clock.getBytecodeNum() + Constants.COSTCYCLE2 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
 
             addIntervals(bul);
@@ -294,6 +515,8 @@ public class Greedy {
     }
 
     public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
+
+        System.out.println("LOW BYTECODE");
 
 
         if (dir == null){
@@ -400,7 +623,7 @@ public class Greedy {
             float d = pos.distanceTo(m2);
             float l = (R + bul.getSpeed() / 2);
 
-            if (!shouldMove && d <= R + l) shouldMove = true;
+            if (!shouldMove && d <= l) shouldMove = true;
 
 
             float t = (pos.distanceSquaredTo(m2) + rr - l * l) / (2.0f * d * r);
@@ -616,7 +839,6 @@ public class Greedy {
             Direction perp = b.getDir().rotateLeftRads((float) Math.PI / 2);
 
             if (!shouldMove && m1.add(b.getDir(), b.getSpeed()/2).distanceTo(pos) <= b.getSpeed()/2 + R) shouldMove = true;
-            if (m1.distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(m1).radiansBetween(b.getDir())) < Math.PI/2) return;
 
             MapLocation V11 = m1.add(perp, R);
             MapLocation V21 = m2.add(perp, R);
