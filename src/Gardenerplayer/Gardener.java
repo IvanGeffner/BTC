@@ -48,8 +48,6 @@ public class Gardener {
     private static float newRobotPosY[] = new float[4];
     private static MapLocation[] newRobotPos = new MapLocation[4];
 
-    private static int initialMessage = 0;
-
     private static float mapMinX = -Constants.INF;
     private static float mapMinY = -Constants.INF;
     private static float mapMaxX = Constants.INF;
@@ -74,36 +72,11 @@ public class Gardener {
                 //System.out.println("despres de searchzone " + Clock.getBytecodeNum());
                 if (zoneIWant[0] != -1){
                     newTarget = getCenterPosFromZone(zoneIWant[0],zoneIWant[1]);
-                    System.out.println("Va a zona " + rc.getLocation() + " a " + newTarget);
+                    System.out.println("Va a zona " + rc.getLocation() + " a " + newTarget + ", " + isZoneInMap(zoneIWant));
                     rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 255, 255);
                 }
                 //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
-
-
-                MapLocation centerIWant = getCenterPosFromZone(zoneIWant[0],zoneIWant[1]);
-                if (rc.canSenseLocation(centerIWant)){
-                    if (getZoneTypeFromBroadcast(zoneIWant) != busyZone) {
-                        try {
-                            if (!rc.onTheMap(centerIWant)){
-                                broadcastZone(zoneIWant,outOfMapZone);
-                                zoneIWant[0] = zoneIWant[1] = -1;
-                            } else {
-                                System.out.println("El punt " + centerIWant + " esta dintre el mapa");
-                                rc.setIndicatorDot(centerIWant,255,255,255);
-                                assignZone(zoneIWant);
-                            }
-                        } catch (GameActionException e) {
-                            e.printStackTrace();
-                        }
-                    }else{
-                        //he arribat a la zona que volia pero ara ja esta ocupada
-                        zoneIWant[0] = zoneIWant[1] = -1;
-                    }
-                }
-
-
-
-
+                checkIfArrivedToZone();
             }else{
                 updateTreeHP();
                 checkNeutralTreesInZone();
@@ -169,16 +142,6 @@ public class Gardener {
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
-
-
-
-        initialMessage = 0;
-        try{
-            initialMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     private static void broadcastZone(int[] z, int newZoneType){
@@ -198,6 +161,36 @@ public class Gardener {
             e.printStackTrace();
         }
     }
+
+    private static void broadcastZoneLimit(int channel, int value){
+        try {
+            int old_value = rc.readBroadcast(channel);
+            if (channel == Communication.MAX_ZONE_X || channel == Communication.MAX_ZONE_Y){
+                int new_value = Math.min(old_value,value - Communication.ZONE_LIMIT_OFFSET);
+                rc.broadcast(channel, new_value);
+            }else{
+                int new_value = Math.max(old_value,value + Communication.ZONE_LIMIT_OFFSET);
+                rc.broadcast(channel, new_value);
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static int getZoneLimitFromBroadcast(int channel){
+        try {
+            int raw_value = rc.readBroadcast(channel);
+            if (channel == Communication.MAX_ZONE_X || channel == Communication.MAX_ZONE_Y){
+                return raw_value + Communication.ZONE_LIMIT_OFFSET;
+            }else{
+                return raw_value - Communication.ZONE_LIMIT_OFFSET;
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return (int)Constants.INF;
+    }
+
 
     private static int getZoneTypeFromBroadcast(int[] z){
         int zone_id = z[0] + zoneColumns * z[1];
@@ -225,10 +218,10 @@ public class Gardener {
         float[] treeOffsetY = {-3.5f,-3.49f,-3.48f,-3.47f,3.47f,3.48f,3.49f,3.5f};
         float[] plantingOffsetX = {-3f,-1f,1f,3f,-3f,-1f,1f,3f};
         float[] plantingOffsetY = {-1.5f,-1.49f,-1.48f,-1.47f,1.47f,1.48f,1.49f,1.5f};
-        float buildOffsetX[] = {-3f,3f,-3f,3f};
-        float buildOffsetY[] = {-1.45f,-1.45f,1.45f,1.45f};
-        float newRobotOffsetX[] = {-4f,4f,-4f,4f};
-        float newRobotOffsetY[] = {-1.45f,-1.45f,1.45f,1.45f};
+        float[] buildOffsetX= {-3f,3f,-3f,3f};
+        float[] buildOffsetY= {-1.45f,-1.45f,1.45f,1.45f};
+        float[] newRobotOffsetX= {-4f,4f,-4f,4f};
+        float[] newRobotOffsetY= {-1.45f,-1.45f,1.45f,1.45f};
 
         zone = assignedZone;
         zoneBasePos = getBasePosFromZone(zone[0],zone[1]);
@@ -276,7 +269,6 @@ public class Gardener {
                 return;
             }
             int[] newZone = {myZone[0] + Xsorted[i], myZone[1] + Ysorted[i]};
-            MapLocation newZoneCenter = getCenterPosFromZone(newZone[0],newZone[1]);
             int new_zone_id = newZone[0] + zoneColumns * newZone[1];
             if (new_zone_id < 0) new_zone_id += zoneColumns*zoneRows;
             int channel_id = new_zone_id / zonesPerChannel;
@@ -286,9 +278,7 @@ public class Gardener {
             int lastTurn = (info >> 2) & 0x3;
             int thisTurn = rc.getRoundNum();
             //System.out.println("zone "+new_zone_id+" type " + zoneType);
-            if (zoneType != outOfMapZone && !onCurrentMap(newZoneCenter)){
-                broadcastZone(newZone,outOfMapZone);
-            }
+            if (zoneType != outOfMapZone) updateZoneInMap(newZone);
             if (zoneType == busyZone){
                 if ((lastTurn & 0x3) == ((thisTurn + 2) & 0x3) || ((lastTurn+3) & 0x3) == (thisTurn & 0x3) ){
                     zoneType = abandonedZone;
@@ -312,29 +302,85 @@ public class Gardener {
         MapLocation closerTarget = myPos.add(targetDir, 2f);
         try {
             if (rc.onTheMap(closerTarget)) return;
+            if (zone[0] == Constants.INF) {
+                updateZoneInMap(zoneIWant);
+                System.out.println("Ha arribat al limit del mapa, actualitza la zona " + isZoneInMap(zoneIWant));
+                zoneIWant[0] = zoneIWant[1] = -1;
+            }
             float dx = targetDir.getDeltaX(1);
             float dy = targetDir.getDeltaY(1);
             if (dx < 0){
                 if (!rc.onTheMap(myPos.add(Direction.WEST,2))){
-                    mapMinX = Math.min(mapMinX,myPos.add(Direction.WEST,2).x);
+                    mapMinX = Math.max(mapMinX,myPos.add(Direction.WEST,2).x);
                 }
             }
             if (dx > 0){
                 if (!rc.onTheMap(myPos.add(Direction.EAST,2))){
-                    mapMaxX = Math.max(mapMaxX,myPos.add(Direction.EAST,2).x);
+                    mapMaxX = Math.min(mapMaxX,myPos.add(Direction.EAST,2).x);
                 }
             }
             if (dy < 0){
                 if (!rc.onTheMap(myPos.add(Direction.SOUTH,2))){
-                    mapMinY = Math.min(mapMinY,myPos.add(Direction.SOUTH,2).y);
+                    mapMinY = Math.max(mapMinY,myPos.add(Direction.SOUTH,2).y);
                 }
             }
             if (dy > 0){
                 if (!rc.onTheMap(myPos.add(Direction.NORTH,2))){
-                    mapMaxY = Math.max(mapMaxY,myPos.add(Direction.NORTH,2).y);
+                    mapMaxY = Math.min(mapMaxY,myPos.add(Direction.NORTH,2).y);
                 }
             }
         } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void updateZoneInMap(int[] z){
+        MapLocation center = getCenterPosFromZone(z[0],z[1]);
+        if (!onCurrentMap(center)){
+            broadcastZone(z,outOfMapZone);
+            if (center.x < mapMinX) {
+                broadcastZoneLimit(Communication.MIN_ZONE_X, z[0] + 1);
+            }
+            if (center.x > mapMaxX) {
+                broadcastZoneLimit(Communication.MAX_ZONE_X, z[0] - 1);
+            }
+            if (center.y < mapMinY) {
+                broadcastZoneLimit(Communication.MIN_ZONE_Y, z[1] + 1);
+            }
+            if (center.y > mapMaxY) {
+                broadcastZoneLimit(Communication.MAX_ZONE_Y, z[1] - 1);
+            }
+        }else {
+            System.out.println("El centre " + center + " esta dintre de:");
+            System.out.println(mapMinX + "-" + mapMaxX + ", " + mapMinY + "-" +mapMaxY);
+        }
+    }
+
+    private static boolean isZoneInMap(int[] z){
+        return !(z[0] < getZoneLimitFromBroadcast(Communication.MIN_ZONE_X) ||
+                 z[0] > getZoneLimitFromBroadcast(Communication.MAX_ZONE_X) ||
+                 z[1] < getZoneLimitFromBroadcast(Communication.MIN_ZONE_Y) ||
+                 z[1] > getZoneLimitFromBroadcast(Communication.MAX_ZONE_Y));
+    }
+
+    private static void checkIfArrivedToZone(){
+        MapLocation centerIWant = getCenterPosFromZone(zoneIWant[0],zoneIWant[1]);
+        if (!rc.canSenseLocation(centerIWant)) return;
+        int zoneType = getZoneTypeFromBroadcast(zoneIWant);
+        try{
+            if (zoneType == busyZone) {
+                zoneIWant[0] = zoneIWant[1] = -1;
+                return;
+            }
+            if (!rc.onTheMap(centerIWant)){
+                updateZoneInMap(zoneIWant);
+                zoneIWant[0] = zoneIWant[1] = -1;
+                return;
+            }
+            System.out.println("El punt " + centerIWant + " esta dintre el mapa");
+            rc.setIndicatorDot(centerIWant,255,255,255);
+            assignZone(zoneIWant);
+        }catch (GameActionException e){
             e.printStackTrace();
         }
     }
@@ -472,15 +518,19 @@ public class Gardener {
             try {
                 if (rc.canSenseAllOfCircle(treePos[i],GameConstants.BULLET_TREE_RADIUS) && !rc.onTheMap(treePos[i], GameConstants.BULLET_TREE_RADIUS)){
                     updateMapBounds(treePos[i]);
+                    System.out.println("La posicio de l'arbre " + i + " esta fora del mapa");
                     continue;
                 }
                 if (rc.canSenseAllOfCircle(plantingPos[i],GameConstants.BULLET_TREE_RADIUS) && !rc.onTheMap(plantingPos[i], GameConstants.BULLET_TREE_RADIUS)){
                     updateMapBounds(plantingPos[i]);
+                    System.out.println("La posicio de plantar " + i + " esta fora del mapa");
                     continue;
                 }
                 if (rc.canSenseAllOfCircle(treePos[i],GameConstants.BULLET_TREE_RADIUS) &&
-                    rc.isCircleOccupiedExceptByThisRobot(treePos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
-                //falta fer continue si la posicio de plantar esta ocupada
+                    rc.isCircleOccupiedExceptByThisRobot(treePos[i],GameConstants.BULLET_TREE_RADIUS)) {
+                    System.out.println("La posicio de l'arbre " + i + " esta ocupada");
+                    continue;
+                }
                 if (myPos.distanceTo(treePos[i]) < minDist){
                     minDist = myPos.distanceTo(treePos[i]);
                     minIndex = i;
@@ -489,7 +539,11 @@ public class Gardener {
                 e.printStackTrace();
             }
         }
-        if (minIndex == -1) return null;
+
+        if (minIndex == -1) {
+            System.out.println("no te cap lloc per plantar");
+            return null;
+        }
         MapLocation bestTreePos = treePos[minIndex];
         if (rc.getLocation().distanceTo(plantingPos[minIndex]) < Constants.eps && rc.canPlantTree(myPos.directionTo(bestTreePos))){
             try {

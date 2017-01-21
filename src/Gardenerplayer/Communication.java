@@ -30,6 +30,13 @@ public class Communication {
 
     static final int UNITS_BUILT = 620;
 
+    static int MIN_ZONE_X = 630;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
+    static int MIN_ZONE_Y = 631;
+    static int MAX_ZONE_X = 632;
+    static int MAX_ZONE_Y = 633;
+    static int ZONE_LIMIT_OFFSET = 20;
+
+
     static final int MAX_BROADCAST_MESSAGE = 500;
 
     static final int typeMask = 0xF0000000; //at most 15
