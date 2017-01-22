@@ -511,15 +511,15 @@ public class Gardener {
             int[] treeZone = getZoneFromPos(treeLocation);
             if (treeZone == zone){
                 if (neutralTreesInMyZone.contains(treeLocation)){
-                    messageCutNeutralTree(treeLocation);
+                    messageCutNeutralTree(ti.getID(),treeLocation);
                     neutralTreesInMyZone.add(treeLocation);
                 }
             }
         }
     }
 
-    private static void messageCutNeutralTree(MapLocation treeLocation) {
-        Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
+    private static void messageCutNeutralTree(int id, MapLocation treeLocation) {
+        Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),id&0xFFF);
     }
 
     private static MapLocation checkNearbyEnemies(){
