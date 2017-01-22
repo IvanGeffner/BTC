@@ -44,8 +44,35 @@ per tant podem tenir 8 zones en cada int:
 vector amb sentit oposat i modul 1/(dist+1)
 
 
-- si estan anar a buscar la zona i hi ha un enemic, fugen
-- recalcular la zona cada X torns
-- build order
+ok(no tested)- si estan anar a buscar la zona i hi ha un enemic, fugen
 - afegir tipus zona ocupada
-	
+- si els ataca un no-scout, ficar el 8e arbre
+- fer la classe zone
+- triar millor on posen el 7e arbre
+- si es moren tots els gardeners que l'archon en faci un
+- que mirin be si una zona esta fora del mapa
+
+
+
+
+Idees per triar un ordre mes ofensiu/ defensiu:
+- mirar la distancia inicial entre els archons
+- mirar quants arbres hi ha al voltant
+- tamany del mapa 
+- segons la partida anterior (si hem perdut molt aviat, fem més defensiu)
+
+
+
+
+
+Idees random:
+- que tothom faci shake
+- l'archon crea el primer gardener en coordenades enteres, i si pot, en la direccio contraria a l'archon enemic si esta molt a prop (ex. crumped)
+- que els tanks matin arbres neutrals/enemics
+- executar millor el build order (amb lo de units behind etc)
+- en el mapa chess els scouts es bugejen (es queden quiets quan arriben al final del mapa)
+- si hi ha molts arbres al principi (es a dir, si les posicions de construir estan ocupades), el gardener fa scout -> lumber en comptes de scout -> tree
+- que els gardeners puguin enviar un missatge "marxeu de la posicio X"
+- si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
+- si obtenim una tropa d'un arbre, actualitzar el build order 
+- el primer gardener es construeix en l'archon mes llunya de l'enemic (si es pot)

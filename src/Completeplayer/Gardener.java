@@ -13,6 +13,8 @@ public class Gardener {
 
     private static int xBase;
     private static int yBase;
+    private static int zoneOriginX;
+    private static int zoneOriginY;
     private static MapLocation zoneCenterPos;
 
     private static float STREET_WIDTH = 5f;
@@ -21,8 +23,8 @@ public class Gardener {
     private static float zoneHeight = 11f;
 
     private static int[] zone = {(int) Constants.INF, (int) Constants.INF};
-    private static int zoneRows = 2*GameConstants.MAP_MAX_WIDTH / (int) zoneWidth;
-    private static int zoneColumns = 2*GameConstants.MAP_MAX_HEIGHT / (int) zoneHeight;
+    private static int zoneRows = 2*GameConstants.MAP_MAX_WIDTH / (int) zoneWidth; // = 2*100 / 11 = 18
+    private static int zoneColumns = 2*GameConstants.MAP_MAX_HEIGHT / (int) zoneHeight; // = 18
     private static int zonesPerChannel = 6;
 
     private static int bitsPerZone = 5;
@@ -32,7 +34,7 @@ public class Gardener {
     private static float interaction_dist_from_edge = 1f;
 
     private static int[] zoneIWant = {-20,-20};
-    private static int turnsResetZone = 10;
+    private static int turnsResetZone = 3;
 
     private static int emptyZone = 0;
     private static int busyZone = 1;
@@ -107,6 +109,8 @@ public class Gardener {
                 checkNeutralTreesInZone();
                 newTarget = returnToZone();
                 if (newTarget != null) {
+                    broadcastZone(zone, abandonedZone);
+                    zone = new int[] {(int) Constants.INF, (int) Constants.INF};
                     System.out.println("Retorna: de " + rc.getLocation() + " a " + newTarget);
                     rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 220, 28);
                 } else {
@@ -147,10 +151,29 @@ public class Gardener {
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
+        Communication.setBase(xBase,yBase);
+        try {
+            int xOrigin = rc.readBroadcast(Communication.ZONE_ORIGIN_X);
+            if (xOrigin == 0){
+                rc.broadcast(Communication.ZONE_ORIGIN_X, Math.round(rc.getLocation().x));
+                rc.broadcast(Communication.ZONE_ORIGIN_Y, Math.round(rc.getLocation().y));
+                zoneOriginX = Math.round(rc.getLocation().x);
+                zoneOriginY = Math.round(rc.getLocation().y);
+            }else{
+                zoneOriginX = xOrigin;
+                zoneOriginY = rc.readBroadcast(Communication.ZONE_ORIGIN_Y);
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     private static int getZoneID(int[] z){
-        return z[0] + zoneColumns * z[1] + zoneColumns*zoneRows/2;
+        //rang de zoneid:
+        // inici: -9 + 18*(-9) + 18*18/2 + 9 = 0
+        // final: 9 + 18*9 + 18*18/2 + 9 = 342
+        // amb 6 zones per canal fan falta 57 canals
+        return z[0] + zoneColumns * z[1] + zoneColumns*zoneRows/2 + 9;
     }
 
     private static int[] readZoneBroadcast(int[] z){
@@ -273,8 +296,16 @@ public class Gardener {
         try {
             if(treesPerZone == 7 && !rc.onTheMap(zoneCenterPos.add(Direction.WEST,6f))){
                 treeOffsetX[6] = -2.01f;
+                newRobotOffsetX[0] = 2f;
+                buildTankOffsetX[0] = 2f;
+                newTankOffsetX[0] = 5f;
                 indexVertexTrees = new int[] {0,3};
-            }else indexVertexTrees = new int[] {2,5};
+            }else {
+                newRobotOffsetX[1] = -2f;
+                buildTankOffsetX[1] = -2f;
+                newTankOffsetX[1] = -5f;
+                indexVertexTrees = new int[] {2,5};
+            }
         } catch (GameActionException e) {
             e.printStackTrace();
         }
@@ -960,17 +991,17 @@ public class Gardener {
 
     private static int[] getZoneFromPos(MapLocation pos){
         int[] z = {0,0};
-        z[0] = (int) (Math.round(pos.x) - xBase + STREET_WIDTH/2 + 127*zoneWidth) / (int)zoneWidth;
+        z[0] = (int) (Math.round(pos.x) - zoneOriginX + 127*zoneWidth) / (int)zoneWidth;
         z[0] -= 127;
-        z[1] = (int) (Math.round(pos.y) - yBase + STREET_HEIGHT/2 + 127*zoneHeight) / (int) zoneHeight;
+        z[1] = (int) (Math.round(pos.y) - zoneOriginY + 127*zoneHeight) / (int) zoneHeight;
         z[1] -= 127;
         return z;
     }
 
 
     private static MapLocation getCenterPosFromZone(int[] z){
-        return new MapLocation(zoneWidth * z[0] + xBase + (STREET_WIDTH + 6)/2,
-                zoneHeight * z[1] + yBase + (STREET_HEIGHT + 6)/2);
+        return new MapLocation(zoneWidth * z[0] + zoneOriginX,
+                zoneHeight * z[1] + zoneOriginY);
     }
 
     private static void updateTarget(MapLocation newTarget){
@@ -978,7 +1009,4 @@ public class Gardener {
         realTarget = newTarget;
         //Greedy.resetObstacle(rc);
     }
-
-
-
 }

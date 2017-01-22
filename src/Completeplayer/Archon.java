@@ -32,8 +32,8 @@ public class Archon {
 
             tryConstruct();
             //tryMove();
-
-            Greedy.moveToSelf(rc, 9200);
+            randomMove();
+            //Greedy.moveToSelf(rc, 9200);
 
             Clock.yield();
         }
@@ -83,6 +83,21 @@ public class Archon {
         }
     }
 
+
+    static void randomMove(){
+        try {
+            int a = (int) Math.floor(Math.random() * 4.0);
+            for (int i = 0; i < 4; ++i) {
+                if (rc.canMove(Constants.main_dirs[(a + i) % 4])) {
+                    rc.move(Constants.main_dirs[(a + i) % 4]);
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     static void readMessages(){
         try {
