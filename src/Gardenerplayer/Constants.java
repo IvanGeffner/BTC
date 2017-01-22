@@ -97,7 +97,6 @@ public class Constants {
             case 5: return RobotType.ARCHON;
             default: return null;
         }
-
     }
 
     static float safetyDistance(RobotType r){

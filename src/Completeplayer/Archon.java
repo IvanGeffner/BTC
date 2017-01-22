@@ -1,9 +1,6 @@
 package Completeplayer;
 
-import battlecode.common.Clock;
-import battlecode.common.GameConstants;
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 
 /**
@@ -110,6 +107,59 @@ public class Archon {
     }
 
     static void tryConstruct(){
+        //if (!shouldConstructGardener()) return;
+        try {
+            if (!myTurn()) return;
+            if (whichRobotToBuild(rc.readBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
+            try{
+                for (int i = 0; i < 4; ++i){
+                    if (rc.canHireGardener(Constants.main_dirs[i])){
+                        rc.hireGardener(Constants.main_dirs[i]);
+                        incrementRobotsBuilt();
+                        //updateConstruct(0);
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+
+        //updateTurn();
+
+    }
+
+    private static RobotType whichRobotToBuild(int index){
+        int unit_to_build;
+        if (index < Constants.initialBuild.length){
+            unit_to_build = Constants.initialBuild[index];
+        }else{
+            int aux = index - Constants.initialBuild.length;
+            unit_to_build = Constants.sequenceBuild[aux%(Constants.sequenceBuild.length)];
+        }
+        System.out.println("index " + index + "="+Constants.getRobotTypeFromIndex(unit_to_build));
+        return Constants.getRobotTypeFromIndex(unit_to_build);
+    }
+
+    private static void incrementRobotsBuilt(){
+        try {
+            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+    //al fer el merge he ficat el codi del archon del gardener player
+    //el codi antic esta aqui comentat
+
+/*
+    static void tryConstruct(){
         if (!shouldConstructGardener()) return;
         if (!myTurn()) return;
         try{
@@ -128,7 +178,7 @@ public class Archon {
         //updateTurn();
 
     }
-
+*/
     static boolean myTurn(){
         try {
             //int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
@@ -140,7 +190,7 @@ public class Archon {
         }
         return false;
     }
-
+/*
     static void updateTurn(){
         try {
             int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
@@ -262,5 +312,5 @@ public class Archon {
         }
         return 0;
     }
-
+*/
 }

@@ -39,9 +39,6 @@ public class Gardener {
     private static int abandonedZone = 2;
     private static int outOfMapZone = 3;
 
-    //X trees for each robot
-    private static float ratioTreeRobot = 1.1f;
-
     private static HashSet<MapLocation> neutralTreesInMyZone = new HashSet<>();
 
     private static float maxDistToCenter = 3f;
@@ -135,16 +132,9 @@ public class Gardener {
             updateMapBounds();
             updateTarget(newTarget);
             waterNearbyTree();
-            try {
-                if (realTarget == null) {
-                    rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
-                }
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            //System.out.println("Estic a " + rc.getLocation() + " i vaig a " + realTarget);
-            if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
+            if (realTarget == null) {
+                rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+            }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
             Clock.yield();
@@ -159,10 +149,13 @@ public class Gardener {
         yBase = Math.round(base.y);
     }
 
+    private static int getZoneID(int[] z){
+        return z[0] + zoneColumns * z[1] + zoneColumns*zoneRows/2;
+    }
 
     private static int[] readZoneBroadcast(int[] z){
         if (z[0] == Constants.INF) return null;
-        int zone_id = z[0] + zoneColumns * z[1] + zoneColumns*zoneRows;
+        int zone_id =  getZoneID(z);
         int channel_id = zone_id / zonesPerChannel;
         try {
             int info = rc.readBroadcast(Communication.ZONE_FIRST_POSITION + channel_id);
@@ -179,7 +172,7 @@ public class Gardener {
 
     private static void broadcastZone(int[] z, int newZoneType){
         if (z[0] == Constants.INF) return;
-        int zone_id = z[0] + zoneColumns * z[1] + zoneColumns*zoneRows;
+        int zone_id = getZoneID(z);
         //System.out.println("Es marca la zone " + zone_id + " com a " + newZoneType);
         int channel_id = zone_id / zonesPerChannel;
         int info = (rc.getRoundNum() & 0x03) * 8 + (newZoneType & 0x7);
@@ -245,9 +238,9 @@ public class Gardener {
 
     private static void assignZone(int[] assignedZone){
         float[] treeOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f,2.01f};
-        float[] treeOffsetY = {-2.2f,-2.2f,-2.2f,2.2f,2.2f,2.2f,0f};
+        float[] treeOffsetY = {-2.05f,-2.05f,-2.05f,2.05f,2.05f,2.05f,0f};
         float[] plantingOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f,0f};
-        float[] plantingOffsetY = {-0.2f,-0.2f,-0.2f,0.2f,0.2f,0.2f,0f};
+        float[] plantingOffsetY = {-0.05f,-0.05f,-0.05f,0.05f,0.05f,0.05f,0f};
         float[] wateringOffsetX = {0f,0f,0f,0f,0f,0f,0f};
         float[] wateringOffsetY = {0f,0f,0f,0f,0f,0f,0f};
         float[] buildOffsetX = {0f,0f};
@@ -560,7 +553,7 @@ public class Gardener {
             int robotsBuilt = rc.readBroadcast(Communication.ROBOTS_BUILT);
             MapLocation mostImportant;
             MapLocation leastImportant;
-            if (treesPlanted <= robotsBuilt * ratioTreeRobot){
+            if (treesPlanted < maxTreesBuilt(robotsBuilt)){
                 //tenim permis per construir un arbre
                 //System.out.println("Puc construir un arbre");
                 mostImportant = tryPlant();
@@ -578,6 +571,10 @@ public class Gardener {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static float maxTreesBuilt(int robotsBuilt){
+        return robotsBuilt - 1;
     }
 
     private static MapLocation tryPlant(){
@@ -757,6 +754,7 @@ public class Gardener {
                 e.printStackTrace();
             }
         }
+        if (rc.getTeamBullets() < robotType.bulletCost-40) return zoneCenterPos;
         return bestBuildLocation;
     }
 
