@@ -1,4 +1,4 @@
-package Gardenerplayer;
+package Completeplayer;
 
 import battlecode.common.*;
 
@@ -113,13 +113,13 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (RiE.length > 0){
                     MapLocation enemyLoc = RiE[0].getLocation();
-                    //if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                    if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 
 
             if (dirGreedy == null) {
-                //shoot = Shoot.tryShoot(rc, 1);
+                shoot = Shoot.tryShoot(rc, 1);
                 return;
             }
 
@@ -139,13 +139,13 @@ public class Greedy {
             if (!shouldMove && rc.canMove(target)){
                 resetObstacle(rc);
                 rc.move(target);
-                //if (!shoot) shoot = Shoot.tryShoot(rc, 1);
+                if (!shoot) shoot = Shoot.tryShoot(rc, 1);
                 return;
             }
             //ELSE ANEM EN LA DIRECCIO
             if (rc.canMove(dirGreedy)){
                 rc.move(dirGreedy);
-                //if (!shoot) shoot = Shoot.tryShoot(rc, 1);
+                if (!shoot) shoot = Shoot.tryShoot(rc, 1);
                 return;
             }
         } catch (Exception e) {
@@ -616,7 +616,7 @@ public class Greedy {
 
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
 
-        // System.out.println("SUPER HIGH BYTECODEE!!");
+       // System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -970,30 +970,30 @@ public class Greedy {
 
         int i = lowerIndex;
         int j = higherIndex;
-        //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
-        int pivot = intervals[(higherIndex+lowerIndex)/2];
-        while (i <= j) {
+            //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
+            int pivot = intervals[(higherIndex+lowerIndex)/2];
+            while (i <= j) {
 
-            while (intervals[i] < pivot) {
-                i++;
+                while (intervals[i] < pivot) {
+                    i++;
+                }
+                while (intervals[j] > pivot) {
+                    j--;
+                }
+                if (i <= j) {
+                    int temp = intervals[i];
+                    intervals[i] = intervals[j];
+                    intervals[j] = temp;
+                    i++;
+                    j--;
+                }
             }
-            while (intervals[j] > pivot) {
-                j--;
+            // call quickSort() method recursively
+            if (lowerIndex < j) {
+                quickSort(lowerIndex, j);
             }
-            if (i <= j) {
-                int temp = intervals[i];
-                intervals[i] = intervals[j];
-                intervals[j] = temp;
-                i++;
-                j--;
-            }
-        }
-        // call quickSort() method recursively
-        if (lowerIndex < j) {
-            quickSort(lowerIndex, j);
-        }
-        if (i < higherIndex){
-            quickSort(i, higherIndex);
+            if (i < higherIndex){
+                quickSort(i, higherIndex);
         }
     }
 
