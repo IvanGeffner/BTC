@@ -23,8 +23,6 @@ public class Scout {
     static MapLocation base;
     static int xBase, yBase;
 
-    static HashSet<Integer> readMes;
-
     static int round;
 
 
@@ -62,7 +60,8 @@ public class Scout {
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
-        readMes = new HashSet<>();
+
+        Communication.setBase(xBase, yBase);
 
         initialMessage = 0;
         try{
@@ -152,13 +151,11 @@ public class Scout {
     }
 
     static void readMessages(){
-        readMes.clear();
-        try {
+        /*try {
             int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
             for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(i);
                 workMessage(a);
-                readMes.add(a);
                 ++i;
                 if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
             }
@@ -166,7 +163,7 @@ public class Scout {
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
-        }
+        }*/
     }
 
     static void workMessage(int a){
@@ -178,22 +175,13 @@ public class Scout {
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
-            if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
+
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
@@ -202,17 +190,7 @@ public class Scout {
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -223,25 +201,10 @@ public class Scout {
             int y = Math.round(treePos.y);
             RobotType r = ti.getContainedRobot();
             if (r != null) {
-                int a = (int) r.bulletCost;
-                int m = Communication.encodeFinding(Communication.UNITTREE, x - xBase, y - yBase, a);
-                if (readMes.contains(m)) continue;
-                try {
-                    rc.broadcast(initialMessage, m);
-                    ++initialMessage;
-                    if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                        initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
             }
-        }
-        try {
-            rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 }

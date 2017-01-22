@@ -5,8 +5,6 @@ import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 
-import java.util.Map;
-
 /**
  * Created by Ivan on 1/15/2017.
  */
