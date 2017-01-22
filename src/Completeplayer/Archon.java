@@ -65,6 +65,7 @@ public class Archon {
                     rc.broadcast(Communication.INITIALIZED, 1);
                     for (int i = 0; i < Communication.unitChannels.length; ++i) {
                         rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
+                        System.out.println("Archon posa channel " + i + " a valor " + Constants.initialPositions[i]);
                     }
                 }
                 for (int i = 0; i < archons.length; ++i) if (archons[i].distanceTo(rc.getLocation()) < Constants.eps){
@@ -120,7 +121,7 @@ public class Archon {
     static void workMessagePlantTree(int a){
         treeSpending += GameConstants.BULLET_TREE_COST;
     }
-
+/*
     static void tryConstruct(){
         //if (!shouldConstructGardener()) return;
         try {
@@ -145,7 +146,7 @@ public class Archon {
 
         //updateTurn();
 
-    }
+    }*/
 
     private static RobotType whichRobotToBuild(int index){
         int unit_to_build;
@@ -173,7 +174,7 @@ public class Archon {
     //al fer el merge he ficat el codi del archon del gardener player
     //el codi antic esta aqui comentat
 
-/*
+
     static void tryConstruct(){
         if (!shouldConstructGardener()) return;
         if (!myTurn()) return;
@@ -193,7 +194,7 @@ public class Archon {
         //updateTurn();
 
     }
-*/
+
     static boolean myTurn(){
         try {
             //int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
@@ -205,7 +206,7 @@ public class Archon {
         }
         return false;
     }
-/*
+
     static void updateTurn(){
         try {
             int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
@@ -327,5 +328,5 @@ public class Archon {
         }
         return 0;
     }
-*/
+
 }

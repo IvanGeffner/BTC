@@ -17,10 +17,9 @@ public class Constants {
     //public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
     //public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 4 ,5};
 
-    public static int[] initialBuild = {0,4,1,2,4,2,0};
-    public static int[] initialPositions = {0,2,3,1,14,9999};
+    public static int[] initialBuild = {0,4,1,2,4,2,0}; //gard scout lumber soldier scout soldier gard
+    public static int[] initialPositions = {0,2,3,14,1,9999};
     public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
-
 
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;
@@ -94,8 +93,7 @@ public class Constants {
             case 2: return RobotType.SOLDIER;
             case 3: return RobotType.TANK;
             case 4: return RobotType.SCOUT;
-            case 5: return RobotType.ARCHON;
-            default: return null;
+            default: return RobotType.ARCHON;
         }
     }
 
