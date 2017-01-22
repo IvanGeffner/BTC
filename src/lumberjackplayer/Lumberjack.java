@@ -24,11 +24,14 @@ public class Lumberjack {
     static float enemyBaseUtil;
     static boolean archonCertainty; 
     static boolean attackingArchon; 
+    static float greedyRatio; 
     static int xBase;
     static int yBase;
     
     static float minDistToTarget; 
-    static float stayChopping = 2; 
+    static float maxDistToTarget;
+    static int stopGreedying; 
+    static float stayChopping = 4; 
 
     static HashSet<Integer> readMes;
     static int initialMessage = 0;
@@ -58,14 +61,20 @@ public class Lumberjack {
             
             tryChop();
             
-            if(!dontMove)
+            //if(!dontMove)
             {
-	            if (shouldMove) Greedy.moveGreedy(rc,realTarget,Clock.getBytecodesLeft()); //TODO canviar bytecode si fa falta
+            	if(stopGreedying < 35 && minDistToTarget > 15 && changeTarget < 2.0f*maxDistToTarget*minDistToTarget/(1.0f + rc.getLocation().distanceTo(realTarget))) shouldMove = true; 
+	            if (shouldMove) Greedy.moveGreedy(rc,realTarget,Clock.getBytecodesLeft()); //TODO canviar bytecode
 	            else Greedy.moveToSelf(rc,Clock.getBytecodesLeft());
-	            askToStop(); 
+	            //askToStop(Greedy.obstacle); 
             }
             
-            if(rc.getLocation().distanceTo(realTarget) < minDistToTarget) minDistToTarget = rc.getLocation().distanceTo(realTarget);
+            if(rc.getLocation().distanceTo(realTarget) < minDistToTarget) 
+            {
+            	stopGreedying = 0; 
+            	//changeTarget = 0; 
+            	minDistToTarget = rc.getLocation().distanceTo(realTarget);
+            }
             
             Clock.yield();
         }
@@ -76,8 +85,11 @@ public class Lumberjack {
         newTarget = enemyBase;
         maxUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
         changeTarget  = 0; 
+        stopGreedying = 0; 
         minDistToTarget = Constants.INF; 
-        base = rc.getInitialArchonLocations(rc.getTeam())[0];
+        maxDistToTarget = rc.getLocation().distanceTo(enemyBase);
+        greedyRatio = 0; 
+        base = rc.getInitialArchonLocations(rc.getTeam())[0];;
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
         readMes = new HashSet<>();
@@ -117,10 +129,10 @@ public class Lumberjack {
             if (!rc.canChop(ti.getID())) continue; //break?
             if (!ti.getTeam().equals(rc.getTeam()))
             {
-	            if (ti.getTeam() ==  rc.getTeam().opponent()){
-	                strikeUtil += 40;
-	                if (chopUtil < 100 && rc.canChop(ti.getID()) && !obstacleTree){
-	                    chopUtil = 100;
+	            if (ti.getTeam().equals(rc.getTeam().opponent())){
+	                strikeUtil += 4;
+	                if (chopUtil < 10 && rc.canChop(ti.getID()) && !obstacleTree){
+	                    chopUtil = 10;
 	                    chopID = ti.getID();
 	                }
 	            }
@@ -131,7 +143,7 @@ public class Lumberjack {
 	                }
 	            }
 	            
-	            if(!obstacleTree && rc.canChop(ti.getID()))
+	            if(!obstacleTree)
 	            {
 		            MapLocation m2 = ti.getLocation();
 	            	Direction dir = new Direction(rc.getLocation(),m2); 
@@ -139,27 +151,26 @@ public class Lumberjack {
 	            	float a = Math.abs(desired.radiansBetween(dir));
 	            	if(a < Math.PI/6)
 	            	{
-	            		rc.setIndicatorLine(rc.getLocation(),ti.getLocation(),255,0,0);
 	            		obstacleTree = true; 
 	            		chopUtil = 10; 
 	            		chopID = ti.getID();
-	            		if(attackingArchon)rc.setIndicatorDot(rc.getLocation(), 100, 0, 21);
-	            		if(rc.getLocation().distanceTo(realTarget) <= minDistToTarget + stayChopping) shouldMove = false; 
+	            		//if(attackingArchon)rc.setIndicatorDot(rc.getLocation(), 100, 0, 21);
+	            		if(rc.getLocation().distanceTo(realTarget) <= minDistToTarget + stayChopping) shouldMove = false; //TODO func to do greedy at beginning
 	            	}
 	            }
             }
-            else strikeUtil -= 40;
+            else strikeUtil -= 4;
         }
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
             if (ri.getTeam() == rc.getTeam()){
-            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil -=100;
-            	else strikeUtil -= ((float)ri.getType().bulletCost*20.0f)/(ri.getType().maxHealth);
+            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil -=10; 
+            	else strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
             else if (ri.getTeam() == rc.getTeam().opponent()){
-            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil +=100;
-            	else strikeUtil += ((float)ri.getType().bulletCost*20.0f)/(ri.getType().maxHealth);
+            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil +=10; 
+            	else strikeUtil += ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
             }
         }
         
@@ -167,11 +178,13 @@ public class Lumberjack {
             if (chopUtil > strikeUtil && chopUtil > 0) {
             	TreeInfo tree = rc.senseTree(chopID);
             	boolean myTarget = false; 
-            	if(tree.location.equals(realTarget)) myTarget = true; 
+            	if(tree.location.distanceTo(realTarget) < Constants.eps) myTarget = true; 
                 rc.chop(chopID);
                 if(!rc.canSenseTree(chopID))
                 {
                 	changeTarget = 0; 
+                	stopGreedying = 0; 
+                	maxDistToTarget = rc.getLocation().distanceTo(realTarget); 
                 	Greedy.resetObstacle(rc);
                 	if(myTarget)
                 	{
@@ -185,7 +198,7 @@ public class Lumberjack {
             else if (strikeUtil > 0) {
             	shouldMove = false; 
                 rc.strike();
-                rc.setIndicatorDot(rc.getLocation(),255,0,0);
+               //rc.setIndicatorDot(rc.getLocation(),255,0,0);
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -232,7 +245,7 @@ public class Lumberjack {
             float val = 2.0f/(1.0f + rc.getLocation().distanceTo(enemyTreePos));
             if(val > maxUtil)
     		{
-            	attackingArchon = false;
+            	attackingArchon = true; //we assume we're attacking the base
     			maxUtil = val; 
     			newTarget = enemyTreePos;
     		}
@@ -287,8 +300,10 @@ public class Lumberjack {
     	if(m[0] == Communication.STOP)
     	{
     		MapLocation bodering = new MapLocation(m[1] + xBase, m[2] + yBase); 
-    		if(bodering.equals(rc.getLocation()))
+    		//rc.setIndicatorDot(rc.getLocation(), 255, 183, 252);
+    		if(bodering.distanceTo(rc.getLocation()) < rc.getType().bodyRadius)
     		{
+    			//rc.setIndicatorDot(rc.getLocation(), 200, 0, 0);    			
     			dontMove = true; 
     		}
     	}
@@ -413,17 +428,16 @@ public class Lumberjack {
     static void updateTarget(){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) 
         {
+        	if(rc.getLocation().distanceTo(realTarget) - minDistToTarget > Constants.eps) ++stopGreedying; 
         	++changeTarget;
-        	if(changeTarget > roundsSameTarget)
-        	{
-        		changeTarget = 0; 
-        		newTarget = enemyBase; 
-        		realTarget = enemyBase;
-        		maxUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
-        	}
         	return;
         }
-        
+        if(newTarget != null && realTarget != null && newTarget.distanceTo(realTarget) > 50)
+        {
+        	maxDistToTarget = rc.getLocation().distanceTo(realTarget); 
+        	stopGreedying = 0; 
+        	changeTarget = 0; 
+        }
         minDistToTarget = Constants.INF; 
         realTarget = newTarget;
         Greedy.resetObstacle(rc);
@@ -441,31 +455,34 @@ public class Lumberjack {
     	return -1; 
     }
 
-    
-    static void askToStop()
+    /*
+    static void askToStop(MapLocation obstacle)
     {
-    	if(Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return; 
-    	if(Greedy.obstacle != null) 
-    	{
-    		if(rc.canSenseLocation(Greedy.obstacle)) 
-    		{
-    			try {
-					RobotInfo ri = rc.senseRobotAtLocation(Greedy.obstacle);
-					if(ri != null)
-					{
-						int x = Math.round(Greedy.obstacle.x); 
-			    		int y = Math.round(Greedy.obstacle.y);
-			    		int m = Communication.encodeFinding(Communication.STOP, x - xBase, y - yBase, Constants.getIndex(RobotType.LUMBERJACK)); 
-			    		rc.broadcast(initialMessage, m);
-			    		++initialMessage;
-			    		if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-					}
-				} catch (GameActionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    		}
-    	}
+    	//if(Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return; 
+    	if(obstacle == null) return;
+    	if(!rc.canSenseLocation(obstacle)) return;
+    	try {
+			RobotInfo ri = rc.senseRobotAtLocation(obstacle);
+			if(ri == null) return; 
+			if(!ri.getTeam().equals(rc.getTeam())) return; 
+		} catch (GameActionException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	//rc.setIndicatorLine(rc.getLocation(), obstacle, 255, 0, 246);
+		try {
+			int x = Math.round(obstacle.x); 
+	    	int y = Math.round(obstacle.y);
+	    		
+	   		int m = Communication.encodeFinding(Communication.STOP, x - xBase, y - yBase, Constants.getIndex(RobotType.LUMBERJACK)); 
+	   		rc.broadcast(initialMessage, m);
+	   		++initialMessage;
+	   		if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+	   		rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
+		} catch (GameActionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();			
+		}
     }
-    
+    */
 }
