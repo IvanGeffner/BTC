@@ -110,17 +110,17 @@ public class Lumberjack {
         boolean obstacleTree = false; 
         Direction desired = new Direction(rc.getLocation(),realTarget);
 
-        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().strideRadius+rc.getType().bodyRadius);
-        RobotInfo[] Ri = rc.senseNearbyRobots(rc.getType().strideRadius+rc.getType().bodyRadius);
+        TreeInfo[] Ti = rc.senseNearbyTrees(2);
+        RobotInfo[] Ri = rc.senseNearbyRobots(2);
 
         for (TreeInfo ti: Ti){
             if (!rc.canChop(ti.getID())) continue; //break?
             if (!ti.getTeam().equals(rc.getTeam()))
             {
 	            if (ti.getTeam() ==  rc.getTeam().opponent()){
-	                strikeUtil += 4;
-	                if (chopUtil < 10 && rc.canChop(ti.getID()) && !obstacleTree){
-	                    chopUtil = 10;
+	                strikeUtil += 40;
+	                if (chopUtil < 100 && rc.canChop(ti.getID()) && !obstacleTree){
+	                    chopUtil = 100;
 	                    chopID = ti.getID();
 	                }
 	            }
@@ -136,8 +136,7 @@ public class Lumberjack {
 		            MapLocation m2 = ti.getLocation();
 	            	Direction dir = new Direction(rc.getLocation(),m2); 
 
-	            	float a = desired.radiansBetween(dir); 
-	            	if(a < 0) a = -a;	            	
+	            	float a = Math.abs(desired.radiansBetween(dir));
 	            	if(a < Math.PI/6)
 	            	{
 	            		rc.setIndicatorLine(rc.getLocation(),ti.getLocation(),255,0,0);
@@ -149,18 +148,18 @@ public class Lumberjack {
 	            	}
 	            }
             }
-            else strikeUtil -= 4;
+            else strikeUtil -= 40;
         }
 
         for (RobotInfo ri : Ri){
             if (ri.getID() == rc.getID()) continue;
             if (ri.getTeam() == rc.getTeam()){
-            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil -=10; 
-            	else strikeUtil -= ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
+            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil -=100;
+            	else strikeUtil -= ((float)ri.getType().bulletCost*20.0f)/(ri.getType().maxHealth);
             }
             else if (ri.getTeam() == rc.getTeam().opponent()){
-            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil +=10; 
-            	else strikeUtil += ((float)ri.getType().bulletCost*2.0f)/(ri.getType().maxHealth);
+            	if(ri.getType().equals(RobotType.ARCHON)) strikeUtil +=100;
+            	else strikeUtil += ((float)ri.getType().bulletCost*20.0f)/(ri.getType().maxHealth);
             }
         }
         
