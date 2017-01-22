@@ -13,9 +13,15 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 4, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 8, 7, 9999, 1, 2};
-    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 2 ,5};
+    //public static int[] initialBuild = {0, 4, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
+    //public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
+    //public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 4 ,5};
+
+    public static int[] initialBuild = {0,4,1,2,4,2,0};
+    public static int[] initialPositions = {0,2,3,1,14,9999};
+    public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
+
+
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;
 
@@ -34,6 +40,9 @@ public class Constants {
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
     public static int SAFETYMARGIN = 8000;
+    public static int SAFETYMARGINCHECKTREES = 4000;
+    public static int SAFETYMARGINSCOUTS = 9700;
+    public static int LUMBERCHECK = 5000;
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.01f;
     public static float BULLETSIGHT = 4;
@@ -76,6 +85,18 @@ public class Constants {
         else if (r == RobotType.SCOUT) return 4;
         else if (r == RobotType.ARCHON) return 5;
         return 0;
+    }
+
+    public static RobotType getRobotTypeFromIndex(int i){
+        switch (i){
+            case 0: return RobotType.GARDENER;
+            case 1: return RobotType.LUMBERJACK;
+            case 2: return RobotType.SOLDIER;
+            case 3: return RobotType.TANK;
+            case 4: return RobotType.SCOUT;
+            case 5: return RobotType.ARCHON;
+            default: return null;
+        }
     }
 
     static float safetyDistance(RobotType r){

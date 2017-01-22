@@ -19,6 +19,21 @@ public class Communication {
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
+
+
+    //CANALS GARDENERS
+
+    //a la practica em sembla que ocupo del 600 al 685 o algo aixi xd
+    static final int ZONE_FIRST_POSITION = 600;
+    static final int ROBOTS_BUILT = 695;
+    static final int TREES_BUILT = 696;
+
+    static int MIN_ZONE_X = 691;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
+    static int MIN_ZONE_Y = 692;//osigui si la x de zona maxima es 6, aqui es guardara un -14
+    static int MAX_ZONE_X = 693;//i si la de zona minima es -3 aqui es guardara un 17
+    static int MAX_ZONE_Y = 694;
+    static int ZONE_LIMIT_OFFSET = 20;
+
     static int xBase, yBase;
 
 
@@ -60,8 +75,8 @@ public class Communication {
     public static int[] decode(int bitmap) {
         int[] ret = new int[4];
         ret[0] = bitmap & typeMask;
-        ret[1] = ((bitmap & iOffMask) >> iOffShift) - 127;
-        ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127;
+        ret[1] = ((bitmap & iOffMask) >> iOffShift) - 127 + xBase;
+        ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127 + yBase;
         ret[3] = (bitmap & valueMask);
         return ret;
     }
