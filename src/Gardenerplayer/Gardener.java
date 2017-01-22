@@ -1,7 +1,6 @@
 package Gardenerplayer;
 
 import battlecode.common.*;
-import scala.util.Random;
 
 import java.util.HashSet;
 
@@ -40,6 +39,9 @@ public class Gardener {
     private static int abandonedZone = 2;
     private static int outOfMapZone = 3;
 
+    //X trees for each robot
+    private static float ratioTreeRobot = 1.1f;
+
     private static HashSet<MapLocation> neutralTreesInMyZone = new HashSet<>();
 
     private static float maxDistToCenter = 3f;
@@ -64,11 +66,11 @@ public class Gardener {
     private static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
 
 
-    static int whatShouldIConstruct;
-    static int whatUnitShouldIConstruct;
+    //static int whatShouldIConstruct;
+    //static int whatUnitShouldIConstruct;
 
-    static int treeSpending;
-    static int initialMessage = 0;
+    //static int treeSpending;
+    //static int initialMessage = 0;
 
 
     public static void run(RobotController rcc) {
@@ -79,6 +81,7 @@ public class Gardener {
             //System.out.println("despres de broadcast " + Clock.getBytecodeNum());
             MapLocation newTarget;
             //treeSpending = 0;
+            //readMessages();
             //updateWhatConstruct();
             //tryConstruct();
 
@@ -94,7 +97,6 @@ public class Gardener {
                 searchZone(); //aqui se li dona un valor a zoneIWant 99.99999999% segur
                 //System.out.println("He decidit anar a " + zoneIWant[0] + "," + zoneIWant[1] + "  " + getCenterPosFromZone(zoneIWant));
                 //System.out.println("despres de searchzone " + Clock.getBytecodeNum());
-                tryBuilding();
                 if (zoneIWant[0] != -20) {
                     newTarget = getCenterPosFromZone(zoneIWant);
                     System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget + ", " + isZoneInMap(zoneIWant));
@@ -102,6 +104,7 @@ public class Gardener {
                 }
                 //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
                 checkIfArrivedToZone();
+                tryBuilding();
             } else {
                 updateTreeHP();
                 checkNeutralTreesInZone();
@@ -115,21 +118,15 @@ public class Gardener {
                         System.out.println("Rega, de " + rc.getLocation() + " a " + newTarget);
                         rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 119, 255);
                     } else {
-                        newTarget = tryPlant();
+                        newTarget = tryConstructing();
                         if (newTarget != null){
-                            System.out.println("Planta, de " + rc.getLocation() + " a " + newTarget);
+                            System.out.println("Construeix, de " + rc.getLocation() + " a " + newTarget);
                             rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 255, 0);
                         }else {
-                            newTarget = tryBuilding();
-                            if (newTarget != null) {
-                                System.out.println("Builds, de " + rc.getLocation() + " a " + newTarget);
-                                rc.setIndicatorLine(rc.getLocation(), newTarget, 100, 100, 100);
-                            } else {
-                                System.out.println("No tinc res a fer");
-                                newTarget = zoneCenterPos;
-                                //Greedy.resetObstacle(rc);
-                                rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 0, 0);
-                            }
+                            System.out.println("No tinc res a fer");
+                            newTarget = zoneCenterPos;
+                            //Greedy.resetObstacle(rc);
+                            rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 0, 0);
                         }
                     }
                 }
@@ -259,22 +256,22 @@ public class Gardener {
         float[] newRobotOffsetY= {0f,0f};
         float[] buildTankOffsetX= {-2f,2f};
         float[] buildTankOffsetY= {0f,0f};
-        float[] newTankOffsetX = {-4f,4f};
+        float[] newTankOffsetX = {-5f,5f};
         float[] newTankOffsetY = {0f,0f};
-        float treePosX[] = new float[treesPerZone];
-        float treePosY[] = new float[treesPerZone];
-        float plantingPosX[] = new float[treesPerZone];
-        float plantingPosY[] = new float[treesPerZone];
-        float wateringPosX[] = new float[treesPerZone];
-        float wateringPosY[] = new float[treesPerZone];
-        float buildPosX[] = new float[buildPositionsPerZone];
-        float buildPosY[] = new float[buildPositionsPerZone];
-        float newRobotPosX[] = new float[buildPositionsPerZone];
-        float newRobotPosY[] = new float[buildPositionsPerZone];
-        float buildTankPosX[] = new float[buildPositionsPerZone];
-        float buildTankPosY[] = new float[buildPositionsPerZone];
-        float newTankPosX[] = new float[buildPositionsPerZone];
-        float newTankPosY[] = new float[buildPositionsPerZone];
+        float[] treePosX = new float[treesPerZone];
+        float[] treePosY = new float[treesPerZone];
+        float[] plantingPosX = new float[treesPerZone];
+        float[] plantingPosY = new float[treesPerZone];
+        float[] wateringPosX = new float[treesPerZone];
+        float[] wateringPosY = new float[treesPerZone];
+        float[] buildPosX = new float[buildPositionsPerZone];
+        float[] buildPosY = new float[buildPositionsPerZone];
+        float[] newRobotPosX = new float[buildPositionsPerZone];
+        float[] newRobotPosY = new float[buildPositionsPerZone];
+        float[] buildTankPosX = new float[buildPositionsPerZone];
+        float[] buildTankPosY = new float[buildPositionsPerZone];
+        float[] newTankPosX = new float[buildPositionsPerZone];
+        float[] newTankPosY = new float[buildPositionsPerZone];
 
         zone = assignedZone;
         zoneCenterPos = getCenterPosFromZone(zone);
@@ -473,8 +470,9 @@ public class Gardener {
                 minID = tree.getID();
             }
         }
-        //System.out.println("Rego arbre "+minID);
         if (minID != -1) try {
+            //System.out.println("Rego arbre "+minID +  " amb " + rc.senseTree(minID).getHealth() + " hp");
+            rc.setIndicatorDot(rc.senseTree(minID).getLocation(),0, 255, 0);
             rc.water(minID);
         } catch (GameActionException e) {
             e.printStackTrace();
@@ -482,6 +480,7 @@ public class Gardener {
     }
 
     private static void updateTreeHP(){
+        //revisar que no curi arbres nous
         for (int i = 0; i < treesPerZone; i++){
             if (rc.canSenseLocation(treePos[i])){
                 try {
@@ -512,15 +511,15 @@ public class Gardener {
             int[] treeZone = getZoneFromPos(treeLocation);
             if (treeZone == zone){
                 if (neutralTreesInMyZone.contains(treeLocation)){
-                    messageCutNeutralTree(treeLocation);
+                    messageCutNeutralTree(ti.getID(),treeLocation);
                     neutralTreesInMyZone.add(treeLocation);
                 }
             }
         }
     }
 
-    private static void messageCutNeutralTree(MapLocation treeLocation) {
-        //TODO
+    private static void messageCutNeutralTree(int id, MapLocation treeLocation) {
+        Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),id&0xFFF);
     }
 
     private static MapLocation checkNearbyEnemies(){
@@ -555,41 +554,26 @@ public class Gardener {
         return null;
     }
 
-    private static RobotType whichRobotToBuild(int index){
-        int unit_to_build;
-        if (index < Constants.initialBuild.length){
-            unit_to_build = Constants.initialBuild[index];
-        }else{
-            int aux = index - Constants.initialBuild.length;
-            unit_to_build = Constants.sequenceBuild[aux%(Constants.sequenceBuild.length)];
-        }
-        System.out.println("index " + index + "="+Constants.getRobotTypeFromIndex(unit_to_build));
-        return Constants.getRobotTypeFromIndex(unit_to_build);
-    }
-
-    private static MapLocation tryBuilding(){
-        //System.out.println("Entra trybuild");
+    private static MapLocation tryConstructing(){
         try {
-            int index = rc.readBroadcast(Communication.UNITS_BUILT);
-            int accBulletCost = 0;
-            int tries = 3;
-            for (int i = 0; i < tries; i++){
-                RobotType type = whichRobotToBuild(index + i);
-                if (type == RobotType.GARDENER){
-                    index++;
-                    type = whichRobotToBuild(index + i);
-                    incrementUnitsBuilt();
-                }
-                System.out.println("Vol construir " + accBulletCost + "  " + i);
-                if (rc.getTeamBullets() < accBulletCost*0.8 + type.bulletCost) return null;
-                accBulletCost += type.bulletCost;
-                MapLocation buildPos;
-                if (zone[0] == Constants.INF) {
-                    buildWithoutZone(type);
-                    buildPos = null;
-                } else buildPos = tryBuild(type);
-                if (buildPos != null) return buildPos;
+            int treesPlanted = rc.readBroadcast(Communication.TREES_BUILT);
+            int robotsBuilt = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            MapLocation mostImportant;
+            MapLocation leastImportant;
+            if (treesPlanted <= robotsBuilt * ratioTreeRobot){
+                //tenim permis per construir un arbre
+                //System.out.println("Puc construir un arbre");
+                mostImportant = tryPlant();
+                leastImportant = tryBuilding();
+            }else{
+                //hem d'esperar a construir un robot abans de fer un arbre
+                //System.out.println("No puc construir un arbre");
+                mostImportant = tryBuilding();
+                leastImportant = null;
             }
+            if (mostImportant != null) return mostImportant;
+            return leastImportant;
+
         } catch (GameActionException e) {
             e.printStackTrace();
         }
@@ -637,7 +621,7 @@ public class Gardener {
             try {
                 //Si pot plantar l'arbre, el planta i no cal que retorni cap direccio
                 rc.plantTree(myPos.directionTo(bestTreePos));
-                incrementUnitsBuilt();
+                incrementTreesBuilt();
                 treeHP[minIndex] = GameConstants.BULLET_TREE_MAX_HEALTH + 40; //sumem 40 per tenir en compte el temps que triguen en estar full vida
             } catch (GameActionException e) {
                 e.printStackTrace();
@@ -646,17 +630,69 @@ public class Gardener {
         return null;
     }
 
-    private static void incrementUnitsBuilt(){
+    private static void incrementTreesBuilt(){
         try {
-            int units_built = rc.readBroadcast(Communication.UNITS_BUILT);
-            rc.broadcast(Communication.UNITS_BUILT, units_built + 1);
+            int trees_built = rc.readBroadcast(Communication.TREES_BUILT);
+            rc.broadcast(Communication.TREES_BUILT, trees_built + 1);
         } catch (GameActionException e) {
             e.printStackTrace();
         }
     }
 
-    private static MapLocation tryBuild(RobotType robotType){
-        //System.out.println("Vol construir un " + Constants.getRobotTypeFromIndex(unit_to_build));
+
+    private static MapLocation tryBuilding(){
+        //System.out.println("Entra trybuild");
+        try {
+            int index = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            RobotType type = whichRobotToBuild(index);
+            if (zone[0] == Constants.INF){
+                while (type == RobotType.GARDENER) type = whichRobotToBuild(++index);
+                buildWithoutZone(type);
+                return null;
+            }else{
+                return buildInZone(type);
+            }
+/*
+            int accBulletCost = 0;
+            int tries = 3;
+            for (int i = 0; i < tries; i++){
+                RobotType type = whichRobotToBuild(index + i);
+                if (type == RobotType.GARDENER){
+                    index++;
+                    type = whichRobotToBuild(index + i);
+                    incrementRobotsBuilt();
+                }
+                System.out.println("Vol construir " + accBulletCost + "  " + i);
+                if (rc.getTeamBullets() < accBulletCost*0.8 + type.bulletCost) return null;
+                accBulletCost += type.bulletCost;
+                MapLocation buildPos;
+                if (zone[0] == Constants.INF) {
+                    buildWithoutZone(type);
+                    buildPos = null;
+                } else buildPos = buildInZone(type);
+                if (buildPos != null) return buildPos;
+            }*/
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static RobotType whichRobotToBuild(int index){
+        int unit_to_build;
+        if (index < Constants.initialBuild.length){
+            unit_to_build = Constants.initialBuild[index];
+        }else{
+            int aux = index - Constants.initialBuild.length;
+            unit_to_build = Constants.sequenceBuild[aux%(Constants.sequenceBuild.length)];
+        }
+        //System.out.println("index " + index + "="+Constants.getRobotTypeFromIndex(unit_to_build));
+        return Constants.getRobotTypeFromIndex(unit_to_build);
+    }
+
+    private static MapLocation buildInZone(RobotType robotType){
+        //System.out.println("Vol construir un " + robotType);
+        //System.out.println("Tinc " + rc.getTeamBullets() + " bales");
         if (robotType == RobotType.GARDENER) return null;
         MapLocation myPos = rc.getLocation();
         MapLocation myBuildingPos[];
@@ -676,18 +712,24 @@ public class Gardener {
 
         for (int i = 0; i < buildPositionsPerZone; i++){
             if (!onCurrentMap(myBuildingPos[i]) || !onCurrentMap(robotSpawnPos[i])) {
-                //System.out.println("fora del mapa");
+                //System.out.println(i + " fora del mapa");
                 rc.setIndicatorDot(myBuildingPos[i], 255,0,0);
                 continue;
             }
             try {
                 if (rc.canSenseAllOfCircle(myBuildingPos[i],rc.getType().bodyRadius)){
                     if (!rc.onTheMap(myBuildingPos[i], rc.getType().bodyRadius) ||
-                            rc.isCircleOccupiedExceptByThisRobot(myBuildingPos[i],rc.getType().bodyRadius)) continue;
+                            rc.isCircleOccupiedExceptByThisRobot(myBuildingPos[i],rc.getType().bodyRadius)) {
+                        //System.out.println("mybuildingpos bloquejada "+ myBuildingPos[i]);
+                        continue;
+                    }
                 }
                 if (rc.canSenseAllOfCircle(robotSpawnPos[i],newRobotRadius)){
                     if (!rc.onTheMap(robotSpawnPos[i], newRobotRadius) ||
-                            rc.isCircleOccupiedExceptByThisRobot(robotSpawnPos[i],newRobotRadius)) continue;
+                            rc.isCircleOccupiedExceptByThisRobot(robotSpawnPos[i],newRobotRadius)) {
+                        //System.out.println("newrobotpos bloquejada "+ robotSpawnPos[i]);
+                        continue;
+                    }
                 }
 
                 if (myPos.distanceTo(myBuildingPos[i]) < minDist){
@@ -709,7 +751,7 @@ public class Gardener {
         if (myPos.distanceTo(bestBuildLocation) < Constants.eps && rc.canBuildRobot(robotType,buildDirection)){
             try {
                 rc.buildRobot(robotType,buildDirection);
-                incrementUnitsBuilt();
+                incrementRobotsBuilt();
                 return null;
             } catch (GameActionException e) {
                 e.printStackTrace();
@@ -719,47 +761,54 @@ public class Gardener {
     }
 
     private static void buildWithoutZone(RobotType robotType){
-        Direction back = rc.getLocation().directionTo(getCenterPosFromZone(zoneIWant)).opposite();
+        //System.out.println("zone i want " + zoneIWant[0] + "," + zoneIWant[1]);
+        Direction front = rc.getLocation().directionTo(getCenterPosFromZone(zoneIWant));
+        Direction back = front.opposite();
         for (int i = 0; i < 10; i++){
-            System.out.println("b. no z. " + robotType + " i="+i);
             Direction dirBuild = back.rotateRightRads(i*(float)Math.PI/20);
             if (rc.canBuildRobot(robotType,dirBuild)){
                 try {
                     rc.buildRobot(robotType,dirBuild);
-                    incrementUnitsBuilt();
+                    incrementRobotsBuilt();
                     return;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
-                incrementUnitsBuilt();
             }
         }
-        for (int i = 0; i < 10; i--){
-            System.out.println("b. no z. " + robotType + " i="+i);
+        for (int i = 0; i > -10; i--){
             Direction dirBuild = back.rotateRightRads(i*(float)Math.PI/20);
-            rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(dirBuild,1),0,0,0);
             if (rc.canBuildRobot(robotType,dirBuild)){
                 try {
                     rc.buildRobot(robotType,dirBuild);
-                    incrementUnitsBuilt();
+                    incrementRobotsBuilt();
                     return;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
-                incrementUnitsBuilt();
             }
         }
     }
+
+    private static void incrementRobotsBuilt(){
+        try {
+            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 /*
     static void tryConstruct(){
         try{
-            if (!allowedToConstruct(whatUnitShouldIConstruct)) return;
+            if (!enoughBulletsStored(whatUnitShouldIConstruct)) return;
             RobotType t = Constants.ProductionUnits[whatUnitShouldIConstruct];
             for (int i = 0; i < 4; ++i){
                 if (rc.canBuildRobot(t, Constants.main_dirs[i])){
                     rc.buildRobot(t, Constants.main_dirs[i]);
-                    updateConstruct(whatUnitShouldIConstruct);
+                    updateAfterConstruct(whatUnitShouldIConstruct);
                     return;
                 }
             }
@@ -769,104 +818,94 @@ public class Gardener {
         }
     }
 
-    static void updateConstruct (int a){
+    //quan construim el robot, actualitzem tot
+    private static void updateAfterConstruct(int unitConstructed){
         try {
-            int x = rc.readBroadcast(Communication.unitChannels[a]);
-            int ans = x;
-            boolean found = false;
-            if (x < Constants.IBL) {
-                for (int i = x + 1; i < Constants.IBL; ++i) {
-                    ++ans;
-                    if (Constants.initialBuild[i] == a) {
-                        found = true;
-                        break;
+            int unitCurrentIndex = rc.readBroadcast(Communication.unitChannels[unitConstructed]);
+            int unitNextIndex;
+            if (unitCurrentIndex < Constants.IBL) {
+                //si esta a la build inicial
+                int i = unitCurrentIndex+1;
+                while (i < Constants.IBL && Constants.initialBuild[i] != unitConstructed) i++;
+                //ja no es torna a fer a la build inicial
+                if (i == Constants.IBL){
+                    int j = 0;
+                    while (j < Constants.SBL && Constants.sequenceBuild[j] != unitConstructed) j++;
+                    if (j == Constants.SBL){
+                        //ja no la tornem a fer mai mes
+                        unitNextIndex = (int)Constants.INF;
+                    }else{
+                        unitNextIndex = Constants.IBL + j;
                     }
-                }
-                if (!found){
-                    for (int i = 0; i < Constants.SBL; ++i){
-                        ++ans;
-                        if (Constants.sequenceBuild[i]== a){
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) ans = 9999;
-                }
+                }else unitNextIndex = i;
+            }else {
+                int i = 0;
+                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex+1+i) % Constants.SBL] != unitConstructed) i++;
+                if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
+                else unitNextIndex = unitCurrentIndex + 1 + i;
             }
-            else {
-                for (int i = 0; i < Constants.SBL; ++i) {
-                    ++ans;
-                    if (Constants.sequenceBuild[(x+1+i) % Constants.SBL] == a) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) ans = 9999;
-            }
-
-            rc.broadcast(Communication.unitChannels[a], ans);
+            rc.broadcast(Communication.unitChannels[unitConstructed], unitNextIndex);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
 
-    static boolean allowedToConstruct(int a){
-        try {
-            float totalMoney = rc.getTeamBullets() - treeSpending;
 
-            totalMoney -= computeHowManyBehind(0, a);
-
-            if (totalMoney >= Constants.ProductionUnits[a].bulletCost) return true;
-            return false;
-
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        return false;
+    static boolean enoughBulletsStored(int unitToConstruct){
+        float totalMoney = rc.getTeamBullets() - treeSpending;
+        totalMoney -= computeHowManyBehind(Constants.getIndex(RobotType.GARDENER), unitToConstruct);
+        return totalMoney >= Constants.ProductionUnits[unitToConstruct].bulletCost;
     }
 
-    static int computeHowManyBehind(int a, int b) {
+    //calcula les bales que calen per construir tots els unit1 que van abans de unit2 en la cua
+    static int computeHowManyBehind(int unit1, int unit2) {
         try {
-            int x = rc.readBroadcast(Communication.unitChannels[a]);
-            int y = rc.readBroadcast(Communication.unitChannels[b]);
-            if(y < x) return 0;
-            int ans = 0;
-            if(y < Constants.IBL){
-                for (int i = x; i < y; ++i) if (Constants.initialBuild[i] == a) ++ ans;
-            } else if (x < Constants.IBL) {
+            int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
+            int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
+            if(indexUnit1 > indexUnit2) return 0;
+            //Sabem que index1 <= index2
+
+            int howManyBehind = 0;
+            if(indexUnit2 < Constants.IBL){
+                // index1 <= index2 < IBL
+                for (int i = indexUnit1; i < indexUnit2; ++i)
+                    if (Constants.initialBuild[i] == unit1) howManyBehind++;
+
+            } else if (indexUnit1 < Constants.IBL) {
+                // index1 < IBL <= index2
                 int totalInSequence = 0;
-                int totalOffSet = 0;
-                for (int i = x; i < Constants.IBL; ++i) if (Constants.initialBuild[i] == a) ++ ans;
+                int totalLastSequence = 0;
+                for (int i = indexUnit1; i < Constants.IBL; ++i) if (Constants.initialBuild[i] == unit1) howManyBehind++;
                 for (int i = 0; i < Constants.SBL; ++i){
-                    if (Constants.sequenceBuild[i] == a){
+                    if (Constants.sequenceBuild[i] == unit1){
                         ++totalInSequence;
-                        if (i < y%Constants.SBL) ++totalOffSet;
+                        if (i < indexUnit2%Constants.SBL) ++totalLastSequence;
                     }
                 }
-                ans += totalOffSet + totalInSequence*((y - Constants.IBL)/Constants.SBL);
+                int extraWholeSequences = ((indexUnit2 - Constants.IBL)/Constants.SBL);
+                howManyBehind += totalLastSequence + totalInSequence*extraWholeSequences;
             } else {
+                // IBL < index1 <= index2
                 int totalInSequence = 0;
                 int totalOffSet = 0;
                 for (int i = 0; i < Constants.SBL; ++i) {
-                    if (Constants.sequenceBuild[i] == a) {
+                    if (Constants.sequenceBuild[i] == unit1) {
                         ++totalInSequence;
                     }
                 }
-                int z = y %Constants.SBL;
-                for (int i = x; true ;++i){
+                int z = indexUnit2%Constants.SBL;
+                for (int i = indexUnit1; true ;++i){
                     int realI = i%Constants.SBL;
                     if (realI == z) break;
-                    if (Constants.sequenceBuild[realI] == a) ++ans;
+                    if (Constants.sequenceBuild[realI] == unit1) ++howManyBehind;
                     ++totalOffSet;
                 }
 
-                ans += ((y - x - totalOffSet)/Constants.SBL)*totalInSequence;
+                howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/Constants.SBL)*totalInSequence;
             }
-            if (a < 4) return ans*Constants.ProductionUnits[a].bulletCost;
-            else return ans*50;
+            if (unit1 < 4) return howManyBehind*Constants.ProductionUnits[unit1].bulletCost;
+            else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -877,7 +916,8 @@ public class Gardener {
     static void readMessages(){
         try {
             int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+            int i = initialMessage;
+            while (i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES){
                 int a = rc.readBroadcast(i);
                 workMessage(a);
                 ++i;
@@ -890,8 +930,9 @@ public class Gardener {
         }
     }
 
-    static void workMessage(int a){
-        int[] m = Communication.decode(a);
+    //si el missatge era plantar un arbre, li suma el cost de l'arbre al treespending
+    static void workMessage(int bitmap){
+        int[] m = Communication.decode(bitmap);
         if (m[0] == Communication.PLANTTREE) treeSpending += GameConstants.BULLET_TREE_COST;
     }
 
@@ -911,8 +952,8 @@ public class Gardener {
             e.printStackTrace();
         }
     }
-
 */
+
     private static boolean onCurrentMap(MapLocation pos){
         //System.out.println(mapMinX + "<" + pos.x + "<" + mapMaxX);
         //System.out.println(mapMinY + "<" + pos.y + "<" + mapMaxY);
