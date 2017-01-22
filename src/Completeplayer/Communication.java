@@ -60,8 +60,8 @@ public class Communication {
     public static int[] decode(int bitmap) {
         int[] ret = new int[4];
         ret[0] = bitmap & typeMask;
-        ret[1] = ((bitmap & iOffMask) >> iOffShift) - 127;
-        ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127;
+        ret[1] = ((bitmap & iOffMask) >> iOffShift) - 127 + xBase;
+        ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127 + yBase;
         ret[3] = (bitmap & valueMask);
         return ret;
     }

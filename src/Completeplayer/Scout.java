@@ -39,15 +39,15 @@ public class Scout {
 
             round = rc.getRoundNum();
             readMessages();
-            broadcastLocations();
 
             tryShake();
 
             MapLocation newTarget = findBestTree();
             updateTarget(newTarget);
             if (realTarget == null) moveInYourDirection();
-            else Greedy.moveGreedy(rc,realTarget, 9200);
+            else Greedy.moveGreedy(rc,realTarget, 8000);
 
+            broadcastLocations();
 
 
             Clock.yield();
@@ -132,6 +132,16 @@ public class Scout {
         float maxUtil = 0;
         TreeInfo[] Ti = rc.senseNearbyTrees (-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINCHECKTREES) break;
+            MapLocation treePos = ti.getLocation();
+            int x = Math.round(treePos.x);
+            int y = Math.round(treePos.y);
+            RobotType r = ti.getContainedRobot();
+            if (r != null) {
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
+            }
             float f = ti.getContainedBullets() / (1 + pos.distanceTo(ti.getLocation()));
             if (f > maxUtil) {
                 maxUtil = f;
@@ -173,38 +183,52 @@ public class Scout {
     static void broadcastLocations() {
         if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+
+        float maxUtil2 = 0;
+        MapLocation newTarget2 = null;
+        int a2 = 0;
+
         for (RobotInfo ri : Ri) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINSCOUTS) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
             if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-            else Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
-
+            else if (a == 5) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+            float val = enemyScore(enemyPos, a);
+            if (val > maxUtil2) {
+                maxUtil2 = val;
+                newTarget2 = enemyPos;
+                a2 = a;
+            }
         }
 
+
+        if (newTarget2 != null) Communication.sendMessage(rc, Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
+
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
-        for (TreeInfo ti : Ti) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
+        if (Ti.length > 0) {
+            TreeInfo ti = Ti[0];
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINSCOUTS) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
             Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
         }
-
-        Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
-        for (TreeInfo ti : Ti) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
-            MapLocation treePos = ti.getLocation();
-            int x = Math.round(treePos.x);
-            int y = Math.round(treePos.y);
-            RobotType r = ti.getContainedRobot();
-            if (r != null) {
-                int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 1000;
-                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
-            }
-        }
     }
+
+    static float enemyScore (MapLocation m, int a){
+        if (m == null) return 0;
+        float d = rc.getLocation().distanceTo(m);
+        float s = 0;
+        if (a == 5) s = 8;
+        else if (a == 4) s = 20;
+        else if (a == 3) s = 15;
+        else if (a == 2) s = 20;
+        else if (a == 1) s = 8;
+        else if (a == 0) s = 15;
+        return s/(1.0f + d);
+    }
+
 }

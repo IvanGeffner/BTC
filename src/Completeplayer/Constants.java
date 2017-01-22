@@ -14,8 +14,8 @@ public class Constants {
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
     public static int[] initialBuild = {0, 4, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 8, 7, 9999, 1, 2};
-    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 2 ,5};
+    public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
+    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 4 ,5};
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;
 
@@ -34,6 +34,9 @@ public class Constants {
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
     public static int SAFETYMARGIN = 8000;
+    public static int SAFETYMARGINCHECKTREES = 4000;
+    public static int SAFETYMARGINSCOUTS = 9700;
+    public static int LUMBERCHECK = 5000;
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.01f;
     public static float BULLETSIGHT = 4;
