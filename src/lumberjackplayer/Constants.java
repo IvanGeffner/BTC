@@ -13,8 +13,8 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 1, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 1, 7, 9999, 7, 2};
+    public static int[] initialBuild = {0, 4, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
+    public static int[]  initialPositions = {0, 8, 7, 9999, 1, 2};
     public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 2 ,5};
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;
@@ -45,7 +45,10 @@ public class Constants {
     public static int COLLISIONHASH = 1000;
     public static int COLLISIONROUND = 5;
     public static int MAXSORT = 22;
-    public static int GREEDYTRIES = 4;
+    public static int GREEDYTRIES = 8;
+
+    public static float SAFETYDISTANCE = 3f;
+    public static float EMERGENCYSCORE = 20f;
 
     public static final int COSTCYCLE1 = 135;
     public static final int COSTCYCLE2 = 420;
@@ -76,9 +79,16 @@ public class Constants {
     }
 
     static float safetyDistance(RobotType r){
-        if (r == RobotType.LUMBERJACK) return 1f;
-        else if (r == RobotType.SOLDIER) return 2.2f;
+        if (r == RobotType.LUMBERJACK) return 2f;
+        else if (r == RobotType.SOLDIER) return 3.1f;
+        else if (r == RobotType.TANK) return 3.1f;
+        else if (r == RobotType.SCOUT) return 0.25f;
         return 0;
+    }
+
+    static float getRadius(int a){
+        if (a == 5) return 2;
+        return ProductionUnits[a].bodyRadius;
     }
 
 

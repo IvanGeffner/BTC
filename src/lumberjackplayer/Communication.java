@@ -1,20 +1,25 @@
 package lumberjackplayer;
 
+
+import battlecode.common.*;
 /**
  * Created by Ivan on 1/15/2017.
  */
 public class Communication {
 
     /*Types of message*/
+    static final int ENEMYCHANNEL = 1000;
+    static final int STOPCHANNEL = 1100;
+    static final int ENEMYGARDENERCHANNEL = 1200;
+    static final int CHOPCHANNEL = 1300;
+    static final int ENEMYTREECHANNEL = 1400;
+    static final int EMERGENCYCHANNEL = 1500;
+    static final int TREEWITHGOODIES = 1600;
+    static final int PLANTTREECHANNEL = 1700;
 
-    static final int STOP = 0x10000000; //tells ally soldier to stop moving (collision)
-    static final int PLANTTREE = 0x20000000; //Neutral tree found!
-    static final int ENEMY = 0x30000000;
-    static final int ENEMYTREE = 0x40000000;
-    static final int BULLETTREE = 0x50000000;
-    static final int UNITTREE = 0x60000000;
-    static final int TREEZONE = 0x70000000;
-    
+    static final int CYCLIC_CHANNEL_LENGTH = 99;
+
+    static int xBase, yBase;
 
 
     //BC parameters
@@ -35,6 +40,10 @@ public class Communication {
     static final int valueMask = 0x00000FFF; // at most 4095
 
 
+    static void setBase(int x, int y){
+        xBase = x;
+        yBase = y;
+    }
 
     public static int encodeFinding(int type, int iOffset, int jOffset, int value) {
         int ret = type |
@@ -55,6 +64,18 @@ public class Communication {
         ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127;
         ret[3] = (bitmap & valueMask);
         return ret;
+    }
+
+    public static void sendMessage(RobotController rc, int channel, int x, int y, int value) {
+        try {
+            int lastMessage = rc.readBroadcast(channel + CYCLIC_CHANNEL_LENGTH);
+            int message = encodeFinding(0, x-xBase, y-yBase, value);
+            rc.broadcast(channel + lastMessage, message);
+            rc.broadcast(channel + CYCLIC_CHANNEL_LENGTH, (lastMessage + 1) % CYCLIC_CHANNEL_LENGTH);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 }

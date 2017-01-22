@@ -21,14 +21,18 @@ public class Soldier {
     static int xBase;
     static int yBase;
 
-    static HashSet<Integer> readMes;
-    static int initialMessage = 0;
+    static int initialMessageEmergency = 0;
+    static int initialMessageEnemy = 0;
+    static int initialMessageEnemyGardener = 0;
+    static int initialMessageStop = 0;
 
     static float maxUtil;
 
     static int round;
     static int roundTarget;
     static boolean targetUpdated;
+
+    static boolean shouldStop = false;
 
 
     @SuppressWarnings("unused")
@@ -39,6 +43,9 @@ public class Soldier {
         Initialize();
 
         while (true) {
+
+            shouldStop = false;
+
             //code executed continually, don't let it end
             targetUpdated = false;
             if (realTarget != null && rc.canSenseLocation(realTarget)){
@@ -59,33 +66,22 @@ public class Soldier {
 
 
             round = rc.getRoundNum();
-
-            System.out.println("PreMessages " + Clock.getBytecodeNum());
-
             readMessages();
-
-            System.out.println("PostMessages " + Clock.getBytecodeNum());
             broadcastLocations();
 
-            System.out.println("PostBroadcast " + Clock.getBytecodeNum());
+            if (targetUpdated) maxUtil += 1;
+            else maxUtil -= 0.03f;
 
             updateTarget();
             try {
-                if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
+                //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }
 
-            Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
-
-            System.out.println("Preshooting" + Clock.getBytecodeNum());
-
-            tryShoot();
-
-            System.out.println("Postshooting" + Clock.getBytecodeNum());
-
-            System.out.println(maxUtil);
+            if (shouldStop) Greedy.moveToSelf(rc, Constants.BYTECODEATSHOOTING);
+            else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
             Clock.yield();
         }
@@ -96,15 +92,22 @@ public class Soldier {
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
-        readMes = new HashSet<>();
+
+        Communication.setBase(xBase, yBase);
 
         maxUtil = 5.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
         newTarget = enemyBase;
         roundTarget = 1;
 
-        initialMessage = 0;
+        initialMessageEmergency = 0;
+        initialMessageEnemy = 0;
+        initialMessageEnemyGardener = 0;
+        initialMessageStop = 0;
         try{
-            initialMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
+            initialMessageEnemy = rc.readBroadcast(Communication.ENEMYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageEnemyGardener = rc.readBroadcast(Communication.ENEMYGARDENERCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageStop = rc.readBroadcast(Communication.STOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageEmergency = rc.readBroadcast(Communication.EMERGENCYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -113,234 +116,96 @@ public class Soldier {
 
     static void updateTarget(){
         if(targetUpdated) roundTarget = rc.getRoundNum();
-        if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.NEWTARGET) return;
         realTarget = newTarget;
-        Greedy.resetObstacle(rc);
-    }
-
-    static void tryShoot(){
-
-        float maxUtilSingle = 0;
-        float maxUtilTriad = 0;
-        float maxUtilPentad = 0;
-        Direction dirSingle = null;
-        Direction dirTriad = null;
-        Direction dirPentad = null;
-
-        MapLocation pos = rc.getLocation();
-        ArrayList<RobotInfo> rArray = new ArrayList<RobotInfo>();
-        rArray.clear();
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        int cont = 0;
-        for (RobotInfo ri : enemies){
-            RobotType a = ri.getType();
-            MapLocation m = ri.getLocation();
-            float d = pos.distanceTo(m);
-            //if (a == RobotType.SCOUT && d > 5) continue;
-            //if (a == RobotType.SOLDIER && d > 7) continue;
-            Direction dir = pos.directionTo(m);
-            boolean addIt = true;
-            for (int i = 0; i < cont && !addIt; ++i){
-                MapLocation m2 = rArray.get(i).getLocation();
-                if (dir.radiansBetween(pos.directionTo(m2)) < Constants.minAngleShoot){
-                    addIt = false;
-                }
-            }
-            if (addIt){
-                rArray.add(ri);
-                ++cont;
-                if (cont >= Constants.shootTries) break;
-            }
-        }
-
-        for (int i = 0; i < cont; ++i){
-            RobotInfo ri = rArray.get(i);
-            RobotType r = ri.getType();
-            MapLocation m = ri.getLocation();
-            float R = r.bodyRadius;
-
-
-            Direction dir = pos.directionTo(m);
-
-            float d = m.distanceTo(pos);
-
-            float a = (float)Math.asin(R/d);
-
-            float l = (float)Math.sqrt(R*R*(1.0f + (float)Math.cos(2*a)));
-            float rad = l/(2.0f*(float)Math.sin(2*a));
-
-            RobotInfo[] allies = rc.senseNearbyRobots(pos.add(dir, rad), rad, rc.getTeam());
-
-            TreeInfo[] trees = rc.senseNearbyTrees(pos.add(dir, rad), rad, null);
-
-            Direction dirRight = dir.rotateRightRads(a);
-            Direction dirLeft = dir.rotateLeftRads(a);
-
-            for (RobotInfo ally : allies){
-
-                if (Clock.getBytecodesLeft() < 400)  break;
-                if (ally.getID() == rc.getID()) continue;
-                if (dirLeft.radiansBetween(dirRight) > 0) continue;
-                MapLocation m2 = ally.getLocation();
-                Direction dir2 = pos.directionTo(m2);
-
-                float d2 = pos.distanceTo(m2);
-                float ang = (float)Math.asin(ally.getType().bodyRadius/d2);
-
-                Direction dirRight2 = dir2.rotateRightRads(ang);
-                Direction dirLeft2 = dir2.rotateLeftRads(ang);
-
-                if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
-                if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
-                if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0){
-                    if (dirLeft2.radiansBetween(dirRight)<= 0 && dirLeft2.radiansBetween(dirLeft) <= 0){
-                        dirRight = dirLeft2;
-                        dirLeft = dirRight2;
-                    }
-                }
-            }
-
-            Direction dirRightA = dirRight;
-            Direction dirLeftA = dirLeft;
-
-            for (TreeInfo tree : trees){
-                if (Clock.getBytecodesLeft() < 400)  break;
-                if (tree.getID() == rc.getID()) continue;
-                if (dirLeft.radiansBetween(dirRight) > 0) continue;
-                MapLocation m2 = tree.getLocation();
-                Direction dir2 = pos.directionTo(m2);
-
-                float d2 = pos.distanceTo(m2);
-                float ang = (float)Math.asin(tree.getRadius()/d2);
-
-                Direction dirRight2 = dir2.rotateRightRads(ang);
-                Direction dirLeft2 = dir2.rotateLeftRads(ang);
-
-                if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
-                if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
-                if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0){
-                    if (dirLeft2.radiansBetween(dirRight)<= 0 && dirLeft2.radiansBetween(dirLeft) <= 0){
-                        dirRight = dirLeft2;
-                        dirLeft = dirRight2;
-                    }
-                }
-            }
-
-            if (Clock.getBytecodesLeft() < 400)  break;
-
-            if (dirRight.radiansBetween(dirLeft) > Constants.eps){
-
-                float realAngle = dirRight.radiansBetween(dirLeft)/2;
-
-                System.out.println("Shooting Angle: " + realAngle);
-                float multiplier = 1;
-
-                if (r == RobotType.SCOUT) multiplier = 0.2f;
-                else if (r == RobotType.LUMBERJACK) multiplier = 1.2f;
-
-
-                float x;
-                if (r == RobotType.ARCHON) x = 10;
-                else x = 2.0f*((float)r.bulletCost)/r.maxHealth;
-
-                System.out.println("x = " + x);
-
-                float ut = 0;
-                float utTriad = 0;
-                float utPentad = 0;
-
-                boolean shootPentad = false;
-
-                ut = x*multiplier - 1;
-                if (realAngle > Constants.triadAngle) utTriad = multiplier*x*3.0f - 4;
-                if (realAngle > Constants.pentadAngle && dirRightA.radiansBetween(dirLeftA) > Constants.pentadAngle2 ) utPentad = multiplier*x*3.0f - 6;
-                if (realAngle > Constants.pentadAngle2){
-                    utPentad = multiplier*x*5.0f - 6;
-                    shootPentad = true;
-                }
-
-                if (ut > maxUtilSingle){
-                    dirSingle = dirRight.rotateLeftRads(realAngle);
-                    maxUtilSingle = ut;
-                }
-
-                if (utTriad > maxUtilTriad){
-                    dirTriad = dirRight.rotateLeftRads(realAngle);
-                    maxUtilTriad = utTriad;
-                }
-
-                if (utPentad > maxUtilPentad){
-                    if (shootPentad) dirPentad = dirRight.rotateLeftRads(realAngle);
-                    else dirPentad = dirRightA.rotateLeftRads(dirRightA.radiansBetween(dirLeftA)/2);
-                    maxUtilPentad = utPentad;
-                }
-            }
-
-        }
-
-        System.out.println(maxUtilSingle + " " + maxUtilTriad + " " + maxUtilPentad);
-
-        try {
-            if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
-                if (maxUtilPentad > maxUtilTriad) {
-                    if (maxUtilPentad > maxUtilSingle) {
-                        rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
-                        rc.firePentadShot(dirPentad);
-                        return;
-                    }
-                }
-            }
-            if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
-                if (maxUtilTriad > maxUtilSingle) {
-                    rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
-                    rc.fireTriadShot(dirTriad);
-                    return;
-                }
-            }
-            if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
-                rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
-                rc.fireSingleShot(dirSingle);
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     static void readMessages(){
-        readMes.clear();
-        int cont = 0;
         try {
-            int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            System.out.println("Last and Initial: " + lastMessage + " " + initialMessage);
-            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
-                int a = rc.readBroadcast(i);
-                workMessage(a);
-                readMes.add(a);
+            int channel = Communication.ENEMYCHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemy);
+            for (int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessageEnemy(a);
                 ++i;
-                ++cont;
-                if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
-            initialMessage = lastMessage;
+            initialMessageEnemy = lastMessage;
+
+            channel = Communication.EMERGENCYCHANNEL;
+            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEmergency);
+            for (int i = initialMessageEmergency; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessageEmergency(a);
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageEmergency = lastMessage;
+
+            channel = Communication.STOPCHANNEL;
+            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageStop);
+            for (int i = initialMessageStop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessageStop(a);
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageStop = lastMessage;
+
+            channel = Communication.ENEMYGARDENERCHANNEL;
+            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemyGardener);
+            for (int i = initialMessageEnemyGardener; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessageEnemyGardener(a);
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageEnemyGardener = lastMessage;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
 
-    static void workMessage(int a){
+    static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
-        if (m[0] == Communication.ENEMY){
-            MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
-            float val = enemyScore(enemyPos, m[3]);
-            if (val > maxUtil){
-                maxUtil = val;
-                newTarget = enemyPos;
-                targetUpdated = true;
-            }
+        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        float val = enemyScore(enemyPos, m[3]);
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
+        }
+    }
+
+    static void workMessageEnemyGardener(int a){
+        int[] m = Communication.decode(a);
+        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        float val = enemyScore(enemyPos, 0);
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
+        }
+    }
+
+    static void workMessageStop(int a){
+        int[] m = Communication.decode(a);
+        MapLocation pos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
+    }
+
+    static void workMessageEmergency(int a){
+        int[] m = Communication.decode(a);
+        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        float val = Constants.EMERGENCYSCORE/(1.0f + enemyPos.distanceTo(rc.getLocation()));
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
         }
     }
 
@@ -362,27 +227,17 @@ public class Soldier {
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
-            if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
+            if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
             float val = enemyScore(enemyPos, a);
             if (val > maxUtil) {
                 maxUtil = val;
                 newTarget = enemyPos;
                 targetUpdated = true;
-            }
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
             }
         }
 
@@ -392,17 +247,7 @@ public class Soldier {
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -413,25 +258,10 @@ public class Soldier {
             int y = Math.round(treePos.y);
             RobotType r = ti.getContainedRobot();
             if (r != null) {
-                int a = (int) r.bulletCost;
-                int m = Communication.encodeFinding(Communication.UNITTREE, x - xBase, y - yBase, a);
-                if (readMes.contains(m)) continue;
-                try {
-                    rc.broadcast(initialMessage, m);
-                    ++initialMessage;
-                    if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                        initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
             }
-        }
-        try {
-            rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 

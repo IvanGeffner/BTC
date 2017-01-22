@@ -34,7 +34,10 @@ public class Lumberjack {
     static float stayChopping = 4; 
 
     static HashSet<Integer> readMes;
-    static int initialMessage = 0;
+    static int initialMessageGoodieTree;
+    static int initialMessageEnemyGardener;
+    static int initialMessageChop;
+    static int initialMessageEnemy; 
 
     static float maxUtil;
     static boolean shouldMove;
@@ -60,20 +63,22 @@ public class Lumberjack {
             rc.setIndicatorLine(rc.getLocation(), realTarget, 250, 0, 255);
             
             tryChop();
-            
-            //if(!dontMove)
             {
-            	if(stopGreedying < 35 && minDistToTarget > 15 && changeTarget < 2.0f*maxDistToTarget*minDistToTarget/(1.0f + rc.getLocation().distanceTo(realTarget))) shouldMove = true; 
+            	if(stopGreedying < 10 && minDistToTarget > 15 && changeTarget < 2.0f*maxDistToTarget*minDistToTarget/(1.0f + rc.getLocation().distanceTo(realTarget))) shouldMove = true; 
 	            if (shouldMove) Greedy.moveGreedy(rc,realTarget,Clock.getBytecodesLeft()); //TODO canviar bytecode
 	            else Greedy.moveToSelf(rc,Clock.getBytecodesLeft());
-	            //askToStop(Greedy.obstacle); 
             }
             
             if(rc.getLocation().distanceTo(realTarget) < minDistToTarget) 
             {
             	stopGreedying = 0; 
-            	//changeTarget = 0; 
             	minDistToTarget = rc.getLocation().distanceTo(realTarget);
+            }
+            
+            if(rc.getLocation().distanceTo(realTarget) < Constants.eps)
+            {
+            	realTarget = enemyBase; 
+            	maxUtil = 6.0f/(1.0f + rc.getLocation().distanceTo(enemyBase)); 
             }
             
             Clock.yield();
@@ -83,7 +88,7 @@ public class Lumberjack {
     static void Initialize(){
         enemyBase = rc.getInitialArchonLocations(rc.getTeam().opponent())[0];
         newTarget = enemyBase;
-        maxUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
+        maxUtil = 6.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
         changeTarget  = 0; 
         stopGreedying = 0; 
         minDistToTarget = Constants.INF; 
@@ -92,10 +97,18 @@ public class Lumberjack {
         base = rc.getInitialArchonLocations(rc.getTeam())[0];;
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
-        readMes = new HashSet<>();
-        initialMessage = 0;
+        Communication.setBase(xBase, yBase);
+        
+
+        initialMessageGoodieTree = 0;
+        initialMessageEnemyGardener = 0;
+        initialMessageChop = 0;
+        initialMessageEnemy = 0; 
         try{
-            initialMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
+        	initialMessageGoodieTree = rc.readBroadcast(Communication.TREEWITHGOODIES + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageEnemyGardener = rc.readBroadcast(Communication.ENEMYGARDENERCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageChop = rc.readBroadcast(Communication.CHOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageEnemy = rc.readBroadcast(Communication.ENEMYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH); 
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -107,9 +120,9 @@ public class Lumberjack {
     	round = rc.getRoundNum();
         shouldMove = true;
         archonCertainty = false; 
-        enemyBaseUtil =  0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase)); 
-        maxUtil = enemyBaseUtil; 
-        attackingArchon = true; 
+        enemyBaseUtil =  6.0f/(1.0f + rc.getLocation().distanceTo(enemyBase)); 
+        //maxUtil = enemyBaseUtil; 
+        //attackingArchon = true; 
         dontMove = false; 
     }
     
@@ -207,105 +220,138 @@ public class Lumberjack {
     }
    
     static void readMessages(){
-        readMes.clear();
-        try {
-            int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
-                int a = rc.readBroadcast(i);
-                workMessage(a);
-                readMes.add(a);
-                ++i;
-                if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
-            }
-            initialMessage = lastMessage;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+    	try {
+    		int channel = Communication.TREEWITHGOODIES; 
+			int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+			for(int i = initialMessageGoodieTree; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
+	    	{
+	    		int a = rc.readBroadcast(channel + i); 
+	    		workMessageUnitTree(a); 
+	    		++i;
+	    	}
+			initialMessageGoodieTree = lastMessage; 
+    	} catch (GameActionException e) {
+    		System.out.println(e.getMessage());
             e.printStackTrace();
-        }
+		} 
+    	try {
+    		int channel = Communication.CHOPCHANNEL; 
+			int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+			for(int i = initialMessageChop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
+	    	{
+	    		int a = rc.readBroadcast(channel + i); 
+	    		workMessageChopTree(a); 
+	    		++i;
+	    	}
+			initialMessageChop = lastMessage; 
+    	} catch (GameActionException e) {
+    		System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+    	try {
+    		int channel = Communication.ENEMYGARDENERCHANNEL; 
+			int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+			for(int i = initialMessageEnemyGardener; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
+	    	{
+	    		int a = rc.readBroadcast(channel + i); 
+	    		workMessageEnemyTree(a); 
+	    		++i;
+	    	}
+			initialMessageEnemyGardener = lastMessage; 
+    	} catch (GameActionException e) {
+    		System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+    	try {
+    		int channel = Communication.ENEMYCHANNEL; 
+			int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+			for(int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
+	    	{
+	    		int a = rc.readBroadcast(channel + i); 
+	    		//workMessageEnemyUnit(a); 
+	    		++i;
+	    	}
+			initialMessageEnemy = lastMessage; 
+    	} catch (GameActionException e) {
+    		System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
     }
     
-    static void workMessage(int a){
-    	int[] m = Communication.decode(a);
-    	
-    	//POSSIBLE TARGETS
-    	if(m[0] == Communication.UNITTREE)
+    static void workMessageUnitTree(int a)
+    {
+    	int[] m = Communication.decode(a); 
+    	MapLocation unitTreePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	float val = unitTreeScore(rc.getLocation().distanceTo(unitTreePos),m[3]);
+    	if(val > maxUtil)
     	{
-    		MapLocation unitTreePos = new MapLocation(m[1] + xBase, m[2] + yBase);
-    		float val = unitTreeScore(rc.getLocation().distanceTo(unitTreePos),m[3]);
-    		if(val > maxUtil)
-    		{
-    			attackingArchon = false; 
-    			maxUtil = val; 
-    			newTarget = unitTreePos;
-    		}
+    		maxUtil = val; 
+    		newTarget = unitTreePos; 
     	}
-    	if(m[0] == Communication.ENEMYTREE)
-    	{
-    		MapLocation enemyTreePos = new MapLocation(m[1]+xBase, m[2]+yBase);
-            float val = 2.0f/(1.0f + rc.getLocation().distanceTo(enemyTreePos));
-            if(val > maxUtil)
+    }
+    static void workMessageEnemyTree(int a)
+    {
+    	int[] m = Communication.decode(a); 
+    	MapLocation enemyTreePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	float val = 4.0f/(1.0f + rc.getLocation().distanceTo(enemyTreePos)); 
+    	 if(val > maxUtil)
+ 		{
+ 			maxUtil = val; 
+ 			newTarget = enemyTreePos;
+ 		}
+    }
+    static void workMessageChopTree(int a)
+    {
+    	int[] m = Communication.decode(a); 
+    	MapLocation treeInZonePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	float val = 3.2f/(1.0f + rc.getLocation().distanceTo(treeInZonePos)); 
+    	if(val > maxUtil)
+		{
+    		if(rc.canSenseLocation(treeInZonePos))
     		{
-            	attackingArchon = true; //we assume we're attacking the base
-    			maxUtil = val; 
-    			newTarget = enemyTreePos;
+    			int treeID = m[3]; 
+    			try {
+					treeInZonePos = rc.senseTree(treeID).getLocation();
+				} catch (GameActionException e) {
+		    		System.out.println(e.getMessage());
+					e.printStackTrace();
+				} 
     		}
-    	}
-    	if(m[0] == Communication.TREEZONE)
+			maxUtil = val; 
+			newTarget = treeInZonePos;
+		}
+    }
+    static void workMessageEnemyUnit(int a)
+    {
+    	int[] m = Communication.decode(a); 
+    	if(m[3] == Constants.getIndex(RobotType.ARCHON))
     	{
-			
-    		MapLocation treeInZonePos = new MapLocation(m[1] + xBase, m[2] + yBase); 
-    		float val = 1.0f/(1.0f + rc.getLocation().distanceTo(treeInZonePos));
-    		if(val > maxUtil)
-    		{
-    			attackingArchon = false;
-    			maxUtil = val; 
-    			newTarget = treeInZonePos;
-    		}
-    	}
-    	if(m[0] == Communication.ENEMY)
-    	{
-    		if(m[3] == Constants.getIndex(RobotType.ARCHON))
-    		{
-    			MapLocation newArchon = new MapLocation(m[1] + xBase, m[2] + yBase); 
-    			if(!archonCertainty)
-    			{
-    				archonCertainty = true;
-    				enemyBase = newArchon;
-    				 enemyBaseUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
-    				 if(enemyBaseUtil > maxUtil)
-    		    		{
-    		    			attackingArchon = true;
-    		    			maxUtil = enemyBaseUtil; 
-    		    			newTarget = enemyBase;
-    		    		}
-    			} else
-    			{
-    				float val = 0.5f/(1.0f + rc.getLocation().distanceTo(newArchon)); 
-    				if(val > enemyBaseUtil)
-    				{
-    					enemyBase = newArchon; 
-    					enemyBaseUtil = val; 
-    					if(val > maxUtil)
-    					{
-    		    			attackingArchon = true;
-    		    			maxUtil = val; 
-    		    			newTarget = newArchon;
-    		    		};
-    				}
-    			}
-    		}
-    	}
-    	
-    	//STOP
-    	if(m[0] == Communication.STOP)
-    	{
-    		MapLocation bodering = new MapLocation(m[1] + xBase, m[2] + yBase); 
-    		//rc.setIndicatorDot(rc.getLocation(), 255, 183, 252);
-    		if(bodering.distanceTo(rc.getLocation()) < rc.getType().bodyRadius)
-    		{
-    			//rc.setIndicatorDot(rc.getLocation(), 200, 0, 0);    			
-    			dontMove = true; 
-    		}
+    		MapLocation newArchon = new MapLocation(m[1] + xBase, m[2] + yBase); 
+    		if(!archonCertainty)
+			{
+				archonCertainty = true;
+				enemyBase = newArchon;
+				enemyBaseUtil = 6.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
+				if(enemyBaseUtil > maxUtil)
+	    		{
+	    			maxUtil = enemyBaseUtil; 
+	    			newTarget = enemyBase;
+	    		}
+			} else
+			{
+				float val = 6.0f/(1.0f + rc.getLocation().distanceTo(newArchon)); 
+				if(val > enemyBaseUtil)
+				{
+					enemyBase = newArchon; 
+					enemyBaseUtil = val; 
+					if(val > maxUtil)
+					{
+		    			attackingArchon = true;
+		    			maxUtil = val; 
+		    			newTarget = newArchon;
+		    		};
+				}
+			}
     	}
     }
     
@@ -317,9 +363,8 @@ public class Lumberjack {
         for (TreeInfo ti : Ti){
             if (ti.getTeam() == rc.getTeam()) continue;
             else if (ti.getTeam() == rc.getTeam().opponent()){
-                float newUtil = 2.0f/(1.0f + pos.distanceTo(ti.getLocation()));
+                float newUtil = 4.0f/(1.0f + pos.distanceTo(ti.getLocation())); //TODO ara mateix vaig igual granger que arbre (vull primer granger)
                 if (newUtil > maxUtil){
-                	attackingArchon = false; 
                     maxUtil = newUtil;
                     newTarget = ti.getLocation();
                 }
@@ -327,52 +372,79 @@ public class Lumberjack {
             else{
             	if(ti.containedRobot != null)
             	{
-	        		float val = unitTreeScore(rc.getLocation().distanceTo(ti.getLocation()),Constants.getIndex(ti.containedRobot));
+            		float a = ti.containedRobot.bulletCost; 
+            		if(ti.containedRobot == RobotType.ARCHON) a = 1000; 
+	        		float val = unitTreeScore(rc.getLocation().distanceTo(ti.getLocation()),a);
 	        		if(val > maxUtil)
 	        		{
-	        			attackingArchon = false;
 	        			maxUtil = val; 
 	        			newTarget = ti.getLocation();
 	        		}
             	}
             }
         }
+        
+        RobotInfo[] Ri = rc.senseNearbyRobots(); 
+        {
+        	for(RobotInfo ri : Ri)
+        	{
+        		if (ri.getTeam() == rc.getTeam()) continue;
+        		else
+        		{
+        			if(ri.getType().equals(RobotType.ARCHON))
+        	    	{
+        	    		MapLocation newArchon = ri.getLocation(); 
+        	    		if(!archonCertainty)
+        				{
+        					archonCertainty = true;
+        					enemyBase = newArchon;
+        					enemyBaseUtil = 6.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
+        					if(enemyBaseUtil > maxUtil)
+        		    		{
+        		    			maxUtil = enemyBaseUtil; 
+        		    			newTarget = enemyBase;
+        		    		}
+        				} else
+        				{
+        					float val = 6.0f/(1.0f + rc.getLocation().distanceTo(newArchon)); 
+        					if(val > enemyBaseUtil)
+        					{
+        						enemyBase = newArchon; 
+        						enemyBaseUtil = val; 
+        						if(val > maxUtil)
+        						{
+        			    			maxUtil = val; 
+        			    			newTarget = newArchon;
+        			    		};
+        					}
+        				}
+        	    	}
+        		}
+        	}
+        }
     }
     
+    //TODO supposing it works...
     static void broadcastLocations() {
         if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
-        	if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
-            if (ri.type == RobotType.SCOUT) continue;
+            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation enemyPos = ri.getLocation();
-        	int x = Math.round(enemyPos.x);
+            int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
-        	int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
-            
-            if(ri.type == RobotType.ARCHON) //TODO fer una function
+            int a = Constants.getIndex(ri.type);
+            if (a == 0) 
             {
-            	MapLocation newArchon = new MapLocation(x,y); 
-            	enemyBase = newArchon;
-				 enemyBaseUtil = 0.5f/(1.0f + rc.getLocation().distanceTo(enemyBase));
-				 if(enemyBaseUtil > maxUtil)
-		    	{
-		    		attackingArchon = true;
-		    		maxUtil = enemyBaseUtil; 
-		   			newTarget = enemyBase;
-		   		}
+            	Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            	++initialMessageEnemyGardener; 
             }
+            else 
+            {
+            	Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
+            	++initialMessageEnemy; 
+            }
+
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
@@ -381,17 +453,8 @@ public class Lumberjack {
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
+            ++initialMessageEnemyGardener; 
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -402,27 +465,12 @@ public class Lumberjack {
             int y = Math.round(treePos.y);
             RobotType r = ti.getContainedRobot();
             if (r != null) {
-                int a = (int) r.bulletCost;
-                int m = Communication.encodeFinding(Communication.UNITTREE, x - xBase, y - yBase, a);
-                if (readMes.contains(m)) continue;
-                try {
-                    rc.broadcast(initialMessage, m);
-                    ++initialMessage;
-                    if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                        initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
+                ++initialMessageGoodieTree; 
             }
         }
-        try {
-            rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        
     }
 
     static void updateTarget(){
@@ -445,6 +493,8 @@ public class Lumberjack {
 
     static float unitTreeScore(float dist, float rt)
     {
+    	//TODO decidir prioritats maybe
+    	/*
     	//order of most wanted: scout < gardener < lumberjack < soldier < tank < archon
     	if(rt == 4) return 3.5f/(1.0f + dist); 
     	if(rt == 0) return 4.0f/(1.0f + dist);
@@ -452,7 +502,9 @@ public class Lumberjack {
     	if(rt == 2) return 5.0f/(1.0f + dist);
     	if(rt == 3) return 5.5f/(1.0f + dist);
     	if(rt == 5) return 6.0f/(1.0f + dist);
-    	return -1; 
+    	*/
+    	if(rt >= 150) rt = 150; 
+    	return rt/(25*(1.0f + dist));
     }
 
     /*
@@ -466,7 +518,7 @@ public class Lumberjack {
 			if(ri == null) return; 
 			if(!ri.getTeam().equals(rc.getTeam())) return; 
 		} catch (GameActionException e1) {
-			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
 			e1.printStackTrace();
 		}
     	//rc.setIndicatorLine(rc.getLocation(), obstacle, 255, 0, 246);
@@ -480,7 +532,7 @@ public class Lumberjack {
 	   		if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
 	   		rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
 		} catch (GameActionException e) {
-			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
 			e.printStackTrace();			
 		}
     }

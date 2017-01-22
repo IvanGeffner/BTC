@@ -27,13 +27,13 @@ public class Gardener {
     private static float maxDistToCenter = 4.25f;
 
     private static int treeSpending;
-    private static int initialMessage = 0;
+    private static int initialMessagePlant = 0;
 
     private static MapLocation treeToPlant = null;
     private static MapLocation treeToWater = null;
     private static boolean shouldMove;
 
-    private static HashSet<Integer> readMes;
+    static int round = 0;
 
     private static int initLoopRound; //serveix per mirar que no es passi de bytecode
 
@@ -47,6 +47,7 @@ public class Gardener {
 
         while (true) {
             initLoopRound = rc.getRoundNum();
+            round = rc.getRoundNum();
 
             shouldMove = true;
             treeSpending = 0;
@@ -77,7 +78,7 @@ public class Gardener {
 
             updateTarget(newTarget);
 
-            try {
+            /*try {
                 if (realTarget == null) {
                     rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
                 }
@@ -87,11 +88,25 @@ public class Gardener {
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
+            }*/
+
+            if (!shouldMove) Greedy.moveToSelf(rc, 9200);
+
+
+            else {
+                try {
+                    if (realTarget == null) {
+                        rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                    }
+                    else {
+                        rc.setIndicatorDot(realTarget, 0, 255, 0);
+                    }
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+                Greedy.moveGreedy(rc, realTarget, 9200);
             }
-
-            if (!shouldMove) realTarget = rc.getLocation();
-
-            Greedy.moveGreedy(rc, realTarget, 9200);
 
             Clock.yield();
         }
@@ -102,15 +117,9 @@ public class Gardener {
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
-        readMes = new HashSet<>();
 
-        initialMessage = 0;
-        try{
-            initialMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
+        Communication.setBase(xBase,yBase);
+
     }
 
     static int[] getZoneFromPos(MapLocation pos){
@@ -331,26 +340,25 @@ public class Gardener {
     }
 
     static void readMessages(){
-        readMes.clear();
         try {
-            int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
-                int a = rc.readBroadcast(i);
-                workMessage(a);
-                readMes.add(a);
+            int channel = Communication.PLANTTREECHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessagePlant);
+            for (int i = initialMessagePlant; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessagePlantTree(a);
                 ++i;
-                if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
-            initialMessage = lastMessage;
+            initialMessagePlant = lastMessage;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
 
-    static void workMessage(int a){
-        int[] m = Communication.decode(a);
-        if (m[0] == Communication.PLANTTREE) treeSpending += GameConstants.BULLET_TREE_COST;
+    static void workMessagePlantTree(int a){
+        treeSpending += GameConstants.BULLET_TREE_COST;
     }
 
     static void updateWhatConstruct(){
@@ -381,11 +389,8 @@ public class Gardener {
                 MapLocation treePos = pos.add(treeDir, 2.0f);
                 if (!rc.isCircleOccupiedExceptByThisRobot(treePos, 1.0f)) {
                     if (rc.getTeamBullets() < GameConstants.BULLET_TREE_COST) {
-                        int message = Communication.encodeFinding(Communication.PLANTTREE, 0, 0);
-                        rc.broadcast(initialMessage, message);
-                        ++initialMessage;
-                        if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE) initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-                        rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
+
+                        Communication.sendMessage(rc, Communication.PLANTTREECHANNEL, 0, 0, 0);
                         return false;
                     } else if (rc.canPlantTree(treeDir)){
                         rc.plantTree(treeDir);
@@ -522,26 +527,16 @@ public class Gardener {
     }
 
     static void broadcastLocations() {
-        if (initLoopRound != rc.getRoundNum()) return;
+        if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
-            if (ri.type == RobotType.SCOUT) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            int m = Communication.encodeFinding(Communication.ENEMY, x - xBase, y - yBase, a);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, a);
+            else Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
@@ -550,17 +545,7 @@ public class Gardener {
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            int m = Communication.encodeFinding(Communication.ENEMYTREE, x - xBase, y - yBase);
-            if (readMes.contains(m)) continue;
-            try {
-                rc.broadcast(initialMessage, m);
-                ++initialMessage;
-                if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                    initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+            Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -571,25 +556,10 @@ public class Gardener {
             int y = Math.round(treePos.y);
             RobotType r = ti.getContainedRobot();
             if (r != null) {
-                int a = (int) r.bulletCost;
-                int m = Communication.encodeFinding(Communication.UNITTREE, x - xBase, y - yBase, a);
-                if (readMes.contains(m)) continue;
-                try {
-                    rc.broadcast(initialMessage, m);
-                    ++initialMessage;
-                    if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
-                        initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
             }
-        }
-        try {
-            rc.broadcast(Communication.MAX_BROADCAST_MESSAGE, initialMessage);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
     }
 

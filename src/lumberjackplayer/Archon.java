@@ -14,7 +14,9 @@ public class Archon {
     static RobotController rc;
     static int whoIam = 0;
     static int treeSpending;
-    static int initialMessage = 0;
+    static int initialMessagePlant = 0;
+    static MapLocation base;
+    static int xBase, yBase;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -42,6 +44,22 @@ public class Archon {
 
     static void InitializeStuff(){
         try{
+
+            MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
+            xBase = Math.round(base.x);
+            yBase = Math.round(base.y);
+
+            Communication.setBase(xBase,yBase);
+
+            initialMessagePlant = 0;
+            try{
+                initialMessagePlant = rc.readBroadcast(Communication.PLANTTREECHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+
+
             if (rc.getRoundNum() <= 1) {
                 MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
                 rc.broadcast(Communication.ARCHONNUMBER, archons.length);
@@ -71,23 +89,24 @@ public class Archon {
 
     static void readMessages(){
         try {
-            int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
-            for (int i = initialMessage; i != lastMessage; ) {
-                int a = rc.readBroadcast(i);
-                workMessage(a);
+            int channel = Communication.PLANTTREECHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            System.out.println("Last and Initial: " + lastMessage + " " + initialMessagePlant);
+            for (int i = initialMessagePlant; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
+                int a = rc.readBroadcast(channel + i);
+                workMessagePlantTree(a);
                 ++i;
-                if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
-            initialMessage = lastMessage;
+            initialMessagePlant = lastMessage;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
 
-    static void workMessage(int a){
-        int[] m = Communication.decode(a);
-        if (m[0] == Communication.PLANTTREE) treeSpending += GameConstants.BULLET_TREE_COST;
+    static void workMessagePlantTree(int a){
+        treeSpending += GameConstants.BULLET_TREE_COST;
     }
 
     static void tryConstruct(){
