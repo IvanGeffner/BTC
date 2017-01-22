@@ -30,9 +30,9 @@ codificació de zones en els broadcasts:
 
 posició (px,py) -> zona (zx,zy), amb 0 <= zx < 10, 0 <= zy < 12, => zx*12 + zy < 120 ->
 
-info d'una zona: 4 bits:
-	- b1b0: tipus de zona
-	- b3b2: ultim torn que s'ha actualitzat l'estat de la zona
+info d'una zona: 5 bits:
+	- b2b1b0: tipus de zona
+	- b4b3: ultim torn que s'ha actualitzat l'estat de la zona
 	
 per tant podem tenir 8 zones en cada int:
 	- Definim zone id = zx*12+zy, 0 <= id < 120 
@@ -42,5 +42,10 @@ per tant podem tenir 8 zones en cada int:
 	
 	
 vector amb sentit oposat i modul 1/(dist+1)
-	
+
+
+- si estan anar a buscar la zona i hi ha un enemic, fugen
+- recalcular la zona cada X torns
+- build order
+- afegir tipus zona ocupada
 	

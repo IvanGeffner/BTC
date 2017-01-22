@@ -1,9 +1,9 @@
 package Gardenerplayer;
 
 import battlecode.common.*;
-import com.sun.tools.internal.jxc.ap.Const;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -37,20 +37,25 @@ public class Greedy {
     static RobotInfo[] Ri;
     static TreeInfo[] Ti;
     static BulletInfo[] bullets;
+    static RobotInfo[] RiE;
 
 
 
     static void moveToSelf(RobotController rc, int bytecodeleft){
-        resetObstacle(rc);
         moveGreedy(rc, rc.getLocation(), bytecodeleft);
+    }
+
+    static void changeTarget(MapLocation tar, RobotController rc){
+        if (target != null && tar != null && target.distanceTo(tar) < Constants.eps) return;
+        target = tar;
+        Greedy.resetObstacle(rc);
     }
 
 
 
     static void moveGreedy(RobotController rc, MapLocation tar, int bytecodeleft){
-        target = tar;
+        changeTarget(tar, rc);
         if (target == null) return;
-
         try {
             pos = rc.getLocation();
             if (R < 0) {
@@ -61,38 +66,36 @@ public class Greedy {
 
             //SI L'OBSTACLE JA NO HI ES, RESET!
             if (obstacle != null) {
-                rc.setIndicatorDot(obstacle, 0, 255, 0);
                 MapLocation nextPos = pos.add(pos.directionTo(obstacle), r);
-                //if (!rc.canSenseAllOfCircle(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
                 if (!rc.onTheMap(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
                 else if (!rc.isCircleOccupiedExceptByThisRobot(nextPos, rc.getType().bodyRadius)) resetObstacle(rc);
+            }
+
+
+            //SI BAIXAEM DISTMIN I ENS PODEM MOURE AL TARGET, RESET [I EL GREEDY HI ANIRA]
+            float dist = pos.distanceTo(target);
+            System.out.println(dist);
+            if (left != 0 && dist < minDistToTarget && rc.canMove(target)) {
+                resetObstacle(rc);
             }
 
             //ESCOLLIM LA DIRECCIO PRINCIPAL
             if (obstacle == null) dir = pos.directionTo(target);
             else dir = pos.directionTo(obstacle);
 
-
-            //SI BAIXAEM DISTMIN I ENS PODEM MOURE AL TARGET, RESET [I EL GREEDY HI ANIRA]
-            float dist = pos.distanceTo(target);
-            if (left != 0 && dist < minDistToTarget && rc.canMove(target)) {
-                resetObstacle(rc);
-            }
-
             //TRIEM I FEM EL GREEDY
-            Ri = rc.senseNearbyRobots(R + r, null);
+            Ri = rc.senseNearbyRobots(R + r, rc.getTeam());
+            RiE = rc.senseNearbyRobots(R+r+ Constants.SAFETYDISTANCE, rc.getTeam().opponent());
             Ti = new TreeInfo[0];
             if (!(rc.getType() == RobotType.SCOUT)) {
                 Ti = rc.senseNearbyTrees(R + r, null);
             }
-
-            System.out.println("Pre Bullets: " + Clock.getBytecodeNum());
             getBullets(rc);
-            System.out.println("Post Bullets: " + Clock.getBytecodeNum());
 
 
             float expectedByteCode = Clock.getBytecodeNum();
             expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
+            expectedByteCode += 2*RiE.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 4 * RiE.length;
             expectedByteCode += Ti.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ti.length;
             expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
 
@@ -104,24 +107,45 @@ public class Greedy {
             //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
             //dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
 
-            if (dirGreedy == null) return;
+            boolean shoot = true;
+            if (rc.getType() == RobotType.SOLDIER || rc.getType() == RobotType.TANK || rc.getType() == RobotType.GARDENER) shoot = false;
 
+            if (!shoot && dirGreedy != null){
+                if (RiE.length > 0){
+                    MapLocation enemyLoc = RiE[0].getLocation();
+                    //if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                }
+            }
+
+
+            if (dirGreedy == null) {
+                //shoot = Shoot.tryShoot(rc, 1);
+                return;
+            }
+
+            System.out.println(minDistToTarget);
             //ACTUALITZEM
             if (left != 0) {
+                System.out.println(minDistToTarget);
                 if (dist < minDistToTarget) minDistToTarget = dist;
                 addCollisionLocation(rc);
             }
 
+            System.out.println(minDistToTarget);
+
+            //if (!shouldMove) System.out.println("STAYY STILLL");
+
             //SI EL TARGET ESTA MES A PROP, INTENTEM ANAR DIRECTE
-            if ((!shouldMove && pos.directionTo(target) == null) || (pos.directionTo(target) != null && Math.abs(dirGreedy.radiansBetween(pos.directionTo(target))) < Constants.eps)){
-                if (rc.canMove(target)){
-                    rc.move(target);
-                    return;
-                }
+            if (!shouldMove && rc.canMove(target)){
+                resetObstacle(rc);
+                rc.move(target);
+                //if (!shoot) shoot = Shoot.tryShoot(rc, 1);
+                return;
             }
             //ELSE ANEM EN LA DIRECCIO
             if (rc.canMove(dirGreedy)){
                 rc.move(dirGreedy);
+                //if (!shoot) shoot = Shoot.tryShoot(rc, 1);
                 return;
             }
         } catch (Exception e) {
@@ -139,7 +163,7 @@ public class Greedy {
 
             System.out.println(Clock.getBytecodeNum());
             if (bi.getLocation().distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(bi.getLocation()).radiansBetween(bi.getDir())) < Math.PI/2) continue;
-            if (bi.getLocation().distanceTo(pos) > r+R+Constants.eps + bi.getSpeed()) continue;
+            if (bi.getLocation().distanceTo(pos) > r+R+ Constants.eps + bi.getSpeed()) continue;
             bulletAux[cont] = bi;
             ++cont;
         }
@@ -147,8 +171,7 @@ public class Greedy {
     }
 
     static void resetObstacle(RobotController rc){
-
-        System.out.println ("Fent reset!!!");
+        //System.out.println ("OLLLSLLSA");
         collisionLocations = new HashMap<>();
         obstacle = null;
         minDistToTarget = Constants.INF;
@@ -175,14 +198,17 @@ public class Greedy {
 
     public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
 
-        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
+        //if (tries == 0) System.out.println("SUPER LOW BYTECODE");
 
-        //if (tries >= Constants.GREEDYTRIES) return null;
+        if (tries >= Constants.GREEDYTRIES) return null;
 
         if (tries == 0 && mainDir == null){
             mainDir = new Direction ((float)Math.random(), (float)Math.random());
             shouldMove = false;
-        } else if (tries == 0) shouldMove = true;
+        } else if (tries == 0) {
+            if (target.distanceTo(pos) < r) shouldMove = false;
+            else shouldMove = true;
+        }
 
         if (tries > 0 && rc.canMove(mainDir)) return mainDir;
 
@@ -260,7 +286,7 @@ public class Greedy {
             Direction dir2 = pos.directionTo(m2);
             float l = (R+bi.getSpeed()/2);
 
-            if (!shouldMove && pos.distanceTo(m2) <= l) shouldMove = true;
+            if (!shouldMove && target.distanceTo(m2) <= l) shouldMove = true;
 
             //if (nextPos.distanceTo(m2) > l) continue;
 
@@ -297,6 +323,7 @@ public class Greedy {
 
         if (left == 0) {
             if (Clock.getBytecodeNum() > bytecodeLeft) return dirL;
+            if (Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps && Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps) return dirR;
             left = -1;
             Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
             MapLocation auxObs;
@@ -367,15 +394,18 @@ public class Greedy {
         return a;
     }
 
-    public static Direction greedyStep(RobotController rc, int bytecodeLeft){
+    public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
 
-        System.out.println("SUPER HIGH BYTECODEE!!");
+        //System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
             dir = new Direction ((float)Math.random(), (float)Math.random());
             shouldMove = false;
-        } else shouldMove = true;
+        } else{
+            if (pos.distanceTo(target) < r) shouldMove = false;
+            else shouldMove = true;
+        }
 
         inter = 0; //position at intervals
 
@@ -386,10 +416,11 @@ public class Greedy {
         boolean scout = (rc.getType() == RobotType.SCOUT);
 
         cont = 0;
+        contBullets = 0;
 
         //System.out.println("PRecomputation" + Clock.getBytecodeNum());
 
-        int maxLength = 2*Ti.length + 2*Ri.length + 4*bullets.length;
+        int maxLength = 2*Ti.length + 2*Ri.length + 4*RiE.length + 4*bullets.length;
 
         intervals = new int[maxLength];
         obstacles = new int[maxLength];
@@ -398,7 +429,7 @@ public class Greedy {
 
         for (RobotInfo ri : Ri){
             ++obstacleCount;
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
             if (ri.getID() == rc.getID()) continue;
 
             //CALCULA INTERVAL
@@ -431,10 +462,69 @@ public class Greedy {
 
         obstacleCount = Ri.length - 1;
 
+        for (RobotInfo ri : RiE){
+            ++obstacleCount;
+            if (Clock.getBytecodeNum() + 2* Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (ri.getID() == rc.getID()) continue;
+
+            //CALCULA INTERVAL
+            MapLocation m2 = ri.getLocation();
+            Direction dir2 = pos.directionTo(m2);
+
+            float l = (R+ri.getType().bodyRadius);
+
+            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+
+            if (t <= 1 && t >= -1) {
+
+                float angle = (float) Math.acos(t) + 0.001f;
+
+
+                float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                if (x < 0) x += Constants.PI2;
+                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
+                obstacles[inter] = obstacleCount;
+                ++inter;
+                float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                if (y < 0) y += Constants.PI2;
+                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
+                obstacles[inter] = obstacleCount;
+                ++inter;
+                if (y > x) ++cont;
+            }
+
+            float safe = Constants.safetyDistance(ri.getType());
+            if (safe > 0){
+                l += safe;
+                t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+
+                if (t <= 1 && t >= -1) {
+
+                    float angle = (float) Math.acos(t) + 0.001f;
+
+
+                    float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                    if (x < 0) x += Constants.PI2;
+                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) +1+ 4 * (inter & 0x1F);
+                    obstacles[inter] = obstacleCount;
+                    ++inter;
+                    float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                    if (y < 0) y += Constants.PI2;
+                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3 + 4 * (inter & 0x1F);
+                    obstacles[inter] = obstacleCount;
+                    ++inter;
+                    if (y > x) ++contBullets;
+                }
+            }
+
+        }
+
+        obstacleCount = Ri.length + RiE.length - 1;
+
         if (!scout) {
             for (TreeInfo ti : Ti) {
                 ++obstacleCount;
-                if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+                if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
                 if (ti.getID() == rc.getID()) continue;
 
                 MapLocation m2 = ti.getLocation();
@@ -465,10 +555,8 @@ public class Greedy {
 
         }
 
-        contBullets = 0;
-
         for (BulletInfo bul : bullets) {
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE2 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (Clock.getBytecodeNum() + Constants.COSTCYCLE2 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
 
             addIntervals(bul);
 
@@ -492,8 +580,12 @@ public class Greedy {
                 if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
                 else {
                     newObs -= Ri.length;
-                    if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                    else bulletDodge = rc.getRoundNum();
+                    if(newObs < RiE.length){
+                        obstacle = RiE[newObs].getLocation();
+                    } else {
+                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
+                        else bulletDodge = rc.getRoundNum();
+                    }
                 }
             }
             return di;
@@ -510,37 +602,44 @@ public class Greedy {
                 if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
                 else {
                     newObs -= Ri.length;
-                    if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                    else bulletDodge = rc.getRoundNum();
+                    if(newObs < RiE.length){
+                        obstacle = RiE[newObs].getLocation();
+                    } else {
+                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
+                        else bulletDodge = rc.getRoundNum();
+                    }
                 }
             }
             return di2;
         }
     }
 
-    public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
+    public static Direction greedyStep(RobotController rc, int bytecodeLeft){
 
-        System.out.println("LOW BYTECODE");
+        // System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
             dir = new Direction ((float)Math.random(), (float)Math.random());
             shouldMove = false;
-        } else shouldMove = true;
+        } else {
+            if (pos.distanceTo(target) < r) shouldMove = false;
+            else shouldMove = true;
+        }
 
         inter = 0; //position at intervals
+
+        int a = 1;
+        if (left == 0) ++a;
 
         MapLocation pos = rc.getLocation();
         boolean scout = (rc.getType() == RobotType.SCOUT);
 
         cont = 0;
 
-        int a = 1;
-        if (left == 0) ++a;
-
         //System.out.println("PRecomputation" + Clock.getBytecodeNum());
 
-        int maxLength = 2*Ti.length + 2*Ri.length + 2*bullets.length;
+        int maxLength = 2*Ti.length + 2*Ri.length + 4*RiE.length + 2*bullets.length;
 
         intervals = new int[maxLength];
         obstacles = new int[maxLength];
@@ -549,7 +648,7 @@ public class Greedy {
 
         for (RobotInfo ri : Ri){
             ++obstacleCount;
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
             if (ri.getID() == rc.getID()) continue;
 
             //CALCULA INTERVAL
@@ -579,13 +678,73 @@ public class Greedy {
             }
 
         }
+        contBullets = 0;
 
         obstacleCount = Ri.length - 1;
+
+        for (RobotInfo ri : RiE){
+            ++obstacleCount;
+            if (Clock.getBytecodeNum() + 2* Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (ri.getID() == rc.getID()) continue;
+
+            //CALCULA INTERVAL
+            MapLocation m2 = ri.getLocation();
+            Direction dir2 = pos.directionTo(m2);
+
+            float l = (R+ri.getType().bodyRadius);
+
+            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+
+            if (t <= 1 && t >= -1) {
+
+                float angle = (float) Math.acos(t) + 0.001f;
+
+
+                float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                if (x < 0) x += Constants.PI2;
+                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
+                obstacles[inter] = obstacleCount;
+                ++inter;
+                float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                if (y < 0) y += Constants.PI2;
+                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
+                obstacles[inter] = obstacleCount;
+                ++inter;
+                if (y > x) ++cont;
+            }
+
+            float safe = Constants.safetyDistance(ri.getType());
+            if (safe > 0){
+                l += safe;
+                t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
+
+                if (t <= 1 && t >= -1) {
+
+                    float angle = (float) Math.acos(t) + 0.001f;
+
+
+                    float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                    if (x < 0) x += Constants.PI2;
+                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) +1+ 4 * (inter & 0x1F);
+                    obstacles[inter] = obstacleCount;
+                    ++inter;
+                    float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                    if (y < 0) y += Constants.PI2;
+                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3 + 4 * (inter & 0x1F);
+                    obstacles[inter] = obstacleCount;
+                    ++inter;
+                    if (y > x) ++contBullets;
+                }
+            }
+
+        }
+
+        obstacleCount = Ri.length + RiE.length - 1;
 
         if (!scout) {
             for (TreeInfo ti : Ti) {
                 ++obstacleCount;
-                if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+                if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
                 if (ti.getID() == rc.getID()) continue;
 
                 MapLocation m2 = ti.getLocation();
@@ -616,10 +775,8 @@ public class Greedy {
 
         }
 
-        contBullets = 0;
-
         for (BulletInfo bul : bullets) {
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a*Constants.COSTSELECTION) >= bytecodeLeft) break;
+            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
 
             MapLocation m2 = bul.getLocation().add(bul.getDir(), bul.getSpeed() / 2);
             Direction dir2 = pos.directionTo(m2);
@@ -627,7 +784,7 @@ public class Greedy {
             float d = pos.distanceTo(m2);
             float l = (R + bul.getSpeed() / 2);
 
-            if (!shouldMove && d <= l) shouldMove = true;
+            if (!shouldMove && target.distanceTo(m2) <= l) shouldMove = true;
 
 
             float t = (pos.distanceSquaredTo(m2) + rr - l * l) / (2.0f * d * r);
@@ -646,6 +803,7 @@ public class Greedy {
                 ++inter;
                 if (y > x) ++contBullets;
             }
+
         }
 
         if (inter < maxLength){
@@ -666,8 +824,12 @@ public class Greedy {
                 if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
                 else {
                     newObs -= Ri.length;
-                    if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                    else bulletDodge = rc.getRoundNum();
+                    if(newObs < RiE.length){
+                        obstacle = RiE[newObs].getLocation();
+                    } else {
+                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
+                        else bulletDodge = rc.getRoundNum();
+                    }
                 }
             }
             return di;
@@ -684,8 +846,12 @@ public class Greedy {
                 if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
                 else {
                     newObs -= Ri.length;
-                    if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                    else bulletDodge = rc.getRoundNum();
+                    if(newObs < RiE.length){
+                        obstacle = RiE[newObs].getLocation();
+                    } else {
+                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
+                        else bulletDodge = rc.getRoundNum();
+                    }
                 }
             }
             return di2;
@@ -833,7 +999,7 @@ public class Greedy {
 
     static void addIntervals(BulletInfo b){
 
-        System.out.println("Bytecode pls1: " + Clock.getBytecodeNum());
+        //System.out.println("Bytecode pls1: " + Clock.getBytecodeNum());
 
         try {
 
@@ -842,7 +1008,7 @@ public class Greedy {
             MapLocation m2 = m1.add(b.getDir(), b.getSpeed());
             Direction perp = b.getDir().rotateLeftRads((float) Math.PI / 2);
 
-            if (!shouldMove && m1.add(b.getDir(), b.getSpeed()/2).distanceTo(pos) <= b.getSpeed()/2 + R) shouldMove = true;
+            if (!shouldMove && m1.add(b.getDir(), b.getSpeed()/2).distanceTo(target) <= b.getSpeed()/2 + R) shouldMove = true;
 
             MapLocation V11 = m1.add(perp, R);
             MapLocation V21 = m2.add(perp, R);
@@ -933,7 +1099,7 @@ public class Greedy {
         }
 
 
-        System.out.println("Bytecode pls2: " + Clock.getBytecodeNum());
+        //System.out.println("Bytecode pls2: " + Clock.getBytecodeNum());
 
 
 
@@ -951,7 +1117,7 @@ public class Greedy {
         intervals[inter] = (Math.round(left * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 1 + 4*(inter&0x1F);
         obstacles[inter] = Constants.INTINF;
         ++inter;
-        intervals[inter] = (Math.round(right*Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3+ 4*(inter&0x1F);
+        intervals[inter] = (Math.round(right* Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3+ 4*(inter&0x1F);
         obstacles[inter] = Constants.INTINF;
         ++inter;
     }

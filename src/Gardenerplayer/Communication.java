@@ -32,12 +32,12 @@ public class Communication {
     static final int ZONE_FIRST_POSITION = 600;
     static final int ZONE_CHANNELS = 60;
 
-    static final int UNITS_BUILT = 670;
+    static final int UNITS_BUILT = 690;
 
-    static int MIN_ZONE_X = 671;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
-    static int MIN_ZONE_Y = 672;
-    static int MAX_ZONE_X = 673;
-    static int MAX_ZONE_Y = 674;
+    static int MIN_ZONE_X = 691;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
+    static int MIN_ZONE_Y = 692;
+    static int MAX_ZONE_X = 693;
+    static int MAX_ZONE_Y = 694;
     static int ZONE_LIMIT_OFFSET = 20;
 
 

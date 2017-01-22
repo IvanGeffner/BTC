@@ -14,9 +14,12 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 4, 5, 5, 3, 4, 5, 5, 2, 1, 0, 5, 5, 5, 3,2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 9, 8, 4, 1, 2};
-    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 2 ,5};
+    public static int[] initialBuild = {0,4,1,2,4,2,0};
+    public static int[] initialPositions = {0,2,3,1,14,9999};
+    public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
+    //public static int[] initialBuild = {0, 4, 5, 5, 3, 4, 5, 5, 2, 1, 0, 5, 5, 5, 3,2, 1, 5, 5, 2, 1, 5};
+    //public static int[]  initialPositions = {0, 9, 8, 4, 1, 2};
+    //public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 2 ,5};
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;
 
@@ -48,6 +51,9 @@ public class Constants {
     public static float COLLISIONRANGE = 1.2f;
     public static int COLLISIONHASH = 1000;
     public static int COLLISIONROUND = 5;
+    public static int GREEDYTRIES = 8;
+
+    public static float SAFETYDISTANCE = 3f;
 
     public static final int COSTCYCLE1 = 135;
     public static final int COSTCYCLE2 = 420;
