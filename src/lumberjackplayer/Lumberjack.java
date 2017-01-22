@@ -60,7 +60,7 @@ public class Lumberjack {
             findBestTree();
             updateTarget();
             
-            rc.setIndicatorLine(rc.getLocation(), realTarget, 250, 0, 255);
+            //rc.setIndicatorLine(rc.getLocation(), realTarget, 250, 0, 255);
             
             tryChop();
             {
@@ -268,7 +268,7 @@ public class Lumberjack {
 			for(int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
 	    	{
 	    		int a = rc.readBroadcast(channel + i); 
-	    		//workMessageEnemyUnit(a); 
+	    		workMessageEnemyUnit(a); 
 	    		++i;
 	    	}
 			initialMessageEnemy = lastMessage; 
@@ -281,7 +281,7 @@ public class Lumberjack {
     static void workMessageUnitTree(int a)
     {
     	int[] m = Communication.decode(a); 
-    	MapLocation unitTreePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	MapLocation unitTreePos = new MapLocation(m[1], m[2]); 
     	float val = unitTreeScore(rc.getLocation().distanceTo(unitTreePos),m[3]);
     	if(val > maxUtil)
     	{
@@ -292,7 +292,7 @@ public class Lumberjack {
     static void workMessageEnemyTree(int a)
     {
     	int[] m = Communication.decode(a); 
-    	MapLocation enemyTreePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	MapLocation enemyTreePos = new MapLocation(m[1], m[2] ); 
     	float val = 4.0f/(1.0f + rc.getLocation().distanceTo(enemyTreePos)); 
     	 if(val > maxUtil)
  		{
@@ -303,7 +303,8 @@ public class Lumberjack {
     static void workMessageChopTree(int a)
     {
     	int[] m = Communication.decode(a); 
-    	MapLocation treeInZonePos = new MapLocation(m[1] + xBase, m[2]  + yBase); 
+    	MapLocation treeInZonePos = new MapLocation(m[1], m[2]); 
+    	rc.setIndicatorLine(rc.getLocation(), treeInZonePos, 100, 100, 100);
     	float val = 3.2f/(1.0f + rc.getLocation().distanceTo(treeInZonePos)); 
     	if(val > maxUtil)
 		{
@@ -326,7 +327,7 @@ public class Lumberjack {
     	int[] m = Communication.decode(a); 
     	if(m[3] == Constants.getIndex(RobotType.ARCHON))
     	{
-    		MapLocation newArchon = new MapLocation(m[1] + xBase, m[2] + yBase); 
+    		MapLocation newArchon = new MapLocation(m[1], m[2]); 
     		if(!archonCertainty)
 			{
 				archonCertainty = true;

@@ -1,6 +1,7 @@
 package lumberjackplayer;
 
 import battlecode.common.*;
+//import scala.collection.immutable.Stream;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +44,25 @@ public class Greedy {
 
     static void moveToSelf(RobotController rc, int bytecodeleft){
         moveGreedy(rc, rc.getLocation(), bytecodeleft);
+    }
+
+    static void stop(RobotController rc, int bytecodeleft){
+        int auxLeft = left;
+        MapLocation auxObstacle = obstacle;
+        MapLocation auxPos = rc.getLocation();
+        float auxminDistToTarget = minDistToTarget;
+        HashMap<Integer, Integer> auxCollisionLocations = collisionLocations;
+
+        moveToSelf(rc, bytecodeleft);
+
+        if (rc.getLocation().distanceTo(auxPos) < Constants.eps){
+            left = auxLeft;
+            obstacle = auxObstacle;
+            minDistToTarget = auxminDistToTarget;
+            collisionLocations = auxCollisionLocations;
+        }
+
+
     }
 
     static void changeTarget(MapLocation tar, RobotController rc){
@@ -117,6 +137,8 @@ public class Greedy {
                 }
             }
 
+            //if (obstacle != null && rc.senseRobotAtLocation(obstacle) != null) Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
+
 
             if (dirGreedy == null) {
                 shoot = Shoot.tryShoot(rc, 1);
@@ -139,13 +161,14 @@ public class Greedy {
             if (!shouldMove && rc.canMove(target)){
                 resetObstacle(rc);
                 rc.move(target);
-                if (!shoot) shoot = Shoot.tryShoot(rc, 1);
+                if (!shoot) shoot = Shoot.tryShoot(rc, 2);
                 return;
             }
             //ELSE ANEM EN LA DIRECCIO
             if (rc.canMove(dirGreedy)){
                 rc.move(dirGreedy);
-                if (!shoot) shoot = Shoot.tryShoot(rc, 1);
+                if (obstacle != null && rc.senseRobotAtLocation(obstacle) != null) Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
+                if (!shoot) shoot = Shoot.tryShoot(rc, 2);
                 return;
             }
         } catch (Exception e) {
@@ -161,7 +184,7 @@ public class Greedy {
         int cont = 0;
         for (BulletInfo bi : bullets){
 
-            System.out.println(Clock.getBytecodeNum());
+            //System.out.println(Clock.getBytecodeNum());
             if (bi.getLocation().distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(bi.getLocation()).radiansBetween(bi.getDir())) < Math.PI/2) continue;
             if (bi.getLocation().distanceTo(pos) > r+R+ Constants.eps + bi.getSpeed()) continue;
             bulletAux[cont] = bi;

@@ -64,13 +64,13 @@ public class Tank {
                 newTarget = enemyBase;
             }
 
-            if (targetUpdated) maxUtil += 1;
-            else maxUtil -= 0.03f;
-
 
             round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
+
+            if (targetUpdated) maxUtil += 1;
+            else maxUtil -= 0.03f;
 
             updateTarget();
             try {
@@ -80,7 +80,7 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            if (shouldStop) Greedy.moveToSelf(rc, Constants.BYTECODEATSHOOTING);
+            if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
             else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
             Clock.yield();
@@ -172,7 +172,7 @@ public class Tank {
 
     static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
-        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        MapLocation enemyPos = new MapLocation(m[1], m[2]);
         float val = enemyScore(enemyPos, m[3]);
         if (val > maxUtil){
             maxUtil = val;
@@ -183,7 +183,7 @@ public class Tank {
 
     static void workMessageEnemyGardener(int a){
         int[] m = Communication.decode(a);
-        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        MapLocation enemyPos = new MapLocation(m[1], m[2]);
         float val = enemyScore(enemyPos, 0);
         if (val > maxUtil){
             maxUtil = val;
@@ -194,13 +194,13 @@ public class Tank {
 
     static void workMessageStop(int a){
         int[] m = Communication.decode(a);
-        MapLocation pos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        MapLocation pos = new MapLocation(m[1], m[2]);
         if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
     }
 
     static void workMessageEmergency(int a){
         int[] m = Communication.decode(a);
-        MapLocation enemyPos = new MapLocation(m[1]+xBase, m[2]+yBase);
+        MapLocation enemyPos = new MapLocation(m[1], m[2]);
         float val = Constants.EMERGENCYSCORE/(1.0f + enemyPos.distanceTo(rc.getLocation()));
         if (val > maxUtil){
             maxUtil = val;
@@ -225,6 +225,11 @@ public class Tank {
     static void broadcastLocations() {
         if (round != rc.getRoundNum()) return;
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+
+        float maxUtil2 = 0;
+        MapLocation newTarget2 = null;
+        int a2 = 0;
+
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation enemyPos = ri.getLocation();
@@ -232,17 +237,26 @@ public class Tank {
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
             if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-            else Communication.sendMessage(rc, Communication.ENEMYCHANNEL, x, y, a);
+            else if (a == 5) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             float val = enemyScore(enemyPos, a);
-            if (val > maxUtil) {
-                maxUtil = val;
-                newTarget = enemyPos;
+            if (val > maxUtil2) {
+                maxUtil2 = val;
+                newTarget2 = enemyPos;
+                a2 = a;
                 targetUpdated = true;
             }
         }
 
+        if (maxUtil2 > maxUtil){
+            maxUtil = maxUtil2;
+            newTarget = newTarget2;
+        }
+
+        if (newTarget2 != null) Communication.sendMessage(rc, Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
+
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
-        for (TreeInfo ti : Ti) {
+        if (Ti.length > 0) {
+            TreeInfo ti = Ti[0];
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
