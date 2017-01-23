@@ -41,8 +41,6 @@ public class Gardener {
     private static int abandonedZone = 2;
     private static int outOfMapZone = 3;
 
-    private static HashSet<MapLocation> neutralTreesInMyZone = new HashSet<>();
-
     private static float maxDistToCenter = 3f;
 
     private static MapLocation[] treePos = new MapLocation[treesPerZone];
@@ -72,10 +70,6 @@ public class Gardener {
             broadcastMyZone();
             //System.out.println("despres de broadcast " + Clock.getBytecodeNum());
             MapLocation newTarget;
-            //treeSpending = 0;
-            //readMessages();
-            //updateWhatConstruct();
-            //tryConstruct();
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
@@ -453,7 +447,13 @@ public class Gardener {
             return;
         }
 
+        if (rc.canSenseLocation(centerIWant)){
+            TreeInfo[] treesNearCenter = rc.senseNearbyTrees(centerIWant,-1,Team.NEUTRAL);
+            messageNeutralTreesInBox(centerIWant,treesNearCenter);
+        }
+
         if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) return;
+
         int zoneType = getZoneTypeFromBroadcast(zoneIWant);
         try{
             if (zoneType == busyZone) {
@@ -523,21 +523,42 @@ public class Gardener {
     }
 
     private static void checkNeutralTreesInZone(){
-        TreeInfo[] neutralTrees = rc.senseNearbyTrees(rc.getType().sensorRadius,Team.NEUTRAL);
-        for (TreeInfo ti: neutralTrees){
-            MapLocation treeLocation = ti.getLocation();
-            int[] treeZone = getZoneFromPos(treeLocation);
-            if (treeZone[0] == zone[0] && treeZone[1] == zone[1])
-                messageCutNeutralTree(ti.getID(),treeLocation);
+        TreeInfo[] neutralTrees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
+        messageNeutralTreesInBox(zoneCenterPos,neutralTrees);
+    }
 
+    //envia missatge de tallar els arbres en la capsa de 3x3 i si no n'hi ha cap en la de 5.5x5.5
+    private static void messageNeutralTreesInBox(MapLocation center, TreeInfo[] trees){
+        int max_bytecode = 3000;
+        int bytecode_init = Clock.getBytecodeNum();
+        MapLocation[] outerTrees = new MapLocation[trees.length];
+        boolean sendOuterTrees = true;
+
+        float innerDistance = 3f;
+        float outerDistance = zoneWidth/2;
+
+        int outerTreeCount = 0;
+
+        for (TreeInfo ti: trees){
+            MapLocation treePos = ti.getLocation();
+            if (Math.abs(treePos.x - center.x) < innerDistance && Math.abs(treePos.y - center.y) < innerDistance){
+                sendOuterTrees = false;
+                messageCutNeutralTree(treePos);
+            }else if (sendOuterTrees && Math.abs(treePos.x - center.x) < outerDistance && Math.abs(treePos.y - center.y) < outerDistance){
+                outerTrees[outerTreeCount] = treePos;
+                outerTreeCount++;
+            }
+        }
+        if (!sendOuterTrees) return;
+        for (int i = 0; i < outerTreeCount; i++) {
+            messageCutNeutralTree(outerTrees[i]);
+            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
         }
     }
 
-    private static void messageCutNeutralTree(int id, MapLocation treeLocation) {
-        rc.setIndicatorLine(rc.getLocation(),treeLocation,255,120,0);
-        MapLocation myPos = rc.getLocation();
-
-        Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),id&0xFFF);
+    private static void messageCutNeutralTree(MapLocation treeLocation) {
+        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),treeLocation,255,120,0);
+        Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
 
     private static MapLocation checkNearbyEnemies(){

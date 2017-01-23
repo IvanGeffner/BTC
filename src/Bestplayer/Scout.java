@@ -382,7 +382,7 @@ public class Scout {
             if ((sight_zones[newZone/32] & 1<<(newZone&31)) == 0) {
                 MapLocation newTarget = new MapLocation(findX(newZoneX), findY(newZoneY));
                 System.out.println("zoneY:" + zoneY + ", newZoneY:" + newZoneY + ", zoneYmin:" + zoneYmin + "("+dx+","+dy+")");
-                rc.setIndicatorLine(pos, newTarget, 0, 0, 0);
+                if (Constants.DEBUG == 1) rc.setIndicatorLine(pos, newTarget, 0, 0, 0);
                 return newTarget;
             }
         }
@@ -419,7 +419,7 @@ public class Scout {
         if (pos.isWithinDistance(escapePos, Constants.eps)) return null;
         escapePos = pos.add(pos.directionTo(escapePos), 100);
         System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
-        rc.setIndicatorLine(pos, escapePos, 255,255,255);
+        if (Constants.DEBUG == 1) rc.setIndicatorLine(pos, escapePos, 255,255,255);
         return escapePos;
     }
 
