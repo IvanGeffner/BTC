@@ -13,13 +13,13 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    //public static int[] initialBuild = {0, 4, 5, 5, 4, 5, 5, 2, 1, 0, 5, 5, 5, 2, 1, 5, 5, 2, 1, 5};
-    //public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
-    //public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 4 ,5};
+    public static int[] initialBuild = {0, 4, 5, 5, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 5, 5, 2, 1, 5};
+    public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
+    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
-    public static int[] initialBuild = {0,4,1,2,4,2,0};
-    public static int[] initialPositions = {0,2,3,1,14,9999};
-    public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
+    //public static int[] initialBuild = {0,4,1,2,4,2,0};
+    //public static int[] initialPositions = {0,2,3,14,1,9999};
+    //public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
 
 
     public static int IBL = initialBuild.length;
@@ -77,14 +77,22 @@ public class Constants {
     public static float pentadAngle = (15.0f*(float)Math.PI)/180.0f;
     public static float pentadAngle2 = (30.0f*(float)Math.PI)/180.0f;
 
+    public static int GARDENER = 0;
+    public static int LUMBERJACK = 1;
+    public static int SOLDIER = 2;
+    public static int TANK = 3;
+    public static int SCOUT = 4;
+    public static int TREE = 5;
+
+
     static int getIndex(RobotType r){
         if (r == RobotType.GARDENER) return 0;
         else if (r == RobotType.LUMBERJACK) return 1;
         else if (r == RobotType.SOLDIER) return 2;
         else if (r == RobotType.TANK) return 3;
         else if (r == RobotType.SCOUT) return 4;
-        else if (r == RobotType.ARCHON) return 5;
-        return 0;
+        else if (r == RobotType.ARCHON) return -1;
+        return -1;
     }
 
     public static RobotType getRobotTypeFromIndex(int i){

@@ -28,7 +28,7 @@ public class Archon {
 
             treeSpending = 0;
 
-            readMessages();
+            //readMessages();
 
             tryConstruct();
             //tryMove();
@@ -83,7 +83,6 @@ public class Archon {
         }
     }
 
-
     static void randomMove(){
         try {
             int a = (int) Math.floor(Math.random() * 4.0);
@@ -98,7 +97,7 @@ public class Archon {
             e.printStackTrace();
         }
     }
-
+/*
     static void readMessages(){
         try {
             int channel = Communication.PLANTTREECHANNEL;
@@ -120,31 +119,102 @@ public class Archon {
     static void workMessagePlantTree(int a){
         treeSpending += GameConstants.BULLET_TREE_COST;
     }
-
+*/
     static void tryConstruct(){
-        //if (!shouldConstructGardener()) return;
-        try {
-            if (!myTurn()) return;
-            if (whichRobotToBuild(rc.readBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
-            try{
-                for (int i = 0; i < 4; ++i){
-                    if (rc.canHireGardener(Constants.main_dirs[i])){
-                        rc.hireGardener(Constants.main_dirs[i]);
-                        incrementRobotsBuilt();
-                        //updateConstruct(0);
-                        return;
-                    }
+        if (!allowedToConstruct(Constants.GARDENER)) return;
+
+        if (!myTurn()) return;
+        //if (whichRobotToBuild(rc.readBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
+        try{
+            for (int i = 0; i < 4; ++i){
+                if (rc.canHireGardener(Constants.main_dirs[i])){
+                    rc.hireGardener(Constants.main_dirs[i]);
+                    incrementRobotsBuilt();
+                    updateAfterConstruct(Constants.GARDENER);
+                    //updateConstruct(0);
+                    return;
                 }
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
             }
-        } catch (GameActionException e) {
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             e.printStackTrace();
         }
 
         //updateTurn();
 
+    }
+
+
+    static boolean allowedToConstruct(int unitToConstruct){
+        float cost = totalBulletCost(unitToConstruct);
+        System.out.println("Cost gard: "+ cost + " (" + rc.getTeamBullets() + ")");
+        return rc.getTeamBullets() > totalBulletCost(unitToConstruct);
+    }
+
+    private static float totalBulletCost(int unit){
+        float totalMoney = 0;
+        totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
+        totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
+        totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
+        float myBulletCost;
+        myBulletCost = Constants.ProductionUnits[unit].bulletCost;
+        return totalMoney + myBulletCost;
+    }
+
+    //calcula les bales que calen per construir tots els unit1 que van abans de unit2 en la cua
+    static int computeHowManyBehind(int unit1, int unit2) {
+        try {
+            int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
+            int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
+            if(indexUnit1 > indexUnit2) return 0;
+            //Sabem que index1 <= index2
+
+            int howManyBehind = 0;
+            if(indexUnit2 < Constants.IBL){
+                // index1 <= index2 < IBL
+                for (int i = indexUnit1; i < indexUnit2; ++i)
+                    if (Constants.initialBuild[i] == unit1) howManyBehind++;
+
+            } else if (indexUnit1 < Constants.IBL) {
+                // index1 < IBL <= index2
+                int totalInSequence = 0;
+                int totalLastSequence = 0;
+                for (int i = indexUnit1; i < Constants.IBL; ++i) if (Constants.initialBuild[i] == unit1) howManyBehind++;
+                for (int i = 0; i < Constants.SBL; ++i){
+                    if (Constants.sequenceBuild[i] == unit1){
+                        ++totalInSequence;
+                        if (i < indexUnit2%Constants.SBL) ++totalLastSequence;
+                    }
+                }
+                int extraWholeSequences = ((indexUnit2 - Constants.IBL)/Constants.SBL);
+                howManyBehind += totalLastSequence + totalInSequence*extraWholeSequences;
+            } else {
+                // IBL < index1 <= index2
+                int totalInSequence = 0;
+                int totalOffSet = 0;
+                for (int i = 0; i < Constants.SBL; ++i) {
+                    if (Constants.sequenceBuild[i] == unit1) {
+                        ++totalInSequence;
+                    }
+                }
+                int z = indexUnit2%Constants.SBL;
+                for (int i = indexUnit1; true ;++i){
+                    int realI = i%Constants.SBL;
+                    if (realI == z) break;
+                    if (Constants.sequenceBuild[realI] == unit1) ++howManyBehind;
+                    ++totalOffSet;
+                }
+
+                howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/Constants.SBL)*totalInSequence;
+            }
+            System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
+            if (unit1 < 5) return howManyBehind*Constants.ProductionUnits[unit1].bulletCost;
+            else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     private static RobotType whichRobotToBuild(int index){
@@ -168,6 +238,39 @@ public class Archon {
         }
     }
 
+
+    //quan construim el robot, actualitzem tot
+    private static void updateAfterConstruct(int unitConstructed){
+        try {
+            int unitCurrentIndex = rc.readBroadcast(Communication.unitChannels[unitConstructed]);
+            int unitNextIndex;
+            if (unitCurrentIndex < Constants.IBL) {
+                //si esta a la build inicial
+                int i = unitCurrentIndex+1;
+                while (i < Constants.IBL && Constants.initialBuild[i] != unitConstructed) i++;
+                //ja no es torna a fer a la build inicial
+                if (i == Constants.IBL){
+                    int j = 0;
+                    while (j < Constants.SBL && Constants.sequenceBuild[j] != unitConstructed) j++;
+                    if (j == Constants.SBL){
+                        //ja no la tornem a fer mai mes
+                        unitNextIndex = (int)Constants.INF;
+                    }else{
+                        unitNextIndex = Constants.IBL + j;
+                    }
+                }else unitNextIndex = i;
+            }else {
+                int i = 0;
+                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex+1+i) % Constants.SBL] != unitConstructed) i++;
+                if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
+                else unitNextIndex = unitCurrentIndex + 1 + i;
+            }
+            rc.broadcast(Communication.unitChannels[unitConstructed], unitNextIndex);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 
     //al fer el merge he ficat el codi del archon del gardener player

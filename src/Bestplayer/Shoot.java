@@ -175,7 +175,7 @@ public class Shoot {
                 if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                     if (maxUtilPentad > maxUtilTriad) {
                         if (maxUtilPentad > maxUtilSingle) {
-                            rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                            //rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
                             rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
                             rc.firePentadShot(dirPentad);
                             return true;

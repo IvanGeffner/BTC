@@ -42,7 +42,7 @@ public class Communication {
 
 
     //BC parameters
-
+    //gardener lumberjack soldier tank scout trees
     static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
     static final int INITIALIZED = 507;
 
