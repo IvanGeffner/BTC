@@ -16,6 +16,8 @@ public class Scout {
 
     static Direction currentDirection;
 
+    static int escaping;
+
     static int initialMessage;
 
     static MapLocation base;
@@ -56,18 +58,26 @@ public class Scout {
 
             updateSightZones();
             MapLocation escapePos = checkNearbyEnemies();
-            if (escapePos != null) realTarget = escapePos;
-            if (realTarget == null && rc.getRoundNum() > 50) {
+            if (escapePos != null) {
+                realTarget = escapePos;
+                escaping = Constants.SCOUT_ESCAPE_TURNS;
+                randomTarget = realTarget;
+                currentDirection = pos.directionTo(realTarget);
+                System.out.println("1");
+            }
+            if (realTarget == null && rc.getRoundNum() > 50 && escaping <= 0) {
                 newTarget = findNearbyUnexploredZone();
                 updateTarget(newTarget);
+                System.out.println("2");
             }
             if (realTarget == null) {
                 moveInYourDirection();
+                System.out.println("3");
             }
             else Greedy.moveGreedy(rc, realTarget, 9200);
 
             broadcastLocations();
-
+            escaping--;
 
             Clock.yield();
         }
@@ -81,6 +91,7 @@ public class Scout {
         yBase = Math.round(base.y);
         //readMes = new HashSet<>();
 
+        escaping = 0;
         Communication.setBase(xBase, yBase);
 
         initialMessage = 0;
@@ -120,7 +131,7 @@ public class Scout {
 
     static void moveInYourDirection(){
         try {
-            if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
+            if (escaping <= 0 && rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
                 randomTarget = pos;
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
                 Greedy.resetObstacle(rc);
@@ -413,12 +424,9 @@ public class Scout {
                     || enemy.getType() == RobotType.SCOUT) continue;
             Direction enemyDir = enemy.getLocation().directionTo(pos);
             escapePos = escapePos.add(enemyDir, 1f/(1f + pos.distanceTo(enemy.getLocation())));
-            System.out.println("Enemic: em moc de (" + pos.x + "," + pos.y + ") pel (" + enemy.getLocation().x + "," + enemy.getLocation().y + ")");
         }
-        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
         if (pos.isWithinDistance(escapePos, Constants.eps)) return null;
-        escapePos = pos.add(pos.directionTo(escapePos), 100);
-        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
+        escapePos = pos.add(pos.directionTo(escapePos), Constants.pushTarget);
         rc.setIndicatorLine(pos, escapePos, 255,255,255);
         return escapePos;
     }
