@@ -18,13 +18,14 @@ public class Communication {
 
     //BC parameters
 
+    static final int MAX_BROADCAST_MESSAGE = 500;
+
     static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
     static final int INITIALIZED = 507;
 
     static final int ARCHONTURN = 508;
     static final int ARCHONNUMBER = 509;
 
-    static final int MAX_BROADCAST_MESSAGE = 500;
 
     static final int typeMask = 0xF0000000; //at most 15
     static final int iOffMask = 0x0FF00000; //at most 255
@@ -55,5 +56,13 @@ public class Communication {
         ret[3] = (bitmap & valueMask);
         return ret;
     }
+
+
+    static final int MAP_UPPER_BOUND = 700;
+    static final int MAP_LOWER_BOUND = 701;
+    static final int MAP_LEFT_BOUND = 702;
+    static final int MAP_RIGHT_BOUND = 703;
+
+    static final int SIGHT_ZONES = 704; // el seguent lliure es el 718
 
 }

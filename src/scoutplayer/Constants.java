@@ -82,4 +82,6 @@ public class Constants {
     }
 
 
+    public static float PRECISION_MAP_BOUNDS = 0.1f;
+
 }
