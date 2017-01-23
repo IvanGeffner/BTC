@@ -348,7 +348,7 @@ public class Gardener {
         for (int i = 0; i < Xsorted.length; i++){
             if (i > 10 && closest_empty_zone[0] != -20){
                 //nomes busquem zones abandonades fins a 25 pel bytecode
-                System.out.println("closest empty zone es " + closest_empty_zone[0] + "," + closest_empty_zone[1] + " " + isZoneInMap(closest_empty_zone));
+                //System.out.println("closest empty zone es " + closest_empty_zone[0] + "," + closest_empty_zone[1] + " " + isZoneInMap(closest_empty_zone));
                 zoneIWant = closest_empty_zone;
                 return;
             }
@@ -358,9 +358,6 @@ public class Gardener {
             int[] zoneInfo = readZoneBroadcast(newZone);
             if (zoneInfo == null) continue;
             int zoneType = zoneInfo[0];
-            if (newZone[0] == 0 && newZone[1] == 6){
-                System.out.println("Zona 0 6 type " + zoneType);
-            }
             int lastTurn = zoneInfo[1];
             int thisTurn = rc.getRoundNum();
             //System.out.println("zone "+newZone[0] + "," + newZone[1] + " type " + zoneType);
@@ -684,12 +681,12 @@ public class Gardener {
             while (tries > 0){
                 tries--;
                 unit = updateWhatConstruct(lastIndex);
-                System.out.println("Unit = " + unit);
+                //System.out.println("Unit = " + unit);
                 lastIndex = rc.readBroadcast(Communication.unitChannels[unit]);
-                System.out.println("Lastindex = " + lastIndex);
+                //System.out.println("Lastindex = " + lastIndex);
                 RobotType type = Constants.getRobotTypeFromIndex(unit);
-                bulletCost = getBulletCost(type);
-                System.out.println("Vol construir " + type + " costa " + bulletCost +  " tinc " + rc.getTeamBullets());
+                bulletCost = getTotalBulletCost(type);
+                //System.out.println("Vol construir " + type + " costa " + bulletCost +  " tinc " + rc.getTeamBullets());
                 if (bulletCost > rc.getTeamBullets()) continue;
                 MapLocation dest;
                 if (zone[0] == Constants.INF){
@@ -853,7 +850,7 @@ public class Gardener {
                 }else unitNextIndex = i;
             }else {
                 int i = 0;
-                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex+1+i) % Constants.SBL] != unitConstructed) i++;
+                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex-Constants.IBL+1+i) % Constants.SBL] != unitConstructed) i++;
                 if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
                 else unitNextIndex = unitCurrentIndex + 1 + i;
             }
@@ -865,64 +862,73 @@ public class Gardener {
     }
 
 
-    static boolean enoughBulletsStored(RobotType unitType){
-        return rc.getTeamBullets() >= getBulletCost(unitType);
+    static int getTotalBulletCost(RobotType unitType){
+        int totalCost=0;
+        for (int i = 0; i < 5; i++){
+            if (Constants.getIndex(unitType) == i) continue;
+            totalCost += extraBulletCost(i, Constants.getIndex(unitType));
+        }
+        return totalCost + unitType.bulletCost;
     }
 
     //calcula les bales que calen per construir tots els unit1 que van abans de unit2 en la cua
-    static int getBulletCost(RobotType type) {
+    static int extraBulletCost(int unit1, int unit2) {
         try {
-            int unit = Constants.getIndex(type);
-            int robotsBuilt = rc.readBroadcast(Communication.ROBOTS_BUILT);
-            int indexUnit = rc.readBroadcast(Communication.unitChannels[unit]);
-            if(robotsBuilt > indexUnit) return 0;
-            //Sabem que robotsBuilt <= indexUnit
+            int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
+            int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
+            if (indexUnit2 == Constants.INF) return (int) Constants.INF;
+            if(indexUnit1 > indexUnit2) return 0;
+            //Sabem que indexUnit1 <= indexUnit2
 
-            int extraBullets = 0;
-            if(indexUnit < Constants.IBL){
-                // robotsBuilt <= indexUnit < IBL
-                for (int i = robotsBuilt; i < indexUnit; ++i)
-                    extraBullets += Constants.getRobotTypeFromIndex(Constants.initialBuild[i]).bulletCost;
-            } else if (robotsBuilt < Constants.IBL) {
+            int extraUnits = 0;
+            if(indexUnit2 < Constants.IBL){
+                // indexUnit1 <= indexUnit2 < IBL
+                for (int i = indexUnit1; i < indexUnit2; ++i)
+                    if (Constants.initialBuild[i] == unit1)
+                        extraUnits++;
+            } else if (indexUnit1 < Constants.IBL) {
                 // index1 < IBL <= index2
-                int totalBulletsInSequence = 0;
-                int totalBulletsLastSequence = 0;
-                for (int i = robotsBuilt; i < Constants.IBL; ++i)
-                    extraBullets += Constants.getRobotTypeFromIndex(Constants.initialBuild[i]).bulletCost;
+                int totalInSequence = 0;
+                int totalLastSequence = 0;
+                for (int i = indexUnit1; i < Constants.IBL; ++i)
+                    if (Constants.initialBuild[i] == unit1)
+                        extraUnits++;
                 for (int i = 0; i < Constants.SBL; ++i){
-                    totalBulletsInSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
-                    if (i < (indexUnit - Constants.IBL) % Constants.SBL)
-                        totalBulletsLastSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
+                    if (Constants.sequenceBuild[i] == unit1) {
+                        totalInSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
+                        if (i < (indexUnit2 - Constants.IBL) % Constants.SBL)
+                            totalLastSequence++;
+                    }
                 }
-                int extraWholeSequences = ((indexUnit - Constants.IBL)/Constants.SBL);
-                extraBullets += totalBulletsLastSequence + totalBulletsInSequence*extraWholeSequences;
+                int extraWholeSequences = ((indexUnit2 - Constants.IBL)/Constants.SBL);
+                extraUnits += totalLastSequence + totalInSequence*extraWholeSequences;
             } else {
                 // IBL < index1 <= index2
-                if ((indexUnit-Constants.IBL)/Constants.SBL == (robotsBuilt - Constants.IBL)/Constants.SBL){
+                if ((indexUnit2-Constants.IBL)/Constants.SBL == (indexUnit1 - Constants.IBL)/Constants.SBL){
                     //si les dues estan a la mateixa volta de la sequencia
-                    for (int i = robotsBuilt - Constants.IBL; i < indexUnit - Constants.IBL; i++)
-                        extraBullets += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i%Constants.SBL]).bulletCost;
+                    for (int i = (indexUnit1 - Constants.IBL)%Constants.SBL; i < (indexUnit2 - Constants.IBL)%Constants.SBL; i++)
+                        if (Constants.sequenceBuild[i] == unit1) extraUnits++;
                 }else{
-                    int totalBulletsInFirstSequence = 0;
-                    int totalBulletsInSequence = 0;
-                    int totalBulletsInLastSequence = 0;
+                    int totalFirstSequence = 0;
+                    int totalInSequence = 0;
+                    int totalLastSequence = 0;
                     for (int i = 0; i < Constants.SBL; i++) {
-                        if (i >= (robotsBuilt - Constants.IBL) % Constants.SBL)
-                            totalBulletsInFirstSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
-                        if (i < (indexUnit - Constants.IBL) % Constants.SBL)
-                            totalBulletsInLastSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
-                        totalBulletsInSequence += Constants.getRobotTypeFromIndex(Constants.sequenceBuild[i]).bulletCost;
+                        if (Constants.sequenceBuild[i] == unit1) {
+                            if (i >= (indexUnit1 - Constants.IBL) % Constants.SBL) totalFirstSequence++;
+                            if (i < (indexUnit2 - Constants.IBL) % Constants.SBL) totalLastSequence++;
+                            totalInSequence++;
+                        }
                     }
-                    int extraWholeSequences = (indexUnit - Constants.IBL)/Constants.SBL - (robotsBuilt - Constants.IBL)/Constants.SBL - 1;
-                    extraBullets += totalBulletsInFirstSequence +  extraWholeSequences * totalBulletsInSequence + totalBulletsInLastSequence;
+                    int extraWholeSequences = (indexUnit2 - Constants.IBL)/Constants.SBL - (indexUnit1 - Constants.IBL)/Constants.SBL - 1;
+                    extraUnits += totalFirstSequence +  extraWholeSequences * totalInSequence + totalLastSequence;
                 }
             }
-            return extraBullets + type.bulletCost;
+            return extraUnits * Constants.getRobotTypeFromIndex(unit1).bulletCost;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-        return type.bulletCost;
+        return 0;
     }
 
     static int updateWhatConstruct(int minIndex){
@@ -930,9 +936,10 @@ public class Gardener {
         try {
             int ret = 999999;
             int unit = -1;
+            //System.out.println("Index de " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
             for (int i = 1; i < Communication.unitChannels.length; ++i) {
                 int index = rc.readBroadcast(Communication.unitChannels[i]);
-                System.out.println("Index de " + i + " = " + index);
+                //System.out.println("Index de " + i + " = " + index);
                 if (index < ret && index > minIndex) {
                     unit = i;
                     ret = index;

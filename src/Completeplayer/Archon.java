@@ -182,7 +182,7 @@ public class Archon {
             for (int i = 0; i < 4; ++i){
                 if (rc.canHireGardener(Constants.main_dirs[i])){
                     rc.hireGardener(Constants.main_dirs[i]);
-                    updateConstruct(0);
+                    updateConstruct(RobotType.GARDENER);
                     return;
                 }
             }
@@ -222,6 +222,42 @@ public class Archon {
         return;
     }
 
+
+    private static void updateConstruct(RobotType type){
+        try {
+            int unitConstructed = Constants.getIndex(type);
+            int unitCurrentIndex = rc.readBroadcast(Communication.unitChannels[unitConstructed]);
+            int unitNextIndex;
+            if (unitCurrentIndex < Constants.IBL) {
+                //si esta a la build inicial
+                int i = unitCurrentIndex+1;
+                while (i < Constants.IBL && Constants.initialBuild[i] != unitConstructed) i++;
+                //ja no es torna a fer a la build inicial
+                if (i == Constants.IBL){
+                    int j = 0;
+                    while (j < Constants.SBL && Constants.sequenceBuild[j] != unitConstructed) j++;
+                    if (j == Constants.SBL){
+                        //ja no la tornem a fer mai mes
+                        unitNextIndex = (int)Constants.INF;
+                    }else{
+                        unitNextIndex = Constants.IBL + j;
+                    }
+                }else unitNextIndex = i;
+            }else {
+                int i = 0;
+                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex-Constants.IBL+1+i) % Constants.SBL] != unitConstructed) i++;
+                if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
+                else unitNextIndex = unitCurrentIndex + 1 + i;
+            }
+            rc.broadcast(Communication.unitChannels[unitConstructed], unitNextIndex);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+/*
     static void updateConstruct (int a){
         try {
             int x = rc.readBroadcast(Communication.unitChannels[a]);
@@ -263,7 +299,7 @@ public class Archon {
             e.printStackTrace();
         }
     }
-
+*/
     static boolean shouldConstructGardener(){
         try {
             float totalMoney = rc.getTeamBullets() - treeSpending;
