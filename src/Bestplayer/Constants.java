@@ -8,6 +8,9 @@ import battlecode.common.RobotType;
  */
 public class Constants {
 
+    public static int DEBUG = 1; // posar-ho a 0 quan es pugi el player a la web
+    //controla si es fan els indicator dots i lines
+
     public static float eps = 0.001f;
     public static float INF = 9999f;
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};

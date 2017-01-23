@@ -25,7 +25,6 @@ public class Archon {
 
         while (true) {
             //code executed continually, don't let it end
-
             treeSpending = 0;
 
             //readMessages();
@@ -431,4 +430,6 @@ public class Archon {
         return 0;
     }
 */
+
+
 }

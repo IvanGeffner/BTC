@@ -113,7 +113,7 @@ public class Scout {
                 moveInYourDirection();
                 return;
             }
-            rc.setIndicatorDot(randomTarget, 0, 0, 255);
+            if (Constants.DEBUG == 1) rc.setIndicatorDot(randomTarget, 0, 0, 255);
             Greedy.moveGreedy(rc,randomTarget, 9200);
         } catch (Exception e) {
             System.out.println(e.getMessage());

@@ -86,7 +86,7 @@ public class Gardener {
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
-                rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 0, 0);
+                if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 0, 0);
             }else if (zone[0] == Constants.INF) {
                 if (rc.getRoundNum() % turnsResetZone == 0) zoneIWant[0] = zoneIWant[1] = -20;
                 searchZone(); //aqui se li dona un valor a zoneIWant 99.99999999% segur
@@ -95,7 +95,7 @@ public class Gardener {
                 if (zoneIWant[0] != -20) {
                     newTarget = getCenterPosFromZone(zoneIWant);
                     System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget + ", " + isZoneInMap(zoneIWant));
-                    rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 255, 255);
+                    if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 255, 255);
                 }
                 //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
                 checkIfArrivedToZone();
@@ -108,17 +108,17 @@ public class Gardener {
                     broadcastZone(zone, abandonedZone);
                     zone = new int[] {(int) Constants.INF, (int) Constants.INF};
                     System.out.println("Retorna: de " + rc.getLocation() + " a " + newTarget);
-                    rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 220, 28);
+                    if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 220, 28);
                 } else {
                     newTarget = findLowHPTree();
                     if (newTarget != null) {
                         System.out.println("Rega, de " + rc.getLocation() + " a " + newTarget);
-                        rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 119, 255);
+                        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 119, 255);
                     } else {
                         newTarget = tryPlanting();
                         if (newTarget != null){
                             System.out.println("Va a plantar " + rc.getLocation() + " a " + newTarget);
-                            rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 255, 0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 255, 0);
                         }else {
                             newTarget = tryConstruct();
                             if (newTarget != null){
@@ -127,7 +127,7 @@ public class Gardener {
                                 System.out.println("No tinc res a fer");
                                 newTarget = zoneCenterPos;
                                 //Greedy.resetObstacle(rc);
-                                rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 0, 0);
+                                if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 0, 0, 0);
                             }
                         }
                     }
@@ -138,7 +138,7 @@ public class Gardener {
             updateTarget(newTarget);
             waterNearbyTree();
             if (realTarget == null) {
-                rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
@@ -476,7 +476,7 @@ public class Gardener {
 
             }
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
-            rc.setIndicatorDot(centerIWant,255,255,255);
+            if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) assignZone(zoneIWant);
         }catch (GameActionException e){
             e.printStackTrace();
@@ -497,7 +497,7 @@ public class Gardener {
         }
         if (minID != -1) try {
             //System.out.println("Rego arbre "+minID +  " amb " + rc.senseTree(minID).getHealth() + " hp");
-            rc.setIndicatorDot(rc.senseTree(minID).getLocation(),0, 255, 0);
+            if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.senseTree(minID).getLocation(),0, 255, 0);
             rc.water(minID);
         } catch (GameActionException e) {
             e.printStackTrace();
@@ -770,7 +770,7 @@ public class Gardener {
         for (int i = 0; i < buildPositionsPerZone; i++){
             if (!onCurrentMap(myBuildingPos[i]) || !onCurrentMap(robotSpawnPos[i])) {
                 //System.out.println(i + " fora del mapa");
-                rc.setIndicatorDot(myBuildingPos[i], 255,0,0);
+                if (Constants.DEBUG == 1) rc.setIndicatorDot(myBuildingPos[i], 255,0,0);
                 continue;
             }
             try {
