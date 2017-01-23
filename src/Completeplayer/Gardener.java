@@ -49,7 +49,7 @@ public class Gardener {
     private static MapLocation[] plantingPos = new MapLocation[treesPerZone];
     private static MapLocation[] wateringPos = new MapLocation[treesPerZone];
     private static MapLocation[] buildPos = new MapLocation[buildPositionsPerZone];
-    private static MapLocation[] newRobotPos = new MapLocation[buildPositionsPerZone];
+    private static MapLocation[] newRobotPos = new MapLocation[buildPositionsPerZone+2];
     private static MapLocation[] buildTankPos = new MapLocation[buildPositionsPerZone];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
     private static float treeHP[] = new float[treesPerZone];
@@ -268,8 +268,8 @@ public class Gardener {
         float[] wateringOffsetY = {0f,0f,0f,0f,0f,0f,0f};
         float[] buildOffsetX = {0f,0f};
         float[] buildOffsetY = {0f,0f};
-        float[] newRobotOffsetX= {-2f,2f};
-        float[] newRobotOffsetY= {0f,0f};
+        float[] newRobotOffsetX= {-2f,2f,0f,0f};
+        float[] newRobotOffsetY= {0f,0f,-2.05f, 2.05f};
         float[] buildTankOffsetX= {-2f,2f};
         float[] buildTankOffsetY= {0f,0f};
         float[] newTankOffsetX = {-5f,5f};
@@ -282,8 +282,8 @@ public class Gardener {
         float[] wateringPosY = new float[treesPerZone];
         float[] buildPosX = new float[buildPositionsPerZone];
         float[] buildPosY = new float[buildPositionsPerZone];
-        float[] newRobotPosX = new float[buildPositionsPerZone];
-        float[] newRobotPosY = new float[buildPositionsPerZone];
+        float[] newRobotPosX = new float[buildPositionsPerZone+2];
+        float[] newRobotPosY = new float[buildPositionsPerZone+2];
         float[] buildTankPosX = new float[buildPositionsPerZone];
         float[] buildTankPosY = new float[buildPositionsPerZone];
         float[] newTankPosX = new float[buildPositionsPerZone];
@@ -336,6 +336,14 @@ public class Gardener {
             newTankPosY[i] = zoneCenterPos.y + newTankOffsetY[i];
             newTankPos[i] = new MapLocation(newTankPosX[i],newTankPosY[i]);
         }
+        newRobotPosX[2] = zoneCenterPos.x + newRobotOffsetX[2];
+        newRobotPosY[2] = zoneCenterPos.y + newRobotOffsetY[2];
+        newRobotPos[2] = new MapLocation(newRobotPosX[2],newRobotPosY[2]);
+        newRobotPosX[3] = zoneCenterPos.x + newRobotOffsetX[3];
+        newRobotPosY[3] = zoneCenterPos.y + newRobotOffsetY[3];
+        newRobotPos[3] = new MapLocation(newRobotPosX[3],newRobotPosY[3]);
+
+
     }
 
     private static void searchZone() {
@@ -530,11 +538,17 @@ public class Gardener {
         for (TreeInfo ti: neutralTrees){
             MapLocation treeLocation = ti.getLocation();
             int[] treeZone = getZoneFromPos(treeLocation);
-            if (treeZone == zone) messageCutNeutralTree(ti.getID(),treeLocation);
+            System.out.println("veu arbre a zona " + treeZone[0] + "," + treeZone[1] + " i soc a " + zone[0] + "," + zone[1]);
+            if (treeZone[0] == zone[0] && treeZone[1] == zone[1]) {
+
+                System.out.println("envia missatge de " + rc.getLocation() + " a " + treeLocation);
+                messageCutNeutralTree(ti.getID(),treeLocation);
+            }
         }
     }
 
     private static void messageCutNeutralTree(int id, MapLocation treeLocation) {
+        rc.setIndicatorLine(rc.getLocation(),treeLocation,255,170,0);
         Communication.sendMessage(rc, Communication.CHOPCHANNEL, Math.round(treeLocation.x),Math.round(treeLocation.y),id&0xFFF);
     }
 
@@ -576,6 +590,7 @@ public class Gardener {
             int robotsBuilt = rc.readBroadcast(Communication.ROBOTS_BUILT);
             MapLocation mostImportant;
             MapLocation leastImportant;
+            System.out.println("Trees-robots built " + treesPlanted + "," + robotsBuilt);
             if (treesPlanted < maxTreesBuilt(robotsBuilt)){
                 //tenim permis per construir un arbre
                 //System.out.println("Puc construir un arbre");
@@ -597,7 +612,7 @@ public class Gardener {
     }
 
     private static float maxTreesBuilt(int robotsBuilt){
-        return robotsBuilt - 1;
+        return robotsBuilt;
     }
 
     private static MapLocation tryPlant(){
@@ -664,15 +679,15 @@ public class Gardener {
         //System.out.println("Entra trybuild");
         try {
             int index = rc.readBroadcast(Communication.ROBOTS_BUILT);
-            /*RobotType type = whichRobotToBuild(index);
+            RobotType type = whichRobotToBuild(index);
             if (zone[0] == Constants.INF){
                 while (type == RobotType.GARDENER) type = whichRobotToBuild(++index);
                 buildWithoutZone(type);
                 return null;
             }else{
                 return buildInZone(type);
-            }*/
-
+            }
+/*
             int bulletCost;
             int tries = 3;
             int unit;
@@ -695,7 +710,7 @@ public class Gardener {
                 }else dest = buildInZone(type);
                 if (dest != null) return dest;
 
-            }
+            }*/
         } catch (GameActionException e) {
             e.printStackTrace();
         }
