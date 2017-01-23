@@ -1,7 +1,6 @@
 package scoutplayer;
 
 import battlecode.common.*;
-import scala.collection.immutable.Stream;
 
 import java.util.HashSet;
 
