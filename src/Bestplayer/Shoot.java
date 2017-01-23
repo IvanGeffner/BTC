@@ -175,8 +175,13 @@ public class Shoot {
                 if (maxUtilPentad > 0 && rc.canFirePentadShot()) {
                     if (maxUtilPentad > maxUtilTriad) {
                         if (maxUtilPentad > maxUtilSingle) {
-                            if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                            if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
+                            //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                            //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirPentad), 0,255, 0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateRightRads((float) Math.PI/6)),255,255,0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateRightRads((float) Math.PI/12)),255,255,0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad),255,255,0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/12)),255,255,0);
+                            if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/6)),255,255,0);
                             rc.firePentadShot(dirPentad);
                             return true;
                         }
@@ -184,15 +189,19 @@ public class Shoot {
                 }
                 if (maxUtilTriad > 0 && rc.canFireTriadShot()) {
                     if (maxUtilTriad > maxUtilSingle) {
-                        if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                        if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
+                        //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                        //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirTriad), 0,0, 255);
+                        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirTriad.rotateRightRads((float) Math.PI/9)),255,128,0);
+                        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirTriad),255,128,0);
+                        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirTriad.rotateLeftRads((float) Math.PI/9)),255,128,0);
                         rc.fireTriadShot(dirTriad);
                         return true;
                     }
                 }
                 if (maxUtilSingle > 0 && rc.canFireSingleShot()) {
-                    if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
-                    if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
+                    //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255,0, 0);
+                    //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation().add(dirSingle), 120,120, 0);
+                    if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirSingle),255,255,0);
                     rc.fireSingleShot(dirSingle);
                     return true;
                 }

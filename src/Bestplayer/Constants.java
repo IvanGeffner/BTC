@@ -17,13 +17,16 @@ public class Constants {
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
     public static int[] initialBuild = {0, 4, 5, 5, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 8, 7, 30, 1, 2};
+    public static int[]  initialPositions = {0, 6, 5, 30, 1, 2};
     public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
     //public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};
 
+    public static int MAX_ROBOTS = 250;
+    public static int LAST_ROUND_BUILD = 2900;
+    public static float BULLET_LIMIT = 5000;
 
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;

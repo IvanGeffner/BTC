@@ -47,7 +47,6 @@ vector amb sentit oposat i modul 1/(dist+1)
 ok(no tested)- si estan anar a buscar la zona i hi ha un enemic, fugen
 - afegir tipus zona ocupada
 - si els ataca un no-scout, ficar el 8e arbre
-- fer la classe zone
 - triar millor on posen el 7e arbre
 - si es moren tots els gardeners que l'archon en faci un
 - que mirin be si una zona esta fora del mapa
@@ -60,6 +59,31 @@ Idees per triar un ordre mes ofensiu/ defensiu:
 - mirar quants arbres hi ha al voltant
 - tamany del mapa 
 - segons la partida anterior (si hem perdut molt aviat, fem més defensiu)
+
+
+
+-Archon lider: el que spawneja el primer gardener
+
+- BUILD ORDER INICIAL: Al torn 1 l'archon lider compta els arbres que veu i la distancia a l'enemic. Classifica la partida en un d'aquests tipus:
+	- Petit, bosc: gard, lumber, soldier, arbre, arbre, scout, soldier
+	- Petit, obert: gard, soldier, soldier, arbre, arbre, scout
+	- Gran, bosc: gard, lumber, scout, arbre, lumber, arbre, scout
+	- Gran, obert: gard, scout, soldier, arbre, arbre, soldier, lumber, arbre
+	
+- BUILD ORDER LATEGAME: Amb els reports dels scouts es decideix si el mapa te molt de bosc o poc, i es classifica en:
+	- Molt de bosc: fer bastants lumberjacks, molts soldiers, 0 tanks
+	- Average: fer uns quants lumberjacks, molts soldiers i pocs tanks
+	- Poc bosc: Fer pocs lumberjacks, bastants soldiers i bastants tanks
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -76,3 +100,6 @@ Idees random:
 - si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
 - si obtenim una tropa d'un arbre, actualitzar el build order 
 - el primer gardener es construeix en l'archon mes llunya de l'enemic (si es pot)
+- els soldats van a melee vs gardeners i archons, i per culpa d'aixo rodegen el mapa i sen van, canviar-ho
+- fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
+- A vegades els soldats es queden rodejant l'archon enemic i no se ben be per que
