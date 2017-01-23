@@ -160,15 +160,6 @@ public class Archon {
         return Constants.getRobotTypeFromIndex(unit_to_build);
     }
 
-    private static void incrementRobotsBuilt(){
-        try {
-            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
-            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-
 
 
     //al fer el merge he ficat el codi del archon del gardener player
@@ -182,6 +173,7 @@ public class Archon {
             for (int i = 0; i < 4; ++i){
                 if (rc.canHireGardener(Constants.main_dirs[i])){
                     rc.hireGardener(Constants.main_dirs[i]);
+                    incrementRobotsBuilt();
                     updateConstruct(RobotType.GARDENER);
                     return;
                 }
@@ -193,6 +185,16 @@ public class Archon {
 
         //updateTurn();
 
+    }
+
+
+    private static void incrementRobotsBuilt(){
+        try {
+            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     static boolean myTurn(){
