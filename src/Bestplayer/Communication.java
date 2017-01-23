@@ -31,6 +31,7 @@ public class Communication {
 
     static int ZONE_ORIGIN_X = 697;//coordenades del centre de la zona (0,0)
     static int ZONE_ORIGIN_Y = 698;//son les coordenades on spawneja el primer gardener
+    static int ZONE_ORIGIN_MULTIPLIER = 1000; //les coordenades x,y es multipliquen per aixo, per posar mes precisio
 
     static int MIN_ZONE_X = 691;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
     static int MIN_ZONE_Y = 692;//osigui si la x de zona maxima es 6, aqui es guardara un -14
