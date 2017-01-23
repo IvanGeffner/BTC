@@ -70,6 +70,11 @@ public class Archon {
                     whoIam = i;
                     break;
                 }
+                // inicialitzem el limits del mapa
+                rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(Constants.INF));
+                rc.broadcast(Communication.MAP_LOWER_BOUND, Float.floatToIntBits(-Constants.INF));
+                rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(-Constants.INF));
+                rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(Constants.INF));
             } else{
                 int arch = rc.readBroadcast(Communication.ARCHONNUMBER);
                 rc.broadcast(Communication.ARCHONNUMBER,arch+1);

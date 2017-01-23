@@ -35,7 +35,7 @@ public class Scout {
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
-        //code executed onece at the begining
+        //code executed once at the begining
 
         rc = rcc;
 
@@ -55,6 +55,8 @@ public class Scout {
             updateTarget(newTarget);
 
             updateSightZones();
+            MapLocation escapePos = checkNearbyEnemies();
+            if (escapePos != null) realTarget = escapePos;
             if (realTarget == null && rc.getRoundNum() > 50) {
                 newTarget = findNearbyUnexploredZone();
                 updateTarget(newTarget);
@@ -119,13 +121,13 @@ public class Scout {
     static void moveInYourDirection(){
         try {
             if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
-                randomTarget = rc.getLocation();
+                randomTarget = pos;
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
                 Greedy.resetObstacle(rc);
                 moveInYourDirection();
                 return;
             }
-            if (rc.getLocation().distanceTo(randomTarget) < Constants.pushTarget){
+            if (pos.distanceTo(randomTarget) < Constants.pushTarget){
                 randomTarget = randomTarget.add(currentDirection, Constants.pushTarget);
                 Greedy.resetObstacle(rc);
                 moveInYourDirection();
@@ -144,7 +146,6 @@ public class Scout {
 
     static MapLocation findBestTree() {
         MapLocation target2 = null;
-        MapLocation pos = rc.getLocation();
         float maxUtil = 0;
         TreeInfo[] Ti = rc.senseNearbyTrees (-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
@@ -234,7 +235,7 @@ public class Scout {
 
     static float enemyScore (MapLocation m, int a){
         if (m == null) return 0;
-        float d = rc.getLocation().distanceTo(m);
+        float d = pos.distanceTo(m);
         float s = 0;
         if (a == 5) s = 8;
         else if (a == 4) s = 20;
@@ -402,6 +403,24 @@ public class Scout {
 
     static float findY (int zoneY) {
         return zoneY*10f+5f-100f+(float)yBase;
+    }
+
+    private static MapLocation checkNearbyEnemies(){
+        RobotInfo[] enemies = rc.senseNearbyRobots(Constants.SCOUT_RISK_DISTANCE, rc.getTeam().opponent());
+        MapLocation escapePos = new MapLocation(pos.x, pos.y);
+        for (RobotInfo enemy: enemies){
+            if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER
+                    || enemy.getType() == RobotType.SCOUT) continue;
+            Direction enemyDir = enemy.getLocation().directionTo(pos);
+            escapePos = escapePos.add(enemyDir, 1f/(1f + pos.distanceTo(enemy.getLocation())));
+            System.out.println("Enemic: em moc de (" + pos.x + "," + pos.y + ") pel (" + enemy.getLocation().x + "," + enemy.getLocation().y + ")");
+        }
+        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
+        if (pos.isWithinDistance(escapePos, Constants.eps)) return null;
+        escapePos = pos.add(pos.directionTo(escapePos), 100);
+        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
+        rc.setIndicatorLine(pos, escapePos, 255,255,255);
+        return escapePos;
     }
 
 }
