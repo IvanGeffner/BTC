@@ -71,6 +71,8 @@ public class Constants {
 
     public static int NUMELEMENTS = 5;
 
+    public static float PRECISION_MAP_BOUNDS = 0.1f;
+
     public static float PI2 = 2*(float)Math.PI;
 
     public static int shootTries = 2;

@@ -21,8 +21,17 @@ public class Scout {
     static MapLocation base;
     static int xBase, yBase;
 
-    static int round;
+    //static HashSet<Integer> readMes;
 
+    static int round;
+    static MapLocation pos;
+
+    static int[] sight_zones = new int[14];
+    static float mapUpperBound = Constants.INF, mapLowerBound = -Constants.INF, mapLeftBound = -Constants.INF, mapRightBound = Constants.INF;
+    static int zoneXmax = 100, zoneXmin = -100, zoneYmax = 100, zoneYmin = -100;
+
+    static int[] dxs = {-1,-1,-1,0,1,1,1,0};
+    static int[] dys = {-1,0,1,1,1,0,-1,-1};
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -36,14 +45,24 @@ public class Scout {
             //code executed continually, don't let it end
 
             round = rc.getRoundNum();
-            readMessages();
+            pos = rc.getLocation();
+            //readMessages();
+            checkMapBounds();
 
             tryShake();
 
             MapLocation newTarget = findBestTree();
             updateTarget(newTarget);
-            if (realTarget == null) moveInYourDirection();
-            else Greedy.moveGreedy(rc,realTarget, 8000);
+
+            updateSightZones();
+            if (realTarget == null && rc.getRoundNum() > 50) {
+                newTarget = findNearbyUnexploredZone();
+                updateTarget(newTarget);
+            }
+            if (realTarget == null) {
+                moveInYourDirection();
+            }
+            else Greedy.moveGreedy(rc, realTarget, 9200);
 
             broadcastLocations();
 
@@ -58,6 +77,7 @@ public class Scout {
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
+        //readMes = new HashSet<>();
 
         Communication.setBase(xBase, yBase);
 
@@ -84,8 +104,6 @@ public class Scout {
                 id = ti.getID();
             }
         }
-
-
         try {
             if (maxBullets > 0) rc.shake(id);
             else return;
@@ -146,8 +164,6 @@ public class Scout {
                 target2 = ti.getLocation();
             }
         }
-
-
         if (maxUtil > 0) return target2;
         return null;
     }
@@ -227,6 +243,165 @@ public class Scout {
         else if (a == 1) s = 8;
         else if (a == 0) s = 15;
         return s/(1.0f + d);
+    }
+
+    static void checkMapBounds() {
+        try {
+            if (mapUpperBound == Constants.INF) {
+                float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_UPPER_BOUND));
+                if (bound == Constants.INF) {
+                    MapLocation m = checkMapBound(Direction.NORTH);
+                    if (m != null) {
+                        rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(m.y));
+                        mapUpperBound = bound;
+                        zoneYmax = findZoneY(m.y);
+                    }
+                }
+                else {
+                    mapUpperBound = bound;
+                    zoneYmax = findZoneY(bound);
+                }
+            }
+            if (mapLowerBound == -Constants.INF) {
+                float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LOWER_BOUND));
+                if (bound == -Constants.INF) {
+                    MapLocation m = checkMapBound(Direction.SOUTH);
+                    if (m != null) {
+                        rc.broadcast(Communication.MAP_LOWER_BOUND, Float.floatToIntBits(m.y));
+                        mapLowerBound = m.y;
+                        zoneYmin = findZoneY(m.y);
+                    }
+                }
+                else {
+                    mapLowerBound = bound;
+                    zoneYmin = findZoneY(bound);
+                }
+            }
+            if (mapLeftBound == -Constants.INF) {
+                float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LEFT_BOUND));
+                if (bound == -Constants.INF) {
+                    MapLocation m = checkMapBound(Direction.WEST);
+                    if (m != null) {
+                        rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(m.x));
+                        mapLeftBound = m.x;
+                        zoneXmin = findZoneX(m.x);
+                    }
+                }
+                else {
+                    mapLeftBound = bound;
+                    zoneXmin = findZoneX(bound);
+                }
+            }
+            if (mapRightBound == Constants.INF) {
+                float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_RIGHT_BOUND));
+                if (bound == Constants.INF) {
+                    MapLocation m = checkMapBound(Direction.EAST);
+                    if (m != null) {
+                        rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(m.x));
+                        mapRightBound = m.x;
+                        zoneXmax = findZoneX(m.x);
+                    }
+                }
+                else {
+                    mapRightBound = bound;
+                    zoneXmax = findZoneX(bound);
+                }
+            }
+
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static MapLocation checkMapBound(Direction dir) {
+        try {
+            if (!rc.onTheMap(pos.add(dir, rc.getType().sensorRadius))) {
+                float a = 0, b = rc.getType().sensorRadius;
+                while (b-a >= Constants.PRECISION_MAP_BOUNDS) {
+                    float c = (b+a)/2;
+                    if (rc.onTheMap(pos.add(dir, c))) a = c;
+                    else b = c;
+                }
+                return pos.add(dir, (a+b)/2);
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    static void trySend(int m) {
+        /*if (readMes.contains(m)) return;
+        try {
+            rc.broadcast(initialMessage, m);
+            ++initialMessage;
+            if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
+                initialMessage -= Communication.MAX_BROADCAST_MESSAGE;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }*/
+    }
+
+    static void updateSightZones() {
+        try {
+            for (int i = 0; i < 14; ++i) {
+                sight_zones[i] = rc.readBroadcast(Communication.SIGHT_ZONES + i);
+            }
+            int zoneX = findZoneX(pos.x);
+            int zoneY = findZoneY(pos.y);
+            int zone = zoneX*21+zoneY;
+            if ((sight_zones[zone/32] & 1<<(zone&31)) == 0) {
+                rc.broadcast(Communication.SIGHT_ZONES+zone/32, sight_zones[zone/32] | 1<<(zone&31));
+                sight_zones[zone/32] |= 1<<(zone&31);
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static MapLocation findNearbyUnexploredZone() {
+        int zoneX = findZoneX(pos.x); // entre 0 i 20
+        int zoneY = findZoneY(pos.y); // entre 0 i 20
+        System.out.println("Xbounds:"+zoneXmin+","+zoneXmax+", Ybounds" + zoneYmin+","+zoneYmax);
+        System.out.println("now:"+zoneX+","+zoneY);
+        float x = findX(zoneX);float y = findY(zoneY);
+        rc.setIndicatorLine(new MapLocation(x-5, y-5), new MapLocation(x-5, y+5), 255,255,255);
+        rc.setIndicatorLine(new MapLocation(x+5, y-5), new MapLocation(x+5, y+5), 255,255,255);
+        rc.setIndicatorLine(new MapLocation(x-5, y-5), new MapLocation(x+5, y-5), 255,255,255);
+        rc.setIndicatorLine(new MapLocation(x-5, y+5), new MapLocation(x+5, y+5), 255,255,255);
+        int dini = (int)Math.random()*8;
+        for (int d = 0; d < 8; ++d) {
+            int dx = dxs[dini+d]; int dy = dys[dini+d];
+            int newZoneX = zoneX+dx;
+            if (newZoneX >= zoneXmax || newZoneX <= zoneXmin) continue;
+            int newZoneY = zoneY+dy;
+            if (newZoneY >= zoneYmax || newZoneY <= zoneYmin) continue;
+            int newZone = (newZoneX)*21+(newZoneY);
+            if ((sight_zones[newZone/32] & 1<<(newZone&31)) == 0) {
+                MapLocation newTarget = new MapLocation(findX(newZoneX), findY(newZoneY));
+                System.out.println("zoneY:" + zoneY + ", newZoneY:" + newZoneY + ", zoneYmin:" + zoneYmin + "("+dx+","+dy+")");
+                rc.setIndicatorLine(pos, newTarget, 0, 0, 0);
+                return newTarget;
+            }
+        }
+        return null;
+    }
+
+    static int findZoneX (float x) {
+        return Math.round((Math.round(x)-xBase+100)/10);
+    }
+
+    static float findX (int zoneX) {
+        return zoneX*10f+5f-100f+(float)xBase;
+    }
+
+    static int findZoneY (float y) {
+        return Math.round((Math.round(y)-yBase+100)/10);
+    }
+
+    static float findY (int zoneY) {
+        return zoneY*10f+5f-100f+(float)yBase;
     }
 
 }

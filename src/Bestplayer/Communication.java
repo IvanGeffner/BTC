@@ -38,6 +38,14 @@ public class Communication {
     static int MAX_ZONE_Y = 694;
     static int ZONE_LIMIT_OFFSET = 20;
 
+    static final int MAP_UPPER_BOUND = 700; // valors amb precisio de Constants.PRECISION_MAP_BOUNDS de
+    static final int MAP_LOWER_BOUND = 701; // les coordenades x o y respecte l'archon 0 dels limits del mapa
+    static final int MAP_LEFT_BOUND = 702; // son floats, s'obtenen a partir de l'int amb la funcio Float.intBitsToFloat
+    static final int MAP_RIGHT_BOUND = 703;
+
+    static final int SIGHT_ZONES = 704; // bits que indiquen si cada zona de visio ha estat explorada
+
+
     static int xBase = 9999, yBase = 9999;
 
 
