@@ -198,9 +198,9 @@ public class Scout {
 
     static void readMessages(){
         /*try {
-            int lastMessage = rc.readBroadcast(Communication.MAX_BROADCAST_MESSAGE);
+            int lastMessage = rc.readInfoBroadcast(Communication.MAX_BROADCAST_MESSAGE);
             for (int i = initialMessage; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
-                int a = rc.readBroadcast(i);
+                int a = rc.readInfoBroadcast(i);
                 workMessage(a);
                 ++i;
                 if (i >= Communication.MAX_BROADCAST_MESSAGE) i -= Communication.MAX_BROADCAST_MESSAGE;
@@ -355,7 +355,7 @@ public class Scout {
     static void trySend(int m) {
         /*if (readMes.contains(m)) return;
         try {
-            rc.broadcast(initialMessage, m);
+            rc.broadcastInfo(initialMessage, m);
             ++initialMessage;
             if (initialMessage >= Communication.MAX_BROADCAST_MESSAGE)
                 initialMessage -= Communication.MAX_BROADCAST_MESSAGE;

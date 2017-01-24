@@ -1,7 +1,7 @@
 package Seedingplayer;
 
 
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -43,7 +43,11 @@ public class Communication {
     static final int MAP_LEFT_BOUND = 702; // son floats, s'obtenen a partir de l'int amb la funcio Float.intBitsToFloat
     static final int MAP_RIGHT_BOUND = 703;
 
+    //ocupen 13 channels
     static final int SIGHT_ZONES = 704; // bits que indiquen si cada zona de visio ha estat explorada
+
+    static final int GARDENER_REPORT = 750; // ultim torn que hem tingut gardeners
+    static final int ARCHON_REPORT = 751;
 
 
     static int xBase = 9999, yBase = 9999;
@@ -96,7 +100,12 @@ public class Communication {
     public static void sendMessage(RobotController rc, int channel, int x, int y, int value) {
         try {
             if (xBase == 9999){
-                System.out.println("NO POTS ENVIAR UN MISSATGE SENSE HAVER POSAT EL XBASE I EL YBASE!!!!!!!!!!!!!!!!!!!!!!");
+                try {
+                    throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: no pots enviar un missatge sense haver fet setBase");
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+                return;
             }
             int lastMessage = rc.readBroadcast(channel + CYCLIC_CHANNEL_LENGTH);
             int message = encodeFinding(0, x-xBase, y-yBase, value);
@@ -107,5 +116,15 @@ public class Communication {
             e.printStackTrace();
         }
     }
+
+    //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
+    public static void sendReport(RobotController rc, int channel){
+        try {
+            rc.broadcast(channel,rc.getRoundNum());
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

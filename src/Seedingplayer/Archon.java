@@ -21,10 +21,9 @@ public class Archon {
         rc = rcc;
 
         InitializeStuff();
-        //code executed onece at the begining
 
         while (true) {
-            //code executed continually, don't let it end
+            Communication.sendReport(rc, Communication.ARCHON_REPORT);
             treeSpending = 0;
 
             //readMessages();
@@ -55,6 +54,8 @@ public class Archon {
             yBase = Math.round(base.y);
 
             Communication.setBase(xBase,yBase);
+            Build.init(rc);
+            Map.init(rc);
 
             initialMessagePlant = 0;
             try{
@@ -114,10 +115,10 @@ public class Archon {
     static void readMessages(){
         try {
             int channel = Communication.PLANTTREECHANNEL;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int lastMessage = rc.readInfoBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessagePlant);
             for (int i = initialMessagePlant; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
-                int a = rc.readBroadcast(channel + i);
+                int a = rc.readInfoBroadcast(channel + i);
                 workMessagePlantTree(a);
                 ++i;
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
@@ -137,7 +138,7 @@ public class Archon {
         if (!allowedToConstruct(Constants.GARDENER)) return;
 
         if (!myTurn()) return;
-        //if (whichRobotToBuild(rc.readBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
+        //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
         try{
             for (int i = 0; i < 4; ++i){
                 if (rc.canHireGardener(Constants.main_dirs[i])){
@@ -312,7 +313,7 @@ public class Archon {
 */
     static boolean myTurn(){
         try {
-            //int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
+            //int archonTurn = rc.readInfoBroadcast(Communication.ARCHONTURN);
             int archonNumber = rc.readBroadcast(Communication.ARCHONNUMBER);
             return (rc.getRoundNum()%archonNumber == whoIam);
         } catch (Exception e) {
@@ -324,11 +325,11 @@ public class Archon {
 /*
     static void updateTurn(){
         try {
-            int archonTurn = rc.readBroadcast(Communication.ARCHONTURN);
-            int archonNumber = rc.readBroadcast(Communication.ARCHONNUMBER);
+            int archonTurn = rc.readInfoBroadcast(Communication.ARCHONTURN);
+            int archonNumber = rc.readInfoBroadcast(Communication.ARCHONNUMBER);
             ++archonTurn;
             if (archonTurn >= archonNumber) archonTurn -= archonNumber;
-            rc.broadcast(Communication.ARCHONTURN, archonTurn);
+            rc.broadcastInfo(Communication.ARCHONTURN, archonTurn);
             return;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -339,7 +340,7 @@ public class Archon {
 
     static void updateConstruct (int a){
         try {
-            int x = rc.readBroadcast(Communication.unitChannels[a]);
+            int x = rc.readInfoBroadcast(Communication.unitChannels[a]);
             int ans = x;
             boolean found = false;
             if (x < Constants.IBL) {
@@ -372,7 +373,7 @@ public class Archon {
                 if (!found) ans = 9999;
             }
 
-            rc.broadcast(Communication.unitChannels[a], ans);
+            rc.broadcastInfo(Communication.unitChannels[a], ans);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -400,8 +401,8 @@ public class Archon {
 
     static int computeHowManyBehind(int a, int b) { //b is 0 in this case, we can take modules out [bytecode]
         try {
-            int x = rc.readBroadcast(Communication.unitChannels[a]);
-            int y = rc.readBroadcast(Communication.unitChannels[b]);
+            int x = rc.readInfoBroadcast(Communication.unitChannels[a]);
+            int y = rc.readInfoBroadcast(Communication.unitChannels[b]);
             if(y < x) return 0;
             int ans = 0;
             if(y < Constants.IBL){

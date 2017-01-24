@@ -33,45 +33,45 @@ public class ZoneG {
     private static int treesPerZone = 7;
     private static int buildPositionsPerZone = 4;
 
-    public static int turnsResetZone = 3;
+    static int turnsResetZone = 3;
 
-    public static MapLocation[] treePos = new MapLocation[treesPerZone];
-    public static MapLocation[] plantingPos = new MapLocation[treesPerZone];
-    public static MapLocation[] wateringPos = new MapLocation[treesPerZone];
-    public static MapLocation[] buildPos = new MapLocation[buildPositionsPerZone];
-    public static MapLocation[] newRobotPos = new MapLocation[buildPositionsPerZone];
-    public static MapLocation[] buildTankPos = new MapLocation[buildPositionsPerZone];
-    public static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
-    public static float treeHP[] = new float[treesPerZone];
-    public static int indexVertexTrees[] = new int[2];
+    static MapLocation[] treePos = new MapLocation[treesPerZone];
+    static MapLocation[] plantingPos = new MapLocation[treesPerZone];
+    static MapLocation[] wateringPos = new MapLocation[treesPerZone];
+    static MapLocation[] buildPos = new MapLocation[buildPositionsPerZone];
+    static MapLocation[] newRobotPos = new MapLocation[buildPositionsPerZone];
+    static MapLocation[] buildTankPos = new MapLocation[buildPositionsPerZone];
+    static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
+    static float treeHP[] = new float[treesPerZone];
+    static int indexVertexTrees[] = new int[2];
 
 
-    public static void init(RobotController rc2){
+    static void init(RobotController rc2){
         rc = rc2;
     }
 
-    public static boolean hasValue(int[] z){
+    static boolean hasValue(int[] z){
         return (z != null && z[0] != (int) Constants.INF);
     }
 
-    public static int[] newZone(int x, int y){
+    static int[] newZone(int x, int y){
         return new int[]{x,y};
     }
 
-    public static int[] nullZone(){
+    static int[] nullZone(){
         return new int[] {(int) Constants.INF, (int) Constants.INF};
     }
 
-    public static void resetMyZone(){
+    static void resetMyZone(){
         zone = nullZone();
     }
 
-    public static MapLocation center(int[] z){
+    static MapLocation center(int[] z){
         return new MapLocation(zoneWidth * z[0] + zoneOriginX,
                 zoneHeight * z[1] + zoneOriginY);
     }
 
-    public static MapLocation center(){
+    static MapLocation center(){
         if (!hasValue(zone)){
             try {
                 throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de center() sense tenir zona assignada");
@@ -83,8 +83,7 @@ public class ZoneG {
         return center;
     }
 
-
-    public static int[] getZoneFromPos(MapLocation pos){
+    static int[] getZoneFromPos(MapLocation pos){
         int[] z = {0,0};
         z[0] = (int) (pos.x - zoneOriginX + zoneWidth/2 + 127*zoneWidth) / (int)zoneWidth;
         z[0] -= 127;
@@ -93,12 +92,12 @@ public class ZoneG {
         return z;
     }
 
-    public static void setOrigin(float x, float y) {
+    static void setOrigin(float x, float y) {
         zoneOriginX = x;
         zoneOriginY = y;
     }
 
-    public static int getID(int[] z){
+    static int getID(int[] z){
         //rang de zoneid:
         // inici: -9 + 18*(-9) + 18*18/2 + 9 = 0
         // final: 9 + 18*9 + 18*18/2 + 9 = 342
@@ -106,14 +105,14 @@ public class ZoneG {
         return z[0] + zoneColumns * z[1] + zoneColumns*zoneRows/2 + 9;
     }
 
-    public static int[] readZoneBroadcast(int[] z){
+    static int[] readInfoBroadcast(int[] z){
         if (!ZoneG.hasValue(z)) return null;
         int zone_id =  ZoneG.getID(z);
         int channel_id = zone_id / zonesPerChannel;
         try {
             int info = rc.readBroadcast(Communication.ZONE_FIRST_POSITION + channel_id);
             info = (info >> (bitsPerZone * (zone_id % zonesPerChannel))) & 0x1F;
-            //System.out.println("read channel " + channel_id + ": " + Integer.toBinaryString(info) + "  " + Integer.toBinaryString(rc.readBroadcast(channel_id)));
+            //System.out.println("read channel " + channel_id + ": " + Integer.toBinaryString(info) + "  " + Integer.toBinaryString(rc.readInfoBroadcast(channel_id)));
             int zoneType = info & 0x7;
             int lastTurn = (info >> 3) & 0x3;
             return new int[]{zoneType, lastTurn};
@@ -123,7 +122,7 @@ public class ZoneG {
         return null;
     }
 
-    public static void broadcastZone(int[] z, int newZoneType){
+    static void broadcastInfo(int[] z, int newZoneType){
         if (z[0] == Constants.INF) return;
         int zone_id = ZoneG.getID(z);
         int channel_id = zone_id / zonesPerChannel;
@@ -139,8 +138,7 @@ public class ZoneG {
         }
     }
 
-
-    public static void broadcastZoneLimit(int channel, int value){
+    static void broadcastLimit(int channel, int value){
         try {
             int old_value = rc.readBroadcast(channel);
             int new_value;
@@ -156,22 +154,22 @@ public class ZoneG {
         }
     }
 
-    public static boolean updateZoneInMap(int[] z){
+    static boolean updateInMap(int[] z){
         MapLocation center = ZoneG.center(z);
         try {
             if (!Map.onCurrentMap(center) || (rc.canSenseAllOfCircle(center,rc.getType().bodyRadius) && !rc.onTheMap(center, rc.getType().bodyRadius))){
-                ZoneG.broadcastZone(z,Constants.outOfMapZone);
+                ZoneG.broadcastInfo(z,Constants.outOfMapZone);
                 if (center.x < Map.mapMinX) {
-                    ZoneG.broadcastZoneLimit(Communication.MIN_ZONE_X, z[0] + 1);
+                    ZoneG.broadcastLimit(Communication.MIN_ZONE_X, z[0] + 1);
                 }
                 if (center.x > Map.mapMaxX) {
-                    ZoneG.broadcastZoneLimit(Communication.MAX_ZONE_X, z[0] - 1);
+                    ZoneG.broadcastLimit(Communication.MAX_ZONE_X, z[0] - 1);
                 }
                 if (center.y < Map.mapMinY) {
-                    ZoneG.broadcastZoneLimit(Communication.MIN_ZONE_Y, z[1] + 1);
+                    ZoneG.broadcastLimit(Communication.MIN_ZONE_Y, z[1] + 1);
                 }
                 if (center.y > Map.mapMaxY) {
-                    ZoneG.broadcastZoneLimit(Communication.MAX_ZONE_Y, z[1] - 1);
+                    ZoneG.broadcastLimit(Communication.MAX_ZONE_Y, z[1] - 1);
                 }
                 return false;
             }else {
@@ -183,8 +181,7 @@ public class ZoneG {
         return false;
     }
 
-
-    public static int getZoneLimitFromBroadcast(int channel){
+    static int readLimitBroadcast(int channel){
         try {
             int raw_value = rc.readBroadcast(channel);
             if (channel == Communication.MAX_ZONE_X || channel == Communication.MAX_ZONE_Y){
@@ -198,18 +195,25 @@ public class ZoneG {
         return (int) Constants.INF;
     }
 
-    public static int getZoneTypeFromBroadcast(int[] z){
-        int[] info = readZoneBroadcast(z);
+    static int readTypeBroadcast(int[] z){
+        int[] info = readInfoBroadcast(z);
         if (info == null) return -1;
         return info[0];
     }
 
-    public static void broadcastMyZone(int[] z){
-        if (!ZoneG.hasValue(z)) return;
-        broadcastZone(z, Constants.busyZone);
+    static void broadcastMyZone(){
+        if (!hasValue(zone)){
+            try {
+                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de broadcastMyZone() sense tenir zona assignada");
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        broadcastInfo(zone, Constants.busyZone);
     }
 
-    public static void assignZone(int[] assignedZone){
+    static void assign(int[] assignedZone){
         if (hasValue(zone)){
             try {
                 String errmsg = "ERROR: Intent d'assignar la zona " + assignedZone[0] + "," + assignedZone[1] + " quan ja hi havia assignada la zona " +  + zone[0] + "," + zone[1];
@@ -250,7 +254,7 @@ public class ZoneG {
 
         zone = assignedZone;
         center = center(zone);
-        broadcastZone(assignedZone, Constants.busyZone);
+        broadcastInfo(assignedZone, Constants.busyZone);
 
         try {
             if(treesPerZone == 7 && !rc.onTheMap(center.add(Direction.WEST,6f))){
@@ -297,7 +301,7 @@ public class ZoneG {
         }
     }
 
-    public static void updateTreeHP(){
+    static void updateTreeHP(){
         if (!hasValue(zone)){
             try {
                 throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de updateTreeHP() sense tenir zona assignada");
@@ -331,7 +335,7 @@ public class ZoneG {
     }
 
     //envia missatge de tallar els arbres en la capsa de 3x3 i si no n'hi ha cap en la de 5.5x5.5
-    public static void messageNeutralTreesInBox(MapLocation center, TreeInfo[] trees){
+    static void messageNeutralTreesInBox(MapLocation center, TreeInfo[] trees){
         int max_bytecode = 3000;
         int bytecode_init = Clock.getBytecodeNum();
         MapLocation[] outerTrees = new MapLocation[trees.length];
@@ -359,12 +363,12 @@ public class ZoneG {
         }
     }
 
-    public static void messageCutNeutralTree(MapLocation treeLocation) {
+    static void messageCutNeutralTree(MapLocation treeLocation) {
         if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
         Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
 
-    public static MapLocation findLowHPTree(){
+    static MapLocation findLowHPTree(){
         if (!hasValue(zone)){
             try {
                 throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de findLowHPTree() sense tenir zona assignada");
@@ -385,7 +389,7 @@ public class ZoneG {
         return null;
     }
 
-    public static int countAvailableRobotBuildPositions(){
+    static int countAvailableRobotBuildPositions(){
         //no ho fa be si la zona esta abandonada
         if (!hasValue(zone)){
             try {
@@ -408,10 +412,10 @@ public class ZoneG {
         return count;
     }
 
-    public static int whichTreeToPlant(){
+    static int indexToPlant(){
         if (!hasValue(zone)){
             try {
-                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de whichTreeToPlant() sense tenir zona assignada");
+                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de indexToPlant() sense tenir zona assignada");
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
@@ -449,10 +453,10 @@ public class ZoneG {
         return minIndex;
     }
 
-    public static int whichPositionToBuildInZone(int unit){
+    static int indexToBuild(int unit){
         if (!hasValue(zone)){
             try {
-                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de whichPositionToBuildInZone() sense tenir zona assignada");
+                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de indexToBuild() sense tenir zona assignada");
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
@@ -508,15 +512,14 @@ public class ZoneG {
         return minIndex;
     }
 
-
-    public static boolean inMap(int[] z){
-        return !(z[0] < getZoneLimitFromBroadcast(Communication.MIN_ZONE_X) ||
-                z[0] > getZoneLimitFromBroadcast(Communication.MAX_ZONE_X) ||
-                z[1] < getZoneLimitFromBroadcast(Communication.MIN_ZONE_Y) ||
-                z[1] > getZoneLimitFromBroadcast(Communication.MAX_ZONE_Y));
+    static boolean inMap(int[] z){
+        return !(z[0] < readLimitBroadcast(Communication.MIN_ZONE_X) ||
+                z[0] > readLimitBroadcast(Communication.MAX_ZONE_X) ||
+                z[1] < readLimitBroadcast(Communication.MIN_ZONE_Y) ||
+                z[1] > readLimitBroadcast(Communication.MAX_ZONE_Y));
     }
 
-    public static boolean insideLimits(int[] z){
+    static boolean insideLimits(int[] z){
         return (Math.abs(z[0]) < zoneColumns && Math.abs(z[1]) < zoneRows);
     }
 }

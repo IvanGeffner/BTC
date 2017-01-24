@@ -27,7 +27,8 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
-            ZoneG.broadcastMyZone(zone);
+            Communication.sendReport(rc, Communication.GARDENER_REPORT);
+            if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
@@ -49,7 +50,7 @@ public class Gardener {
                 checkNeutralTreesInZone();
                 newTarget = returnToZone();
                 if (newTarget != null) {
-                    ZoneG.broadcastZone(zone, Constants.abandonedZone);
+                    ZoneG.broadcastInfo(zone, Constants.abandonedZone);
                     zone = ZoneG.nullZone();
                     ZoneG.resetMyZone();
                     System.out.println("Retorna: de " + rc.getLocation() + " a " + newTarget);
@@ -139,20 +140,20 @@ public class Gardener {
             int[] newZone = ZoneG.newZone(myZone[0] + Xsorted[i], myZone[1] + Ysorted[i]);
             if (!ZoneG.insideLimits(newZone)) continue;
             //System.out.println("Prova la zona " + newZone[0] + "," + newZone[1] + " a " + rc.getLocation().distanceTo(getCenterPosFromZone(newZone)));
-            int[] zoneInfo = ZoneG.readZoneBroadcast(newZone);
+            int[] zoneInfo = ZoneG.readInfoBroadcast(newZone);
             if (zoneInfo == null) continue;
             int zoneType = zoneInfo[0];
             int lastTurn = zoneInfo[1];
             int thisTurn = rc.getRoundNum();
             if (zoneType != Constants.outOfMapZone) {
-                if (!ZoneG.updateZoneInMap(newZone)){
+                if (!ZoneG.updateInMap(newZone)){
                     zoneType = Constants.outOfMapZone;
                 }
             }
             if (zoneType == Constants.busyZone){
                 if ((lastTurn & 0x3) == ((thisTurn + 2) & 0x3) || ((lastTurn+3) & 0x3) == (thisTurn & 0x3) ){
                     zoneType = Constants.abandonedZone;
-                    ZoneG.broadcastZone(newZone, Constants.abandonedZone);
+                    ZoneG.broadcastInfo(newZone, Constants.abandonedZone);
                 }
             }
             if (zoneType == Constants.abandonedZone){
@@ -173,7 +174,7 @@ public class Gardener {
             if (!minXscout){
                 MapLocation posW = myPos.add(Direction.WEST,1.5f);
                 if (!rc.onTheMap(posW)) mapMinX = Math.max(mapMinX, posW.x);
-                float newVal = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LEFT_BOUND));
+                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_LEFT_BOUND));
                 if (newVal != Constants.INF) {
                     mapMinX = newVal;
                     minXscout = true;
@@ -182,7 +183,7 @@ public class Gardener {
             if (!maxXscout){
                 MapLocation posE = myPos.add(Direction.EAST,1.5f);
                 if (!rc.onTheMap(posE)) mapMaxX = Math.max(mapMaxX, posE.x);
-                float newVal = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_RIGHT_BOUND));
+                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_RIGHT_BOUND));
                 if (newVal != Constants.INF) {
                     mapMaxX = newVal;
                     maxXscout = true;
@@ -191,7 +192,7 @@ public class Gardener {
             if (!minYscout){
                 MapLocation posS = myPos.add(Direction.SOUTH,1.5f);
                 if (!rc.onTheMap(posS)) mapMinY = Math.max(mapMinY, posS.x);
-                float newVal = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LOWER_BOUND));
+                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_LOWER_BOUND));
                 if (newVal != Constants.INF) {
                     mapMinY = newVal;
                     minYscout = true;
@@ -200,7 +201,7 @@ public class Gardener {
             if (!maxYscout){
                 MapLocation posN = myPos.add(Direction.NORTH,1.5f);
                 if (!rc.onTheMap(posN)) mapMaxY = Math.max(mapMaxY, posN.x);
-                float newVal = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_UPPER_BOUND));
+                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_UPPER_BOUND));
                 if (newVal != Constants.INF) {
                     mapMaxY = newVal;
                     maxYscout = true;
@@ -227,14 +228,14 @@ public class Gardener {
 
         if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) return;
 
-        int zoneType = ZoneG.getZoneTypeFromBroadcast(zoneIWant);
+        int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
             if (zoneType == Constants.busyZone) {
                 zoneIWant = ZoneG.nullZone();
                 return;
             }
             if (!rc.onTheMap(centerIWant,rc.getType().bodyRadius)){
-                ZoneG.updateZoneInMap(zoneIWant);
+                ZoneG.updateInMap(zoneIWant);
                 zoneIWant = ZoneG.nullZone();
                 return;
             }
@@ -242,7 +243,7 @@ public class Gardener {
             if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) {
                 zone = zoneIWant;
-                ZoneG.assignZone(zoneIWant);
+                ZoneG.assign(zoneIWant);
             }
         }catch (GameActionException e){
             e.printStackTrace();
@@ -309,7 +310,7 @@ public class Gardener {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
         }
-        int index = ZoneG.whichTreeToPlant(); //si hi ha algun arbre no ocupat
+        int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
         //System.out.println("Planta l'arbre " + index);
         if (index == -1) return null;
         MapLocation plantingPosition = ZoneG.plantingPos[index];
@@ -376,7 +377,7 @@ public class Gardener {
             newRobotPosition = getBuildPositionWithoutZone(unit);
             if (newRobotPosition == null) return null;
         }else{
-            int index = ZoneG.whichPositionToBuildInZone(unit);
+            int index = ZoneG.indexToBuild(unit);
             if (index == -1) return null;
             if (unit == Constants.TANK){
                 buildingPosition = ZoneG.buildTankPos[index];
