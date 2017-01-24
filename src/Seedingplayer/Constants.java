@@ -44,6 +44,7 @@ public class Constants {
     public static float minHPGoWater = 25f;
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
+    public static int BYTECODEPOSTMESSAGESLUMBERJACK = 5000;
     public static int SAFETYMARGIN = 8000;
     public static int SAFETYMARGINCHECKTREES = 4000;
     public static int SAFETYMARGINSCOUTS = 9700;
@@ -99,6 +100,19 @@ public class Constants {
     public static int TANK = 3;
     public static int SCOUT = 4;
     public static int TREE = 5;
+    
+  //LUMBIS
+    static float CONVERSIONBULLETCOST = 25.0f;
+    static float BASESCORELUMBERJACK = 0.003f;
+    static float ENEMYTREESCORE = 7.5f;
+    static float NEUTRALTREESCORE = 5.0f;
+    static float CHOPTREESCORE = 3.0f;
+    static float RANDOMTREESCORE = 0.005f; 
+    static float GARDENERSCORELUMBERJACK = 10.0f;
+    static float ARCHONSCORELUMBERJACK = 1.0f;
+    static float ARCHONVALUE = 0.1f;
+
+    static int CHANGETARGETLUMBERJACKS = 50;
 
 
     static int getIndex(RobotType r){
