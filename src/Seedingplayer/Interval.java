@@ -1,4 +1,4 @@
-package Seedingplayer.Bestplayer;
+package Seedingplayer;
 
 /**
  * Created by Ivan on 1/17/2017.

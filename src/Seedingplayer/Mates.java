@@ -1,4 +1,4 @@
-package Seedingplayer.Bestplayer;
+package Seedingplayer;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

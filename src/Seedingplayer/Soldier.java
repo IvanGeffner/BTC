@@ -1,4 +1,4 @@
-package Seedingplayer.Bestplayer;
+package Seedingplayer;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Tank {
+public class Soldier {
 
     static RobotController rc;
 

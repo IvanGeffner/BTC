@@ -1,4 +1,4 @@
-package Seedingplayer.Bestplayer;
+package Seedingplayer;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

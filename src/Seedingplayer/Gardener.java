@@ -1,4 +1,4 @@
-package Seedingplayer.Bestplayer;
+package Seedingplayer;
 
 import battlecode.common.*;
 
@@ -563,7 +563,7 @@ public class Gardener {
     }
 
     private static void messageCutNeutralTree(MapLocation treeLocation) {
-        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),treeLocation,255,120,0);
+        if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
         Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
 
