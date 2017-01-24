@@ -7,7 +7,6 @@ import battlecode.common.RobotType;
  * Created by Ivan on 1/15/2017.
  */
 public class Constants {
-
     public static int DEBUG = 1; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
@@ -26,7 +25,7 @@ public class Constants {
 
     public static int MAX_ROBOTS = 250;
     public static int LAST_ROUND_BUILD = 2900;
-    public static float BULLET_LIMIT = 5000;
+    public static float BULLET_LIMIT = 2500;
 
     public static int IBL = initialBuild.length;
     public static int SBL = sequenceBuild.length;

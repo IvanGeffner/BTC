@@ -348,10 +348,11 @@ public class ZoneG {
 
         for (TreeInfo ti: trees){
             MapLocation treePos = ti.getLocation();
-            if (Math.abs(treePos.x - center.x) < innerDistance && Math.abs(treePos.y - center.y) < innerDistance){
+            if (Math.abs(treePos.x - center.x) - ti.getRadius() < innerDistance && Math.abs(treePos.y - center.y) - ti.getRadius() < innerDistance){
                 sendOuterTrees = false;
                 messageCutNeutralTree(treePos);
-            }else if (sendOuterTrees && Math.abs(treePos.x - center.x) < outerDistance && Math.abs(treePos.y - center.y) < outerDistance){
+            }else if (sendOuterTrees && Math.abs(treePos.x - center.x) - ti.getRadius() < outerDistance &&
+                    Math.abs(treePos.y - center.y) - ti.getRadius() < outerDistance){
                 outerTrees[outerTreeCount] = treePos;
                 outerTreeCount++;
             }

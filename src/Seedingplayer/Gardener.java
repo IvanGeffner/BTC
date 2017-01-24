@@ -167,51 +167,6 @@ public class Gardener {
         }
         return ZoneG.nullZone();
     }
-/*
-    private static void updateMapBounds(){
-        MapLocation myPos = rc.getLocation();
-        try {
-            if (!minXscout){
-                MapLocation posW = myPos.add(Direction.WEST,1.5f);
-                if (!rc.onTheMap(posW)) mapMinX = Math.max(mapMinX, posW.x);
-                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_LEFT_BOUND));
-                if (newVal != Constants.INF) {
-                    mapMinX = newVal;
-                    minXscout = true;
-                }
-            }
-            if (!maxXscout){
-                MapLocation posE = myPos.add(Direction.EAST,1.5f);
-                if (!rc.onTheMap(posE)) mapMaxX = Math.max(mapMaxX, posE.x);
-                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_RIGHT_BOUND));
-                if (newVal != Constants.INF) {
-                    mapMaxX = newVal;
-                    maxXscout = true;
-                }
-            }
-            if (!minYscout){
-                MapLocation posS = myPos.add(Direction.SOUTH,1.5f);
-                if (!rc.onTheMap(posS)) mapMinY = Math.max(mapMinY, posS.x);
-                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_LOWER_BOUND));
-                if (newVal != Constants.INF) {
-                    mapMinY = newVal;
-                    minYscout = true;
-                }
-            }
-            if (!maxYscout){
-                MapLocation posN = myPos.add(Direction.NORTH,1.5f);
-                if (!rc.onTheMap(posN)) mapMaxY = Math.max(mapMaxY, posN.x);
-                float newVal = Float.intBitsToFloat(rc.readInfoBroadcast(Communication.MAP_UPPER_BOUND));
-                if (newVal != Constants.INF) {
-                    mapMaxY = newVal;
-                    maxYscout = true;
-                }
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-*/
 
     private static void checkIfArrivedToZone(){
         MapLocation centerIWant = ZoneG.center(zoneIWant);
@@ -220,14 +175,11 @@ public class Gardener {
             zoneIWant = ZoneG.nullZone();
             return;
         }
-
         if (rc.canSenseLocation(centerIWant)){
             TreeInfo[] treesNearCenter = rc.senseNearbyTrees(centerIWant,-1,Team.NEUTRAL);
             ZoneG.messageNeutralTreesInBox(centerIWant,treesNearCenter);
         }
-
         if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) return;
-
         int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
             if (zoneType == Constants.busyZone) {
@@ -288,7 +240,7 @@ public class Gardener {
         }
         //System.out.println("Escape pos: " + escapePos);
         if (myPos.isWithinDistance(escapePos, Constants.eps)) return null;
-        escapePos = myPos.add(myPos.directionTo(escapePos), 100);
+        escapePos = myPos.add(myPos.directionTo(escapePos), 6);
 
         //rc.setIndicatorLine(myPos,escapePos, 0,255,255);
         return null;

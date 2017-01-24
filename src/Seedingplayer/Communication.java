@@ -51,6 +51,8 @@ public class Communication {
     static final int GARDENER_REPORT = 750; // ultim torn que hem tingut gardeners
     static final int ARCHON_REPORT = 751;
 
+    static final int[] ARCHON_INIT_SCORE = {760,761,762};
+
 
     static int xBase = 9999, yBase = 9999;
 
@@ -60,8 +62,9 @@ public class Communication {
     static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
     static final int INITIALIZED = 507;
 
-    static final int ARCHONTURN = 508;
-    static final int ARCHONNUMBER = 509;
+    static final int ARCHON_TURN = 508;
+    static final int ARCHON_COUNT = 509;
+    static final int ARCHONS_LAST_TURN = 510;
 
     static final int MAX_BROADCAST_MESSAGE = 500;
 
@@ -131,8 +134,8 @@ public class Communication {
 
     static boolean areArchonsAlive(){
         try {
-            int lastRoundArchons = rc.readBroadcast(ARCHON_REPORT);
-            return lastRoundArchons >= rc.getRoundNum() - 1;
+            int lastRoundArchons = rc.readBroadcast(ARCHONS_LAST_TURN);
+            return lastRoundArchons > 0;
         } catch (GameActionException e) {
             e.printStackTrace();
         }
