@@ -27,7 +27,7 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
-            Communication.sendReport(rc, Communication.GARDENER_REPORT);
+            Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
@@ -111,7 +111,7 @@ public class Gardener {
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         int xBase = Math.round(base.x);
         int yBase = Math.round(base.y);
-        Communication.setBase(xBase, yBase);
+        Communication.init(rc,xBase, yBase);
         try {
             float xOrigin = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_X));
             if (xOrigin == 0){
@@ -282,7 +282,7 @@ public class Gardener {
         //System.out.println("Numero enemics: " + enemies.length);
         for (RobotInfo enemy: enemies){
             if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER) continue;
-            Communication.sendMessage(rc, Communication.EMERGENCYCHANNEL,Math.round(enemy.getLocation().x),Math.round(enemy.getLocation().y),0);
+            Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(enemy.getLocation().x),Math.round(enemy.getLocation().y),0);
             Direction enemyDir = myPos.directionTo(enemy.getLocation());
             escapePos = escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
         }

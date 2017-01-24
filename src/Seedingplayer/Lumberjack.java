@@ -92,7 +92,7 @@ public class Lumberjack {
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
 
-        Communication.setBase(xBase, yBase);
+        Communication.init(rc,xBase, yBase);
 
         initialMessageEmergency = 0;
         initialMessageEnemy = 0;
@@ -201,7 +201,7 @@ public class Lumberjack {
                     MapLocation treePos = ti.getLocation();
                     int x = Math.round(treePos.x);
                     int y = Math.round(treePos.y);
-                    Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
+                    Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
                 }
             }
             else{
@@ -216,7 +216,7 @@ public class Lumberjack {
                     newTarget = ti.getLocation();
                     targetUpdated = true;
                 }
-                if (a > 0) Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
+                if (a > 0) Communication.sendMessage( Communication.TREEWITHGOODIES, x, y, a);
             }
         }
     }
@@ -429,8 +429,8 @@ public class Lumberjack {
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-            else if (a == 5) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             float val = enemyScore(enemyPos, a);
             if (val > maxUtil2) {
                 maxUtil2 = val;
@@ -445,7 +445,7 @@ public class Lumberjack {
             newTarget = newTarget2;
         }
 
-        if (newTarget2 != null) Communication.sendMessage(rc, Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
+        if (newTarget2 != null) Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
     }
 
 }

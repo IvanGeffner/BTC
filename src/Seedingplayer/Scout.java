@@ -102,7 +102,7 @@ public class Scout {
         //readMes = new HashSet<>();
 
         escaping = 0;
-        Communication.setBase(xBase, yBase);
+        Communication.init(rc,xBase, yBase);
 
         initialMessage = 0;
         try{
@@ -178,7 +178,7 @@ public class Scout {
             if (r != null) {
                 int a = r.bulletCost;
                 if (r == RobotType.ARCHON) a = 1000;
-                Communication.sendMessage(rc, Communication.TREEWITHGOODIES, x, y, a);
+                Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
             float f = ti.getContainedBullets() / (1 + pos.distanceTo(ti.getLocation()));
             if (f > maxUtil) {
@@ -230,8 +230,8 @@ public class Scout {
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            if (a == 0) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-            else if (a == 5) Communication.sendMessage(rc, Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             float val = enemyScore(enemyPos, a);
             if (val > maxUtil2) {
                 maxUtil2 = val;
@@ -241,7 +241,7 @@ public class Scout {
         }
 
 
-        if (newTarget2 != null) Communication.sendMessage(rc, Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
+        if (newTarget2 != null) Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
@@ -250,7 +250,7 @@ public class Scout {
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
-            Communication.sendMessage(rc, Communication.ENEMYTREECHANNEL, x, y, 0);
+            Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
         }
     }
 

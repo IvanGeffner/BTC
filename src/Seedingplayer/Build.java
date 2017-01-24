@@ -24,15 +24,22 @@ public class Build {
     //les unitats que ens hem saltat en la llista
     static float totalBulletCost(int unit){
         float totalMoney = 0;
+        boolean aliveArchon = Communication.areArchonsAlive();
+        boolean aliveGardener = Communication.areGardenersAlive();
+        if (!aliveGardener){
+            if (unit == Constants.GARDENER) return RobotType.GARDENER.bulletCost;
+            else return Constants.INF;
+        }
+
         if (unit == Constants.TREE){
-            totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
+            if (aliveArchon) totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
             totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);
             totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
             //totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }else if(unit == Constants.TANK){
-            totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
+            if (aliveArchon) totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             //totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
             //totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             //totalMoney += computeHowManyBehind(Constants.TANK, unit);
@@ -46,7 +53,7 @@ public class Build {
             totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
             totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }else{
-            totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
+            if (aliveArchon) totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             //totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
             //totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);

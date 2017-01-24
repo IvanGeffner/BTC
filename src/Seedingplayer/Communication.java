@@ -8,6 +8,8 @@ import battlecode.common.*;
  */
 public class Communication {
 
+    static RobotController rc;
+
     /*Types of message*/
     static final int ENEMYCHANNEL = 1000;
     static final int STOPCHANNEL = 1100;
@@ -71,7 +73,8 @@ public class Communication {
     static final int valueMask = 0x00000FFF; // at most 4095
 
 
-    static void setBase(int x, int y){
+    static void init(RobotController rc2, int x, int y){
+        rc = rc2;
         xBase = x;
         yBase = y;
     }
@@ -97,15 +100,11 @@ public class Communication {
         return ret;
     }
 
+    //aquest no l'he canviat perque el greedy el fa servir
     public static void sendMessage(RobotController rc, int channel, int x, int y, int value) {
         try {
-            if (xBase == 9999){
-                try {
-                    throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: no pots enviar un missatge sense haver fet setBase");
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-                return;
+            if (rc == null || xBase == 9999){
+                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: no pots enviar un missatge sense haver fet setBase");
             }
             int lastMessage = rc.readBroadcast(channel + CYCLIC_CHANNEL_LENGTH);
             int message = encodeFinding(0, x-xBase, y-yBase, value);
@@ -117,8 +116,12 @@ public class Communication {
         }
     }
 
+    static void sendMessage(int channel, int x, int y, int value){
+        sendMessage(rc,channel,x,y,value);
+    }
+
     //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
-    static void sendReport(RobotController rc, int channel){
+    static void sendReport(int channel){
         try {
             rc.broadcast(channel,rc.getRoundNum());
         } catch (GameActionException e) {
@@ -126,7 +129,7 @@ public class Communication {
         }
     }
 
-    static boolean areArchonsAlive(RobotController rc){
+    static boolean areArchonsAlive(){
         try {
             int lastRoundArchons = rc.readBroadcast(ARCHON_REPORT);
             return lastRoundArchons >= rc.getRoundNum() - 1;
@@ -136,7 +139,7 @@ public class Communication {
         return false;
     }
 
-    static boolean areGardenersAlive(RobotController rc){
+    static boolean areGardenersAlive(){
         try {
             int lastRoundGardeners = rc.readBroadcast(GARDENER_REPORT);
             return lastRoundGardeners >= rc.getRoundNum() - 1;
