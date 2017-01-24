@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
@@ -42,6 +42,7 @@ public class Constants {
     public static float minHPGoWater = 25f;
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
+    public static int BYTECODEPOSTMESSAGESLUMBERJACK = 5000;
     public static int SAFETYMARGIN = 8000;
     public static int SAFETYMARGINCHECKTREES = 4000;
     public static int SAFETYMARGINSCOUTS = 9700;
@@ -89,6 +90,17 @@ public class Constants {
     public static int SCOUT = 4;
     public static int TREE = 5;
 
+    //LUMBIS
+    static float CONVERSIONBULLETCOST = 25.0f;
+    static float BASESCORELUMBERJACK = 0.5f;
+    static float ENEMYTREESCORE = 7.5f;
+    static float NEUTRALTREESCORE = 5.0f;
+    static float GARDENERSCORELUMBERJACK = 10.0f;
+    static float ARCHONSCORELUMBERJACK = 1.0f;
+    static float ARCHONVALUE = 1000.0f;
+
+    static int CHANGETARGETLUMBERJACKS = 50;
+
 
     static int getIndex(RobotType r){
         if (r == RobotType.GARDENER) return 0;
@@ -114,9 +126,9 @@ public class Constants {
 
     static float safetyDistance(RobotType r){
         if (r == RobotType.LUMBERJACK) return 2f;
-        else if (r == RobotType.SOLDIER) return 3.1f;
-        else if (r == RobotType.TANK) return 3.1f;
-        else if (r == RobotType.SCOUT) return 0.25f;
+        else if (r == RobotType.SOLDIER) return 2.8f;
+        else if (r == RobotType.TANK) return 2.8f;
+        //else if (r == RobotType.SCOUT) return 0.25f;
         return 0;
     }
 

@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 import battlecode.common.*;
 
@@ -148,7 +148,7 @@ public class Scout {
         float maxUtil = 0;
         TreeInfo[] Ti = rc.senseNearbyTrees (-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINCHECKTREES) break;
+            if (Clock.getBytecodeNum() > Constants.SAFETYMARGINCHECKTREES) break;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -203,7 +203,7 @@ public class Scout {
         int a2 = 0;
 
         for (RobotInfo ri : Ri) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINSCOUTS) continue;
+            if (Clock.getBytecodeNum() > Constants.SAFETYMARGINSCOUTS) continue;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
@@ -224,7 +224,7 @@ public class Scout {
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
             TreeInfo ti = Ti[0];
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGINSCOUTS) return;
+            if (Clock.getBytecodeNum() > Constants.SAFETYMARGINSCOUTS) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);

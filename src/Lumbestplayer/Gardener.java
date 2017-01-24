@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 import battlecode.common.*;
 
@@ -535,7 +535,7 @@ public class Gardener {
 
     private static void messageCutNeutralTree(int id, MapLocation treeLocation) {
         rc.setIndicatorLine(rc.getLocation(),treeLocation,255,120,0);
-        MapLocation myPos = rc.getLocation();
+        //MapLocation myPos = rc.getLocation();
 
         Communication.sendMessage(rc, Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),id&0xFFF);
     }

@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Soldier {
+public class Tank {
 
     static RobotController rc;
 

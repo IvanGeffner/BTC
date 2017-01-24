@@ -1,6 +1,5 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
-import Bestplayer.Lumberjack;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 

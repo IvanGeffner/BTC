@@ -2,9 +2,6 @@ package lumberjackplayer;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
 
 /**
  * Created by Ivan on 1/9/2017.

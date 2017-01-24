@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 
 import battlecode.common.RobotController;
@@ -73,7 +73,7 @@ public class Communication {
     }
 
     public static int encodeFinding(int type, int iOffset, int jOffset, int value) {
-        int ret = type |
+        int ret = ((type&0xF) << 28) |
                 (((iOffset + 127) & 0xFF) << iOffShift) | /*-100 <= iOffset <= 100*/
                 (((jOffset + 127) & 0xFF) << jOffShift) |
                 (value & 0xFFF);
@@ -86,7 +86,7 @@ public class Communication {
 
     public static int[] decode(int bitmap) {
         int[] ret = new int[4];
-        ret[0] = bitmap & typeMask;
+        ret[0] = (bitmap & typeMask) >> 28;
         ret[1] = ((bitmap & iOffMask) >> iOffShift) - 127 + xBase;
         ret[2] = ((bitmap & jOffMask) >> jOffShift) - 127 + yBase;
         ret[3] = (bitmap & valueMask);
@@ -99,7 +99,7 @@ public class Communication {
                 System.out.println("NO POTS ENVIAR UN MISSATGE SENSE HAVER POSAT EL XBASE I EL YBASE!!!!!!!!!!!!!!!!!!!!!!");
             }
             int lastMessage = rc.readBroadcast(channel + CYCLIC_CHANNEL_LENGTH);
-            int message = encodeFinding(0, x-xBase, y-yBase, value);
+            int message = encodeFinding(Constants.getIndex(rc.getType()), x-xBase, y-yBase, value);
             rc.broadcast(channel + lastMessage, message);
             rc.broadcast(channel + CYCLIC_CHANNEL_LENGTH, (lastMessage + 1) % CYCLIC_CHANNEL_LENGTH);
         } catch (Exception e) {

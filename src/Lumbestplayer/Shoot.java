@@ -1,4 +1,4 @@
-package lumberjackplayer;
+package Lumbestplayer;
 
 import battlecode.common.*;
 
