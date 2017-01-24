@@ -16,6 +16,8 @@ public class Scout {
 
     static Direction currentDirection;
 
+    static int escaping;
+
     static int initialMessage;
 
     static MapLocation base;
@@ -51,23 +53,41 @@ public class Scout {
 
             tryShake();
 
+            System.out.println("0");
             MapLocation newTarget = findBestTree();
-            updateTarget(newTarget);
+            // si no estem escapant, o si ho estem fent pero la direccio de l'arbre es semblant a la d'escapament
+            if (escaping <= 0 || (newTarget != null && Math.abs(currentDirection.degreesBetween(pos.directionTo(newTarget))) < 90)) {
+                updateTarget(newTarget);
+            }
 
             updateSightZones();
             MapLocation escapePos = checkNearbyEnemies();
-            if (escapePos != null) realTarget = escapePos;
-            if (realTarget == null && rc.getRoundNum() > 50) {
+            if (escapePos == null) {
+                //escapePos = checkNearbyScouts();
+            }
+            if (escapePos != null) {
+                realTarget = escapePos;
+                escaping = Constants.SCOUT_ESCAPE_TURNS;
+                randomTarget = realTarget;
+                currentDirection = pos.directionTo(realTarget);
+                System.out.println("1");
+            }
+            if (realTarget == null && rc.getRoundNum() > 50 && escaping <= 0) {
                 newTarget = findNearbyUnexploredZone();
                 updateTarget(newTarget);
+                System.out.println("2");
             }
             if (realTarget == null) {
                 moveInYourDirection();
+                System.out.println("3");
             }
-            else Greedy.moveGreedy(rc, realTarget, 9200);
+            else {
+                realTarget = checkInsideMap(realTarget);
+                Greedy.moveGreedy(rc, realTarget, 9200);
+            }
 
             broadcastLocations();
-
+            escaping--;
 
             Clock.yield();
         }
@@ -81,6 +101,7 @@ public class Scout {
         yBase = Math.round(base.y);
         //readMes = new HashSet<>();
 
+        escaping = 0;
         Communication.setBase(xBase, yBase);
 
         initialMessage = 0;
@@ -120,7 +141,7 @@ public class Scout {
 
     static void moveInYourDirection(){
         try {
-            if (rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
+            if (escaping <= 0 && rc.canSenseAllOfCircle(randomTarget, rc.getType().bodyRadius) && !rc.onTheMap(randomTarget,rc.getType().bodyRadius)) {
                 randomTarget = pos;
                 currentDirection = currentDirection.rotateLeftRads((float) Math.PI - Constants.rotationAngle);
                 Greedy.resetObstacle(rc);
@@ -316,7 +337,7 @@ public class Scout {
 
     static MapLocation checkMapBound(Direction dir) {
         try {
-            if (!rc.onTheMap(pos.add(dir, rc.getType().sensorRadius))) {
+            if (!rc.onTheMap(pos.add(dir, rc.getType().sensorRadius-Constants.eps))) {
                 float a = 0, b = rc.getType().sensorRadius;
                 while (b-a >= Constants.PRECISION_MAP_BOUNDS) {
                     float c = (b+a)/2;
@@ -413,14 +434,36 @@ public class Scout {
                     || enemy.getType() == RobotType.SCOUT) continue;
             Direction enemyDir = enemy.getLocation().directionTo(pos);
             escapePos = escapePos.add(enemyDir, 1f/(1f + pos.distanceTo(enemy.getLocation())));
-            System.out.println("Enemic: em moc de (" + pos.x + "," + pos.y + ") pel (" + enemy.getLocation().x + "," + enemy.getLocation().y + ")");
         }
-        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
         if (pos.isWithinDistance(escapePos, Constants.eps)) return null;
-        escapePos = pos.add(pos.directionTo(escapePos), 100);
-        System.out.println("Em moc a (" + escapePos.x + "," + escapePos.y + ")");
+        escapePos = pos.add(pos.directionTo(escapePos), Constants.pushTarget);
         if (Constants.DEBUG == 1) rc.setIndicatorLine(pos, escapePos, 255,255,255);
         return escapePos;
+    }
+
+    static MapLocation checkInsideMap(MapLocation target) {
+        // per evitar que intenti anar fora del mapa, fiquem topes a les coordenades del realTarget
+        float dist = pos.distanceTo(target);
+        float maxLeft = mapLeftBound+Constants.PRECISION_MAP_BOUNDS+rc.getType().bodyRadius;
+        float maxRight = mapRightBound-Constants.PRECISION_MAP_BOUNDS-rc.getType().bodyRadius;
+        if (target.x < maxLeft) {
+            target = new MapLocation(maxLeft, target.y);
+        }
+        else if (target.x > maxRight) {
+            target = new MapLocation(maxRight, target.y);
+        }
+        float maxDown = mapLowerBound+Constants.PRECISION_MAP_BOUNDS+rc.getType().bodyRadius;
+        float maxUp = mapUpperBound-Constants.PRECISION_MAP_BOUNDS-rc.getType().bodyRadius;
+        if (target.y < maxDown) {
+            target = new MapLocation(target.x, maxDown);
+        }
+        else if (target.y > maxUp) {
+            target = new MapLocation(target.x, maxUp);
+        }
+        if (dist-rc.getType().strideRadius > -Constants.eps) { // si el target d'abans estava mes lluny que l'stride
+            target = pos.add(pos.directionTo(target), dist);
+        }
+        return target;
     }
 
 }

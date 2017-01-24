@@ -76,6 +76,7 @@ public class Constants {
 
     public static float PRECISION_MAP_BOUNDS = 0.1f;
     public static float SCOUT_RISK_DISTANCE = 6;
+    public static int SCOUT_ESCAPE_TURNS = 6;
 
     public static float PI2 = 2*(float)Math.PI;
 
