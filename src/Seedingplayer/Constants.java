@@ -70,6 +70,13 @@ public class Constants {
     public static final int COSTSORT = 110;
     public static final int COSTSELECTION = 33;
 
+    public static int emptyZone = 0;
+    public static int busyZone = 1;
+    public static int abandonedZone = 2;
+    public static int outOfMapZone = 3;
+
+    public static float interaction_dist_from_edge = 1f;
+
     public static final int BYTECODEATSHOOTING = 7500;
 
     public static int NUMELEMENTS = 5;

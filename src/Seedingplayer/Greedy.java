@@ -9,6 +9,7 @@ import java.util.HashMap;
  * Created by Ivan on 1/15/2017.
  */
 public class Greedy {
+    //EM DONA EXCEPCIO A LA LINIA 169
 
     static int left = 0;
     static int newObs;
@@ -166,6 +167,7 @@ public class Greedy {
             //ELSE ANEM EN LA DIRECCIO
             if (rc.canMove(dirGreedy)){
                 rc.move(dirGreedy);
+                //Ivan, aixo em peta quan no puc fer el rc.senserobot
                 if (obstacle != null && rc.senseRobotAtLocation(obstacle) != null) Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
                 if (!shoot) shoot = Shoot.tryShoot(rc, 2);
                 return;
