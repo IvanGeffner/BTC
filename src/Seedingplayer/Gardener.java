@@ -10,7 +10,6 @@ public class Gardener {
     private static MapLocation realTarget;
 
 
-
     private static int[] zone = ZoneG.nullZone();
     private static int[] zoneIWant = ZoneG.nullZone();
 
@@ -107,6 +106,7 @@ public class Gardener {
     private static void Initialize(){
         ZoneG.init(rc);
         Map.init(rc);
+        Build.init(rc);
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         int xBase = Math.round(base.x);
         int yBase = Math.round(base.y);
@@ -305,7 +305,7 @@ public class Gardener {
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
         if (ZoneG.countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
-        if (!allowedToConstruct(Constants.TREE)) {
+        if (!Build.allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
         }
@@ -319,8 +319,8 @@ public class Gardener {
             try {
                 //Si pot plantar l'arbre, el planta i no cal que retorni cap direccio
                 rc.plantTree(plantingDirection);
-                incrementTreesBuilt();
-                updateAfterConstruct(Constants.TREE);
+                Build.incrementTreesBuilt();
+                Build.updateAfterConstruct(Constants.TREE);
                 ZoneG.treeHP[index] = GameConstants.BULLET_TREE_MAX_HEALTH;
             } catch (GameActionException e) {
                 e.printStackTrace();
@@ -333,20 +333,12 @@ public class Gardener {
 
 
 
-    private static void incrementTreesBuilt(){
-        try {
-            int trees_built = rc.readBroadcast(Communication.TREES_BUILT);
-            rc.broadcast(Communication.TREES_BUILT, trees_built + 1);
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
 
     private static MapLocation tryConstruct(){
         //System.out.println("Entra construct");
         if (rc.getRobotCount() > Constants.MAX_ROBOTS) return null;
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
-        int smallUnit = bestSmallUnitToBuild();
+        int smallUnit = Build.bestSmallUnitToBuild();
         int firstUnit = -1;
         int secondUnit = -1;
         try {
@@ -372,7 +364,7 @@ public class Gardener {
 
     private static MapLocation tryConstructUnit(int unit){
         if (unit == -1) return null;
-        if (!allowedToConstruct(unit)) {
+        if (!Build.allowedToConstruct(unit)) {
             //System.out.println("No tinc prou bales per construir " + unit);
             //System.out.println("Tinc " + rc.getTeamBullets() + " i calen " + totalBulletCost(unit));
             return null;
@@ -399,8 +391,8 @@ public class Gardener {
         if (rc.getLocation().distanceTo(buildingPosition) < Constants.eps && rc.canBuildRobot(newRobotType,buildDirection)){
             try {
                 rc.buildRobot(Constants.getRobotTypeFromIndex(unit),rc.getLocation().directionTo(newRobotPosition));
-                incrementRobotsBuilt();
-                updateAfterConstruct(unit);
+                Build.incrementRobotsBuilt();
+                Build.updateAfterConstruct(unit);
                 return rc.getLocation();
             } catch (GameActionException e) {
                 e.printStackTrace();
@@ -422,152 +414,6 @@ public class Gardener {
     }
 
 
-    private static void incrementRobotsBuilt(){
-        try {
-            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
-            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //quan construim el robot, actualitzem tot
-    private static void updateAfterConstruct(int unitConstructed){
-        try {
-            int unitCurrentIndex = rc.readBroadcast(Communication.unitChannels[unitConstructed]);
-            int unitNextIndex;
-            if (unitCurrentIndex < Constants.IBL) {
-                //si esta a la build inicial
-                int i = unitCurrentIndex+1;
-                while (i < Constants.IBL && Constants.initialBuild[i] != unitConstructed) i++;
-                //ja no es torna a fer a la build inicial
-                if (i == Constants.IBL){
-                    int j = 0;
-                    while (j < Constants.SBL && Constants.sequenceBuild[j] != unitConstructed) j++;
-                    if (j == Constants.SBL){
-                        //ja no la tornem a fer mai mes
-                        unitNextIndex = (int) Constants.INF;
-                    }else{
-                        unitNextIndex = Constants.IBL + j;
-                    }
-                }else unitNextIndex = i;
-            }else {
-                int i = 0;
-                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex+1+i) % Constants.SBL] != unitConstructed) i++;
-                if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
-                else unitNextIndex = unitCurrentIndex + 1 + i;
-            }
-            rc.broadcast(Communication.unitChannels[unitConstructed], unitNextIndex);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-
-    private static boolean allowedToConstruct(int unitToConstruct){
-        float cost = totalBulletCost(unitToConstruct);
-        System.out.println("Construir " + unitToConstruct + " val " + cost + " (" + rc.getTeamBullets() + ")");
-        return rc.getTeamBullets() > cost;
-    }
-
-    private static float totalBulletCost(int unit){
-        float totalMoney = 0;
-        totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
-        if (unit == Constants.TREE){
-            totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
-            totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
-            totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
-            totalMoney += computeHowManyBehind(Constants.TANK, unit);
-        }else if(unit == Constants.TANK){
-            totalMoney += 0;//computeHowManyBehind(Constants.TREE, unit);
-        }else{
-            //totalMoney += computeHowManyBehind(Constants.TREE, unit);
-            totalMoney += computeHowManyBehind(Constants.TANK, unit);
-        }
-        float myBulletCost;
-        if (unit == Constants.TREE) myBulletCost = GameConstants.BULLET_TREE_COST;
-        else myBulletCost = Constants.ProductionUnits[unit].bulletCost;
-        return totalMoney + myBulletCost;
-    }
-
-    //calcula les bales que calen per construir tots els unit1 que van abans de unit2 en la cua
-    private static int computeHowManyBehind(int unit1, int unit2) {
-        try {
-            int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
-            int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
-            if(indexUnit1 > indexUnit2) return 0;
-            //Sabem que index1 <= index2
-
-            int howManyBehind = 0;
-            if(indexUnit2 < Constants.IBL){
-                // index1 <= index2 < IBL
-                for (int i = indexUnit1; i < indexUnit2; ++i)
-                    if (Constants.initialBuild[i] == unit1) howManyBehind++;
-
-            } else if (indexUnit1 < Constants.IBL) {
-                // index1 < IBL <= index2
-                int totalInSequence = 0;
-                int totalLastSequence = 0;
-                for (int i = indexUnit1; i < Constants.IBL; ++i) if (Constants.initialBuild[i] == unit1) howManyBehind++;
-                for (int i = 0; i < Constants.SBL; ++i){
-                    if (Constants.sequenceBuild[i] == unit1){
-                        ++totalInSequence;
-                        if (i < indexUnit2% Constants.SBL) ++totalLastSequence;
-                    }
-                }
-                int extraWholeSequences = ((indexUnit2 - Constants.IBL)/ Constants.SBL);
-                howManyBehind += totalLastSequence + totalInSequence*extraWholeSequences;
-            } else {
-                // IBL < index1 <= index2
-                int totalInSequence = 0;
-                int totalOffSet = 0;
-                for (int i = 0; i < Constants.SBL; ++i) {
-                    if (Constants.sequenceBuild[i] == unit1) {
-                        ++totalInSequence;
-                    }
-                }
-                int z = indexUnit2% Constants.SBL;
-                for (int i = indexUnit1; true ;++i){
-                    int realI = i% Constants.SBL;
-                    if (realI == z) break;
-                    if (Constants.sequenceBuild[realI] == unit1) ++howManyBehind;
-                    ++totalOffSet;
-                }
-
-                howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/ Constants.SBL)*totalInSequence;
-            }
-            System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
-            if (unit1 < 5) return howManyBehind* Constants.ProductionUnits[unit1].bulletCost;
-            else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-
-    private static int bestSmallUnitToBuild(){
-        try {
-            int minQueue = 999999;
-            int bestUnit = -1;
-            for (int i = 1; i < 5; ++i) {
-                if (i == 3) continue; //els tanks no son petits
-                //mirem nomes lumberjacks, soldiers i scouts
-                int a = rc.readBroadcast(Communication.unitChannels[i]);
-                if (a < minQueue){
-                    minQueue = a;
-                    bestUnit = i;
-                }
-            }
-            return bestUnit;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        return -1;
-    }
 
 
 

@@ -7,8 +7,10 @@ import battlecode.common.*;
  */
 public class ZoneG {
 
-    private static RobotController rc;
+    private static RobotController rc = null;
     private static int[] zone;
+
+    private static MapLocation center;
 
     private static float STREET_WIDTH = 5f;
     private static float STREET_HEIGHT = 5f;
@@ -78,7 +80,7 @@ public class ZoneG {
             }
             return null;
         }
-        return center(zone);
+        return center;
     }
 
 
@@ -247,9 +249,8 @@ public class ZoneG {
         float[] newTankPosY = new float[buildPositionsPerZone];
 
         zone = assignedZone;
-        //zoneCenterPos = getCenterPosFromZone(zone);
+        center = center(zone);
         broadcastZone(assignedZone, Constants.busyZone);
-        MapLocation center = ZoneG.center(assignedZone);
 
         try {
             if(treesPerZone == 7 && !rc.onTheMap(center.add(Direction.WEST,6f))){
