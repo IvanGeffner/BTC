@@ -9,7 +9,7 @@ import battlecode.common.*;
 public class Archon {
 
     static RobotController rc;
-    static int whoAmI = 0; //none of your business
+    static int whoAmI = -1; //none of your business
     static int xBase, yBase;
 
     static boolean leader;
@@ -21,11 +21,10 @@ public class Archon {
 
         rc = rcc;
 
-        init();
-
         while (true) {
-            if (rc.getRoundNum() == 1) init2();
+            if (rc.getRoundNum() == 2) init2();
             updateArchonCount();
+            if (rc.getRoundNum() == 1) init();
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
@@ -53,7 +52,7 @@ public class Archon {
             }
 
 
-            tryConstruct();
+            if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
             //Greedy.moveToSelf(rc, 9200);
             try {
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -87,21 +86,13 @@ public class Archon {
             Build.init(rc);
             Map.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
-            for (int i = 0; i < archons.length; ++i)
-                if (archons[i].distanceTo(rc.getLocation()) < Constants.eps){
-                    whoAmI = i;
-                    break;
-                }
 
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
 
-            if (firstToExecute()) {
+            if (whoAmI == 0) { // first to execute
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archons.length);
 
-                for (int i = 0; i < Communication.unitChannels.length; ++i) {
-                    rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
-                }
                 // inicialitzem el limits del mapa
                 rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(Constants.INF));
                 rc.broadcast(Communication.MAP_LOWER_BOUND, Float.floatToIntBits(-Constants.INF));
@@ -131,12 +122,22 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
+            chooseBuildOrder();
+            for (int i = 0; i < Communication.unitChannels.length; ++i) {
+                try {
+                    rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+            }
             tryConstruct();
+
         }
     }
 
+
     private static float getInitialScore(){
-        return 0;
+        return whoAmI + 10;
     }
 
     private static MapLocation checkNearbyEnemies(){
@@ -183,7 +184,6 @@ public class Archon {
 
     private static void tryConstruct(){
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
-        if (!myTurn()) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
         try{
             for (int i = 0; i < 4; ++i){
@@ -202,8 +202,7 @@ public class Archon {
 
     static boolean myTurn(){
         try {
-            //int archonTurn = rc.readInfoBroadcast(Communication.ARCHON_TURN);
-            int archonNumber = rc.readBroadcast(Communication.ARCHON_COUNT);
+            int archonNumber = rc.readBroadcast(Communication.ARCHONS_LAST_TURN);
             return (rc.getRoundNum()%archonNumber == whoAmI);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -220,14 +219,19 @@ public class Archon {
                 rc.broadcast(Communication.ARCHON_TURN,rc.getRoundNum());
                 rc.broadcast(Communication.ARCHON_COUNT,1);
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archonCount);
-            }else {
+                whoAmI = 0;
+            } else {
                 rc.broadcast(Communication.ARCHON_COUNT, archonCount+1);
+                whoAmI = archonCount;
             }
         } catch (GameActionException e) {
             e.printStackTrace();
         }
     }
 
+    static void chooseBuildOrder(){
+
+    }
 
     static boolean firstToExecute(){
         try {

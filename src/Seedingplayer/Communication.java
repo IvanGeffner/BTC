@@ -126,6 +126,7 @@ public class Communication {
     //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
     static void sendReport(int channel){
         try {
+            System.out.println("Envia report a " + channel);
             rc.broadcast(channel,rc.getRoundNum());
         } catch (GameActionException e) {
             e.printStackTrace();
