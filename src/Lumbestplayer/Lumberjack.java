@@ -13,6 +13,7 @@ public class Lumberjack {
     static MapLocation realTarget;
     static MapLocation newTarget;
     static float maxUtil;
+    static float scoreTarget; 
 
     static MapLocation base;
     static int xBase;
@@ -78,7 +79,8 @@ public class Lumberjack {
     {
         enemyBase = rc.getInitialArchonLocations((rc.getTeam().opponent()))[0];
         maxUtil = 0;
-
+        scoreTarget = 0; 
+        
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
@@ -108,27 +110,38 @@ public class Lumberjack {
     {
         shouldStop = false;
         shouldMove = true;
-
+        targetUpdated = false; 
         try {
-        if(realTarget != null && rc.canSenseLocation(realTarget))
-        {
-
-            TreeInfo ti = rc.senseTreeAtLocation(realTarget);
-            if (ti == null || ti.getTeam() == rc.getTeam()) {
-                realTarget = null;
-                maxUtil = 0;
-            }
-
-        } else if(rc.getRoundNum() - roundTarget >= Constants.CHANGETARGETLUMBERJACKS)
-        {
-            realTarget = null;
-            maxUtil = 0;
-        }
-
-        calculateNewTarget(enemyBase, Constants.BASESCORELUMBERJACK, false);
-
-        System.out.println("GREEDY: " + shouldGreedy);
-
+        	if(realTarget != null)
+        	{
+        		float dist1 = rc.getLocation().distanceTo(realTarget) + 1.0f;
+        		maxUtil = scoreTarget/(dist1*dist1);
+        		newTarget = realTarget; 
+        	}
+        	
+	        if(realTarget != null && rc.canSenseLocation(realTarget))
+	        {
+	
+	            TreeInfo ti = rc.senseTreeAtLocation(realTarget);
+	            if (ti == null || ti.getTeam() == rc.getTeam()) {
+	                realTarget = null;
+	                newTarget = null; 
+	                scoreTarget = 0; 
+	                maxUtil = 0;
+	            }
+	
+	        } else if(rc.getRoundNum() - roundTarget >= Constants.CHANGETARGETLUMBERJACKS)
+	        {
+	            realTarget = null;
+	            newTarget = null; 
+	            scoreTarget = 0; 
+	            maxUtil = 0;
+	        }
+	
+	        calculateNewTarget(enemyBase, Constants.BASESCORELUMBERJACK, false);
+	
+	        System.out.println("GREEDY: " + shouldGreedy);
+	        
         }catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -195,6 +208,7 @@ public class Lumberjack {
             e.printStackTrace();
         }
         try {
+        	/*
             int channel = Communication.ENEMYCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             for(int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGESLUMBERJACK;)
@@ -204,9 +218,10 @@ public class Lumberjack {
                 ++i;
             }
             initialMessageEnemy = lastMessage;
-
-            channel = Communication.STOPCHANNEL;
-            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+			*/
+        	
+            int channel = Communication.STOPCHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessageStop);
             for (int i = initialMessageStop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGESLUMBERJACK; ) {
                 int a = rc.readBroadcast(channel + i);
@@ -250,7 +265,7 @@ public class Lumberjack {
                 e.printStackTrace();
             }
         }
-        calculateNewTarget(neutralTreePos, Constants.NEUTRALTREESCORE, false);
+        calculateNewTarget(neutralTreePos, Constants.CHOPTREESCORE, false);
     }
     static void workMessageEnemyUnit(int a)
     {
@@ -265,20 +280,8 @@ public class Lumberjack {
         MapLocation pos = new MapLocation(m[1], m[2]);
         if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
     }
-
-    //finding new target
-    static void calculateNewTarget(MapLocation target, float score, boolean greedy)
-    {
-        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
-        float val = score/(dist1*dist1);
-        if(val > maxUtil || (val == maxUtil && greedy == false))
-        {
-            shouldGreedy = greedy;
-            targetUpdated = true;
-            maxUtil = val;
-            newTarget = target;
-        }
-    }
+    
+  //finding new target
     static void findBestTarget(){
         TreeInfo[] Ti = rc.senseNearbyTrees(-1,rc.getTeam().opponent());
         boolean sent = false;
@@ -286,7 +289,7 @@ public class Lumberjack {
         for (TreeInfo ti : Ti)
         {
             MapLocation enemyTree = ti.location;
-            calculateNewTarget(enemyTree, Constants.ENEMYTREESCORE, false);
+            calculateNewTarget(enemyTree, Constants.ENEMYTREESCORE + Constants.eps, false);
             if(!sent)
             {
                 sent = true;
@@ -302,11 +305,17 @@ public class Lumberjack {
         for (TreeInfo ti : Ti)
         {
             RobotType rt = ti.getContainedRobot();
-            if (rt == null) continue;
             MapLocation neutralTree = ti.location;
-            float val = rt.bulletCost;
-            if(rt == RobotType.ARCHON) val = Constants.ARCHONVALUE;
-            calculateNewTarget(ti.location, val/Constants.CONVERSIONBULLETCOST, false);
+            if (rt == null)
+            {
+            	calculateNewTarget(ti.location, Constants.RANDOMTREESCORE, false);
+            } else
+            {
+	            
+	            float val = rt.bulletCost;
+	            if(rt == RobotType.ARCHON) val = Constants.ARCHONVALUE;
+	            calculateNewTarget(ti.location, val/Constants.CONVERSIONBULLETCOST + Constants.eps, false);
+            }
             if(!sent)
             {
                 sent = true;
@@ -322,7 +331,7 @@ public class Lumberjack {
         for(RobotInfo ri : Ri){
             MapLocation enemyPos = ri.getLocation();
             if(ri.getType().equals(RobotType.ARCHON)) enemyBase = enemyPos;
-            calculateNewTarget(enemyPos, enemyScore(Constants.getIndex(ri.getType())), false);
+            calculateNewTarget(enemyPos, enemyScore(Constants.getIndex(ri.getType())) + Constants.eps, false);
             if(!sent)
             {
                 sent = true;
@@ -347,7 +356,22 @@ public class Lumberjack {
             }
         }
     }
-
+    
+    //check if it's a better target than what I haves
+    static void calculateNewTarget(MapLocation target, float score, boolean greedy)
+    {
+        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
+        float val = score/(dist1*dist1);
+        if(val > maxUtil || (val == maxUtil && greedy == true))
+        {
+        	scoreTarget = score; 
+            shouldGreedy = greedy;
+            targetUpdated = true;
+            maxUtil = val;
+            newTarget = target;
+        }
+    }
+    
     static float enemyScore(int m)
     {
         if(m == 5) return Constants.ARCHONSCORELUMBERJACK;
