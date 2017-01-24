@@ -118,7 +118,7 @@ public class Communication {
     }
 
     //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
-    public static void sendReport(RobotController rc, int channel){
+    static void sendReport(RobotController rc, int channel){
         try {
             rc.broadcast(channel,rc.getRoundNum());
         } catch (GameActionException e) {
@@ -126,5 +126,24 @@ public class Communication {
         }
     }
 
+    static boolean areArchonsAlive(RobotController rc){
+        try {
+            int lastRoundArchons = rc.readBroadcast(ARCHON_REPORT);
+            return lastRoundArchons >= rc.getRoundNum() - 1;
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    static boolean areGardenersAlive(RobotController rc){
+        try {
+            int lastRoundGardeners = rc.readBroadcast(GARDENER_REPORT);
+            return lastRoundGardeners >= rc.getRoundNum() - 1;
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }
