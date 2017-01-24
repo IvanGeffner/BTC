@@ -16,8 +16,8 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 4, 5, 5, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 5, 5, 2, 1, 5};
-    public static int[]  initialPositions = {0, 6, 5, 30, 1, 2};
+    public static int[] initialBuild = {0, 2, 2, 5, 4, 5, 1, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 5, 5, 2, 1, 5}; //22
+    public static int[]  initialPositions = {0, 6, 1, 33, 4, 3};
     public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};

@@ -79,7 +79,7 @@ Idees per triar un ordre mes ofensiu/ defensiu:
 
 
 
-
+line of fire
 
 
 
@@ -103,3 +103,7 @@ Idees random:
 - els soldats van a melee vs gardeners i archons, i per culpa d'aixo rodegen el mapa i sen van, canviar-ho
 - fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
 - A vegades els soldats es queden rodejant l'archon enemic i no se ben be per que
+- lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
+- que els soldats facin be el focus (tanks > soldiers > gardeners > lumberjacks > archons > scouts)
+- que un pagès no es posi en una zona mes propera a l'enemic que a nosaltres
+- scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny

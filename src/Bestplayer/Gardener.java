@@ -27,7 +27,7 @@ public class Gardener {
 
     private static int bitsPerZone = 5;
     private static int treesPerZone = 7;
-    private static int buildPositionsPerZone = 2;
+    private static int buildPositionsPerZone = 4;
 
     private static float interaction_dist_from_edge = 1f;
 
@@ -124,8 +124,11 @@ public class Gardener {
 
             try {
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
-                if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD)
-                    rc.donate(Math.max(0,rc.getTeamBullets() - 20));
+                if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
+                    float donation = Math.max(0, rc.getTeamBullets() - 20);
+                    if (donation > 20)
+                        rc.donate(donation);
+                }
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
@@ -149,19 +152,20 @@ public class Gardener {
         yBase = Math.round(base.y);
         Communication.setBase(xBase,yBase);
         try {
-            int xOrigin = rc.readBroadcast(Communication.ZONE_ORIGIN_X);
+            float xOrigin = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_X));
             if (xOrigin == 0){
-                rc.broadcast(Communication.ZONE_ORIGIN_X, Math.round(rc.getLocation().x * Communication.ZONE_ORIGIN_MULTIPLIER));
-                rc.broadcast(Communication.ZONE_ORIGIN_Y, Math.round(rc.getLocation().y * Communication.ZONE_ORIGIN_MULTIPLIER));
+                rc.broadcast(Communication.ZONE_ORIGIN_X, Float.floatToIntBits(rc.getLocation().x));
+                rc.broadcast(Communication.ZONE_ORIGIN_Y, Float.floatToIntBits(rc.getLocation().y));
                 zoneOriginX = rc.getLocation().x;
                 zoneOriginY = rc.getLocation().y;
             }else{
-                zoneOriginX = xOrigin / Communication.ZONE_ORIGIN_MULTIPLIER;
-                zoneOriginY = rc.readBroadcast(Communication.ZONE_ORIGIN_Y) / Communication.ZONE_ORIGIN_MULTIPLIER;
+                zoneOriginX = xOrigin;
+                zoneOriginY = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y));
             }
         } catch (GameActionException e) {
             e.printStackTrace();
         }
+        System.out.println("Origen de les zones " + zoneOriginX + "," + zoneOriginY);
     }
 
     private static int getZoneID(int[] z){
@@ -253,14 +257,14 @@ public class Gardener {
         float[] plantingOffsetY = {-0.05f,-0.05f,-0.05f,0.05f,0.05f,0.05f,0f};
         float[] wateringOffsetX = {0f,0f,0f,0f,0f,0f,0f};
         float[] wateringOffsetY = {0f,0f,0f,0f,0f,0f,0f};
-        float[] buildOffsetX = {0f,0f};
-        float[] buildOffsetY = {0f,0f};
-        float[] newRobotOffsetX= {-2f,2f};
-        float[] newRobotOffsetY= {0f,0f};
-        float[] buildTankOffsetX= {-2f,2f};
-        float[] buildTankOffsetY= {0f,0f};
-        float[] newTankOffsetX = {-5f,5f};
-        float[] newTankOffsetY = {0f,0f};
+        float[] buildOffsetX = {0f,0f,0f,0f};
+        float[] buildOffsetY = {0f,0f,0f,0f};
+        float[] newRobotOffsetX= {-2f,2f,0f,0f};
+        float[] newRobotOffsetY= {0f,0f,-2f,2f};
+        float[] buildTankOffsetX= {-2f,2f,0f,0f};
+        float[] buildTankOffsetY= {0f,0f,-2f,2f};
+        float[] newTankOffsetX = {-5f,5f,0f,0f};
+        float[] newTankOffsetY = {0f,0f,-5f,5f};
         float[] treePosX = new float[treesPerZone];
         float[] treePosY = new float[treesPerZone];
         float[] plantingPosX = new float[treesPerZone];
@@ -288,9 +292,9 @@ public class Gardener {
                 newTankOffsetX[0] = 5f;
                 indexVertexTrees = new int[] {0,3};
             }else {
-                newRobotOffsetX[1] = -2f;
-                buildTankOffsetX[1] = -2f;
-                newTankOffsetX[1] = -5f;
+                //newRobotOffsetX[1] = -2f;
+                //buildTankOffsetX[1] = -2f;
+                //newTankOffsetX[1] = -5f;
                 indexVertexTrees = new int[] {2,5};
             }
         } catch (GameActionException e) {
@@ -472,9 +476,6 @@ public class Gardener {
                 zoneIWant[0] = zoneIWant[1] = -20;
                 return;
             }
-            if (rc.isCircleOccupiedExceptByThisRobot(centerIWant,rc.getType().bodyRadius)){
-
-            }
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
             if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) assignZone(zoneIWant);
@@ -608,6 +609,7 @@ public class Gardener {
     private static MapLocation tryPlanting(){
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
+        if (countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
         if (!allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
@@ -632,6 +634,24 @@ public class Gardener {
         }
         return plantingPosition;
     }
+
+    private static int countAvailableRobotBuildPositions(){
+        //no ho fa be si la zona esta abandonada
+        int count = 0;
+        for (int i = 0; i < buildPositionsPerZone; i++){
+            try {
+                if (rc.canSenseAllOfCircle(newRobotPos[i],RobotType.SOLDIER.bodyRadius) &&
+                    !rc.isCircleOccupiedExceptByThisRobot(newRobotPos[i],RobotType.SOLDIER.bodyRadius)) count++;
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Te " + count + " posicions per construir");
+        return count;
+    }
+
+
+
 
     private static int whichTreeToPlant(){
         MapLocation myPos = rc.getLocation();
@@ -698,6 +718,7 @@ public class Gardener {
         }
         //System.out.println("Tria les units " + firstUnit + ", " + secondUnit);
         MapLocation firstTry = tryConstructUnit(firstUnit);
+        System.out.println("First try es " + firstUnit + " loc = " + firstTry );
         if (firstTry != null) return firstTry;
         return tryConstructUnit(secondUnit);
     }
@@ -843,7 +864,9 @@ public class Gardener {
 
 
     private static boolean allowedToConstruct(int unitToConstruct){
-        return rc.getTeamBullets() > totalBulletCost(unitToConstruct);
+        float cost = totalBulletCost(unitToConstruct);
+        System.out.println("Construir " + unitToConstruct + " val " + cost + " (" + rc.getTeamBullets() + ")");
+        return rc.getTeamBullets() > cost;
     }
 
     private static float totalBulletCost(int unit){
@@ -855,7 +878,7 @@ public class Gardener {
             totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);
         }else if(unit == Constants.TANK){
-            totalMoney += computeHowManyBehind(Constants.TREE, unit);
+            totalMoney += 0;//computeHowManyBehind(Constants.TREE, unit);
         }else{
             //totalMoney += computeHowManyBehind(Constants.TREE, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);
@@ -912,7 +935,7 @@ public class Gardener {
 
                 howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/Constants.SBL)*totalInSequence;
             }
-            //System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
+            System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
             if (unit1 < 4) return howManyBehind*Constants.ProductionUnits[unit1].bulletCost;
             else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
         } catch (Exception e) {

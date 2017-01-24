@@ -33,7 +33,16 @@ public class Archon {
             //tryMove();
             randomMove();
             //Greedy.moveToSelf(rc, 9200);
-
+            try {
+                if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
+                if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
+                    float donation = Math.max(0, rc.getTeamBullets() - 20);
+                    if (donation > 20)
+                        rc.donate(donation);
+                }
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
             Clock.yield();
         }
     }
