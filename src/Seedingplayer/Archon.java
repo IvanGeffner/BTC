@@ -22,6 +22,7 @@ public class Archon {
         rc = rcc;
 
         while (true) {
+            Shake.shake(rc);
             if (rc.getRoundNum() == 2) init2();
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
@@ -50,7 +51,6 @@ public class Archon {
                     }
                 }
             }
-
 
             if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
             //Greedy.moveToSelf(rc, 9200);
@@ -137,6 +137,7 @@ public class Archon {
 
 
     private static float getInitialScore(){
+
         return whoAmI + 10;
     }
 

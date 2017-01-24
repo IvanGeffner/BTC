@@ -44,6 +44,7 @@ public class Lumberjack {
         while (true) {
             //code executed continually, don't let it end
 
+            Shake.shake(rc);
             shouldStop = false;
             shouldMove = true;
 

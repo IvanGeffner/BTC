@@ -41,6 +41,7 @@ public class Soldier {
 
         while (true) {
 
+            Shake.shake(rc);
             shouldStop = false;
 
             //code executed continually, don't let it end

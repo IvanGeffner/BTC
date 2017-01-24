@@ -27,6 +27,7 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
+            Shake.shake(rc);
             Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;

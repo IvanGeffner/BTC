@@ -51,7 +51,7 @@ public class Scout {
             //readMessages();
             checkMapBounds();
 
-            tryShake();
+            Shake.shake(rc);
 
             System.out.println("0");
             MapLocation newTarget = findBestTree();
@@ -114,30 +114,6 @@ public class Scout {
     }
 
 
-    static void tryShake(){
-
-        float maxBullets = 0;
-        int id = -1;
-
-        TreeInfo[] Ti = rc.senseNearbyTrees (rc.getType().strideRadius, Team.NEUTRAL);
-        for (TreeInfo ti : Ti){
-            if (ti.getContainedBullets() > maxBullets){
-                if (!rc.canShake(ti.getID())) continue;
-                maxBullets = ti.getContainedBullets();
-                id = ti.getID();
-            }
-        }
-        try {
-            if (maxBullets > 0) rc.shake(id);
-            else return;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-
-        if (rc.canShake()) tryShake();
-
-    }
 
     static void moveInYourDirection(){
         try {
