@@ -133,8 +133,8 @@ public class Greedy {
             expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
 
             if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
-            else dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
-            //else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
+            else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2 - (Constants.COSTSORT + Constants.COSTSELECTION))*bullets.length  < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
 
             //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
             //dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
