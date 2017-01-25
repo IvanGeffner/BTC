@@ -21,19 +21,19 @@ public class Constants {
 
 
     public static int[] rushInitBuild = {-1,0,2,2,6,6,4,1,2,6};
-    public static int[] rushSeqBuild =  {6,2,6,0,6,2,6,2,6,1,6,3};
+    public static int[] rushSeqBuild =  {6,2,6,0,6,2,6,6,2,6,1,6,3};
 
     public static int[] closeCagedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,2};
     public static int[] closeCagedSeqBuild = {6,1,6,0,6,2,6,2,6,1,6,3};
 
     public static int[] farOpenInitBuild = {-1,0,4,6,6,2,6,2,6,1,6,4};
-    public static int[] farOpenSeqBuild = {6,2,6,0,6,2,6,1,6,3};
+    public static int[] farOpenSeqBuild = {6,2,6,6,0,6,2,6,6,1,6,6,3};
 
     public static int[] farCagedInitBuild = {-1,0,4,1,6,6,1,4,2,6,6,1};
-    public static int[] farCagedSeqBuild =  {6,2,6,0,6,1,6,2,6,1,6,3};
+    public static int[] farCagedSeqBuild =  {6,2,6,6,0,6,1,6,6,2,6,1,6,6,3};
 
     public static int[] balancedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,6};
-    public static int[] balancedSeqBuild = {6,1,6,0,6,2,6,2,6,3,6,2};
+    public static int[] balancedSeqBuild = {6,1,6,6,0,6,2,6,2,6,6,3,6,2};
 
     public static int[][] initBuilds = {rushInitBuild,closeCagedInitBuild,farOpenInitBuild,farCagedInitBuild,balancedInitBuild};
     public static int[][] seqBuids = {rushSeqBuild,closeCagedSeqBuild,farOpenSeqBuild,farCagedSeqBuild,balancedSeqBuild};
