@@ -184,7 +184,12 @@ public class Greedy {
             if (rc.canMove(dirGreedy)){
                 rc.move(dirGreedy);
                 //Ivan, aixo em peta quan no puc fer el rc.senserobot
-                if (obstacle != null && rc.senseRobotAtLocation(obstacle) != null) Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
+                if (obstacle != null && rc.canSenseLocation(obstacle)) {
+                    RobotInfo r = rc.senseRobotAtLocation(obstacle);
+                    if (r != null && r.getTeam() == rc.getTeam()) {
+                        Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
+                    }
+                }
                 if (!shoot) shoot = Shoot.tryShoot(rc, 2);
                 return;
             }
