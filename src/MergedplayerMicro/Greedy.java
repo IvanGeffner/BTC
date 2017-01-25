@@ -125,16 +125,15 @@ public class Greedy {
             }
             getBullets(rc);
 
+            Direction dirGreedy;
+            float expectedByteCode = Clock.getBytecodeNum();
+            expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
+            expectedByteCode += 2*RiE.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 4 * RiE.length;
+            expectedByteCode += Ti.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ti.length;
+            expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
 
-            //float expectedByteCode = Clock.getBytecodeNum();
-            //expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
-            //expectedByteCode += 2*RiE.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 4 * RiE.length;
-            //expectedByteCode += Ti.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ti.length;
-            //expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
-
-            Direction dirGreedy = greedyStep(rc, bytecodeleft);
-            //if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
-            //else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2)*bullets.length < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
+            else dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
             //else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
 
             //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
