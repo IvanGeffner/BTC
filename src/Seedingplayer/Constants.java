@@ -19,6 +19,9 @@ public class Constants {
     public static int[] initialPositions = {0, 6, 1, 33, 4, 3};
     public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
+
+
+
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
     //public static int[] sequenceBuild = {1,2,2,2,3,2,2,3,0};

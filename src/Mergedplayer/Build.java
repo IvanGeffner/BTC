@@ -117,7 +117,7 @@ public class Build {
                 howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/ Constants.SBL)*totalInSequence;
             }
             System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
-            if (unit1 < 5) return howManyBehind* Constants.ProductionUnits[unit1].bulletCost;
+            if (unit1 < 6) return howManyBehind* Constants.ProductionUnits[unit1].bulletCost;
             else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
         } catch (Exception e) {
             System.out.println(e.getMessage());
