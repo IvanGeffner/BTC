@@ -54,7 +54,7 @@ public class Build {
             //totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             //totalMoney += computeHowManyBehind(Constants.TANK, unit);
             //totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
-            if (rc.getRoundNum() < 1000) totalMoney += computeHowManyBehind(Constants.TREE, unit);
+            if (rc.getRoundNum() < 500) totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }else if(unit == Constants.GARDENER){
             //totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
