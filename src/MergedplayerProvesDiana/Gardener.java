@@ -28,7 +28,7 @@ public class Gardener {
         Initialize();
         while (true) {
             Shake.shake(rc);
-            checkEnemyRatio(); 
+            checkEnemyRatio();
             Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
@@ -130,42 +130,43 @@ public class Gardener {
 
     private static void checkEnemyRatio()
     {
-    	RobotInfo[] Ri = rc.senseNearbyRobots(); 
-    	int enemies = 0; 
-    	for(RobotInfo ri : Ri)
-    	{
-    		if(ri.getTeam().equals(rc.getTeam())) if(!ri.getType().equals(RobotType.TANK) || !ri.getType().equals(RobotType.SOLDIER)) continue;
-    		if(ri.getTeam().equals(rc.getTeam())) --enemies; 
-    		else ++enemies; 
-    	}
-    	
-    	if(enemies > 0) 
-    	{
-    		try
-    		{
-	    		Direction d = Direction.NORTH; 
-	    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
-	    		else
-	    		{
-		    		d = Direction.SOUTH; 
-		    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
-		    		else
-		    		{
-			    		d = Direction.EAST; 
-			    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
-			    		else
-			    		{
-				    		d = Direction.WEST; 
-				    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
-			    		}
-		    		}
-	    		}
-    		} catch (GameActionException e){
+        RobotInfo[] Ri = rc.senseNearbyRobots();
+        int enemies = 0;
+        for(RobotInfo ri : Ri)
+        {
+            if(ri.getTeam().equals(rc.getTeam())) if(!ri.getType().equals(RobotType.TANK) && !ri.getType().equals(RobotType.SOLDIER)) continue;
+            if(ri.getTeam().equals(rc.getTeam())) --enemies;
+            else ++enemies;
+        }
+
+        if(enemies > 0)
+        {
+            try
+            {
+                Direction d = Direction.NORTH;
+                if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+                else
+                {
+                    d = Direction.SOUTH;
+                    if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+                    else
+                    {
+                        d = Direction.EAST;
+                        if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+                        else
+                        {
+                            d = Direction.WEST;
+                            if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+                        }
+                    }
+                }
+            } catch (GameActionException e){
                 e.printStackTrace();
             }
-    	}
+        }
     }
-    
+
+
     private static int[] searchZone() {
         if (ZoneG.hasValue(zoneIWant)) return zoneIWant;
         int[] closest_empty_zone = ZoneG.nullZone();
@@ -337,7 +338,7 @@ public class Gardener {
         try {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
+            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
             if (tankIndex < smallUnitIndex) {
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;

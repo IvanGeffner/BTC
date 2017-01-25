@@ -87,6 +87,8 @@ public class Greedy {
         changeTarget(tar, rc);
         if (target == null) return;
 
+        System.out.println("heyaa");
+
         try {
             pos = rc.getLocation();
             if (R < 0) {
@@ -123,16 +125,15 @@ public class Greedy {
             }
             getBullets(rc);
 
-
+            Direction dirGreedy;
             float expectedByteCode = Clock.getBytecodeNum();
             expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
             expectedByteCode += 2*RiE.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 4 * RiE.length;
             expectedByteCode += Ti.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ti.length;
             expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
 
-            Direction dirGreedy;
             if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
-            else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2)*bullets.length < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2 - (Constants.COSTSORT + Constants.COSTSELECTION))*bullets.length  < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
             else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
 
             //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
@@ -147,7 +148,7 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (sortedEnemies.length > 0){
                     MapLocation enemyLoc = sortedEnemies[0].getLocation();
-                    if (!shoot && Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                    if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 
@@ -269,7 +270,7 @@ public class Greedy {
 
     public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
 
-        //if (tries == 0) System.out.println("SUPER LOW BYTECODE");
+        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
 
         if (tries >= Constants.GREEDYTRIES) return null;
 
@@ -467,7 +468,7 @@ public class Greedy {
 
     public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
 
-        //System.out.println("SUPER HIGH BYTECODEE!!");
+        System.out.println("LOW BYTECODEE!!");
 
 
         if (dir == null){
@@ -629,7 +630,7 @@ public class Greedy {
         for (BulletInfo bul : bullets) {
             if (Clock.getBytecodeNum() + Constants.COSTCYCLE2 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
 
-            addIntervals(bul);
+            addIntervalsImproved(bul);
 
         }
 
@@ -687,7 +688,7 @@ public class Greedy {
 
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
 
-       // System.out.println("SUPER HIGH BYTECODEE!!");
+       System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -1066,6 +1067,89 @@ public class Greedy {
             if (i < higherIndex){
                 quickSort(i, higherIndex);
         }
+    }
+
+    static void addIntervalsImproved (BulletInfo b){
+
+        System.out.println("Tractament bala: " + Clock.getBytecodeNum());
+
+        MapLocation m1 = b.getLocation();
+        MapLocation m2 = m1.add(b.getDir(),b.getSpeed());
+        Direction perp = b.getDir().rotateLeftRads((float) Math.PI / 2);
+
+        //NO IMPORTA
+        if (!shouldMove && m1.add(b.getDir(), b.getSpeed()/2).distanceTo(target) <= b.getSpeed()/2 + R) shouldMove = true;
+
+        Direction dirv11 = null, dirv21 = null, dirv12 = null, dirv22 = null;
+
+        Direction Dirm1 = pos.directionTo(m1), Dirm2 = pos.directionTo(m2);
+        float distm1 = pos.distanceTo(m1), distm2 = pos.distanceTo(m2);
+
+        float dist = distm1 * (float) Math.cos(perp.radiansBetween(Dirm1));
+
+        float hCoordm1 = distm1*(float) Math.sin(perp.radiansBetween(Dirm1)), hCoordm2 = distm2*(float) Math.sin(perp.radiansBetween(Dirm2));
+
+
+        float dist1 = dist + R;
+        float c = dist1/r;
+        if (-1 <= c && c <= 1) {
+
+            float ang = (float) Math.acos(c);
+            float hCoord1 = r*(float)Math.sin(ang);
+            if (hCoordm1 >= hCoord1 && hCoordm2 <= hCoord1) dirv11 = perp.rotateLeftRads(ang);
+            if (hCoordm1 >= -hCoord1 && hCoordm2 <= -hCoord1) dirv21 = perp.rotateRightRads(ang);
+
+        }
+
+        float dist2 = dist-R;
+
+        c = dist2/r;
+        if (-1 <= c && c <= 1) {
+            float ang = (float) Math.acos(c);
+            float hCoord1 = r*(float)Math.sin(ang);
+            if (hCoordm1 >= hCoord1 && hCoordm2 <= hCoord1) dirv12 = perp.rotateLeftRads(ang);
+            if (hCoordm1 >= -hCoord1 && hCoordm2 <= -hCoord1) dirv22 = perp.rotateRightRads(ang);
+        }
+
+        if (dirv11 == null || dirv12 == null) {
+            float t = (distm1*distm1 + rr - R * R) / (2.0f * distm1 * r);
+            if (-1 <= t && t <= 1) {
+                float angle = (float) Math.acos(t);
+                float hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateRightRads(angle)));
+                if (hCoord1 >= hCoordm1) dirv11 = Dirm1.rotateRightRads(angle);
+                hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateLeftRads(angle)));
+                if (hCoord1 >= hCoordm1) dirv12 = Dirm1.rotateLeftRads(angle);
+            }
+        }
+
+        if (dirv21 == null || dirv22 == null) {
+            float t = (distm2*distm2 + rr - R * R) / (2.0f * distm2 * r);
+            if (-1 <= t && t <= 1) {
+                float angle = (float) Math.acos(t);
+                float hCoord2 = r*(float)Math.sin(perp.radiansBetween(Dirm2.rotateLeftRads(angle)));
+                if (hCoord2 <= hCoordm2) dirv21 = Dirm2.rotateLeftRads(angle);
+                hCoord2 = r*(float)Math.sin(perp.radiansBetween(Dirm2.rotateRightRads(angle)));
+                if (hCoord2 <= hCoordm2) dirv22 = Dirm2.rotateRightRads(angle);
+            }
+        }
+
+        System.out.println("Final Tractament bala: " + Clock.getBytecodeNum());
+
+
+        if (dirv11 != null) {
+            if (dirv21 != null) {
+                if (dirv12 != null) {
+                    addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
+                    addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
+                } else addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv21));
+            } else {
+                if (dirv12 != null) addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
+            }
+        } else {
+            if (dirv21 != null) addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
+            else if (dirv12 != null) addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv12));
+        }
+
     }
 
     static void addIntervals(BulletInfo b){

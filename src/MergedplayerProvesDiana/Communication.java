@@ -60,8 +60,8 @@ public class Communication {
 
 
     //BC parameters
-    //gardener lumberjack soldier tank scout archon trees
-    static final int[] unitChannels = {501, 502, 503, 504, 505, 506, 507};
+    //gardener lumberjack soldier tank scout trees
+    static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
     static final int INITIALIZED = 507;
 
     static final int ARCHON_TURN = 508;
@@ -69,10 +69,6 @@ public class Communication {
     static final int ARCHONS_LAST_TURN = 510;
 
     static final int MAX_BROADCAST_MESSAGE = 500;
-
-
-    static final int BUILDPATH = 515;
-
 
     static final int typeMask = 0xF0000000; //at most 15
     static final int iOffMask = 0x0FF00000; //at most 255
