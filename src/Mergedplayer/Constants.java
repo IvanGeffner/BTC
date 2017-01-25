@@ -123,6 +123,8 @@ public class Constants {
     static float ADDTODISTANCELUMBERJACK = 5.0f; 
 
 
+    static float MAXVICTORYPONTS = 1000.0f;
+
     static int getIndex(RobotType r){
         if (r == RobotType.GARDENER) return 0;
         else if (r == RobotType.LUMBERJACK) return 1;
@@ -168,5 +170,10 @@ public class Constants {
         return ProductionUnits[a].bodyRadius;
     }
 
+    static float costOfVictoryPoints(int round)
+    {
+        float cost = 12.5f/(2999.0f)*((float)round-1.0f)+7.5f;
+        return cost;
+    }
 
 }

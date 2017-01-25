@@ -30,7 +30,7 @@ public class Archon {
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
-                if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
+                //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
             }else {
                 newTarget = checkShakeTrees();
                 if (newTarget != null){
@@ -55,6 +55,7 @@ public class Archon {
             Map.checkMapBounds();
             if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
             try {
+                if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
                 if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
                     float donation = Math.max(0, rc.getTeamBullets() - 20);
@@ -67,7 +68,7 @@ public class Archon {
 
             updateTarget(newTarget);
             if (realTarget == null) {
-                if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
