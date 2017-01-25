@@ -13,8 +13,11 @@ public class Archon {
     static int xBase, yBase;
 
     static boolean leader;
+    static boolean danger;
 
     static MapLocation realTarget;
+
+
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -30,9 +33,11 @@ public class Archon {
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
+                danger = true;
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
             }else {
+                danger = false;
                 newTarget = checkShakeTrees();
                 if (newTarget != null){
                     System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
@@ -283,6 +288,7 @@ public class Archon {
     }
 
     private static void tryConstruct(){
+
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
         try{
