@@ -44,8 +44,8 @@ public class Archon {
             MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
             xBase = Math.round(base.x);
             yBase = Math.round(base.y);
-
-            Communication.setBase(xBase,yBase);
+            
+            Communication.setBase(xBase, yBase);
 
             initialMessagePlant = 0;
             try{
