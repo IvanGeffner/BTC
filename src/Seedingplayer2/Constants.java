@@ -1,4 +1,4 @@
-package Seedingplayer;
+package Seedingplayer2;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
@@ -33,12 +33,14 @@ public class Constants {
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;
 
+
     //SOLDIERS, TANKS
     public static float ENEMYBASESCORE = 0.1f;
     public static int BYTECODEPOSTENEMYMESSAGES = 9500;
     public static int BYTECODEPOSTEMERGENCYMESSAGES = 9250;
     public static int BYTECODEPOSTSTOPMESSAGES = 9000;
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8750;
+
 
     public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows
@@ -51,9 +53,9 @@ public class Constants {
     public static float minHPGoWater = 25f;
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
-    public static int SAFETYMARGIN = 8000;
+    public static int SAFETYMARGIN = 7500;
     public static int SAFETYMARGINCHECKTREES = 4000;
-    public static int SAFETYMARGINSCOUTS = 400;
+    public static int SAFETYMARGINSCOUTS = 300;
     public static int LUMBERCHECK = 5000;
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.01f;

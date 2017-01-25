@@ -1,4 +1,4 @@
-package Seedingplayer;
+package Seedingplayer2;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Soldier {
+public class Tank {
 
     static RobotController rc;
 
@@ -24,7 +24,6 @@ public class Soldier {
     static int initialMessageStop = 0;
 
     static float maxUtil;
-    static float maxScore;
 
     static int round;
     static int roundTarget;
@@ -42,12 +41,33 @@ public class Soldier {
 
         while (true) {
 
-            beginRound();
+            shouldStop = false;
+
+            //code executed continually, don't let it end
+            targetUpdated = false;
+            if (realTarget != null && rc.canSenseLocation(realTarget)){
+                newTarget = null;
+                maxUtil = 0;
+            } else if (realTarget != null && rc.getRoundNum() - roundTarget < Constants.CHANGETARGET){
+                newTarget = realTarget;
+            } else{
+                newTarget = null;
+                maxUtil = 0;
+            }
+
+            float val = 5.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
+            if (!rc.canSenseLocation(enemyBase) && val > maxUtil){
+                maxUtil = val;
+                newTarget = enemyBase;
+            }
 
 
             round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
+
+            if (targetUpdated) maxUtil += 1;
+            else maxUtil -= 0.03f;
 
             updateTarget();
             try {
@@ -58,10 +78,7 @@ public class Soldier {
             }
 
             if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
-            else{
-                adjustTarget();
-                Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
-            }
+            else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
             Clock.yield();
         }
@@ -75,11 +92,9 @@ public class Soldier {
 
         Communication.init(rc,xBase, yBase);
 
-        maxUtil = 0;
-        maxScore = 0;
+        maxUtil = 5.0f/(1.0f + rc.getLocation().distanceTo(enemyBase));
         newTarget = enemyBase;
-
-        roundTarget = rc.getRoundNum();
+        roundTarget = 1;
 
         initialMessageEmergency = 0;
         initialMessageEnemy = 0;
@@ -96,59 +111,6 @@ public class Soldier {
         }
     }
 
-    static void beginRound(){
-
-        shouldStop = false;
-        targetUpdated = false;
-        if (realTarget != null && rc.canSenseLocation(realTarget)){
-            newTarget = null;
-            maxUtil = 0;
-            maxScore = 0;
-        } else if (realTarget != null && rc.getRoundNum() - roundTarget < Constants.CHANGETARGET){
-            maxUtil = 0;
-            updateNewTarget(realTarget, maxScore, false);
-        } else{
-            newTarget = null;
-            maxUtil = 0;
-            maxScore = 0;
-        }
-
-        updateNewTarget(enemyBase, Constants.ENEMYBASESCORE, true);
-    }
-
-    static void adjustTarget(){
-        try {
-            if (realTarget == null) {
-                realTarget = rc.getLocation();
-                return;
-            }
-            if (!rc.canSenseLocation(realTarget)) return;
-            RobotInfo r = rc.senseRobotAtLocation(realTarget);
-            if (r == null) return;
-            RobotType rt = r.getType();
-            if (rt == RobotType.GARDENER) {
-                if (rc.getLocation().distanceTo(r.getLocation()) < 2.7f) realTarget = rc.getLocation();
-            }
-            if (rt == RobotType.ARCHON) {
-                if (rc.getLocation().distanceTo(r.getLocation()) < 3.5f) realTarget = rc.getLocation();
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    static void updateNewTarget(MapLocation target, float score, boolean update){
-        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
-        float val = score/(dist1*dist1);
-        if (val > maxUtil){
-            maxUtil = val;
-            maxScore = score;
-            newTarget = target;
-            if (update) targetUpdated = true;
-        }
-    }
-
     static void updateTarget(){
         if(targetUpdated) roundTarget = rc.getRoundNum();
         realTarget = newTarget;
@@ -159,7 +121,7 @@ public class Soldier {
             int channel = Communication.ENEMYCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemy);
-            for (int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYMESSAGES; ) {
+            for (int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEnemy(a);
                 ++i;
@@ -170,7 +132,7 @@ public class Soldier {
             channel = Communication.EMERGENCYCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEmergency);
-            for (int i = initialMessageEmergency; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTEMERGENCYMESSAGES; ) {
+            for (int i = initialMessageEmergency; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEmergency(a);
                 ++i;
@@ -181,7 +143,7 @@ public class Soldier {
             channel = Communication.STOPCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessageStop);
-            for (int i = initialMessageStop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTSTOPMESSAGES; ) {
+            for (int i = initialMessageStop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageStop(a);
                 ++i;
@@ -192,7 +154,7 @@ public class Soldier {
             channel = Communication.ENEMYGARDENERCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemyGardener);
-            for (int i = initialMessageEnemyGardener; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYGARDENERMESSAGES; ) {
+            for (int i = initialMessageEnemyGardener; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEnemyGardener(a);
                 ++i;
@@ -208,17 +170,23 @@ public class Soldier {
     static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (a == 5) enemyBase = enemyPos;
-        if (rc.canSenseLocation(enemyPos)) return;
-        updateNewTarget(enemyPos, enemyScore(a), true);
+        float val = enemyScore(enemyPos, m[3]);
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
+        }
     }
 
     static void workMessageEnemyGardener(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (rc.canSenseLocation(enemyPos)) return;
-        if (a == 5) enemyBase = enemyPos;
-        updateNewTarget(enemyPos, enemyScore(a), true);
+        float val = enemyScore(enemyPos, 0);
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
+        }
     }
 
     static void workMessageStop(int a){
@@ -230,24 +198,34 @@ public class Soldier {
     static void workMessageEmergency(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (rc.canSenseLocation(enemyPos)) return;
-        updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
+        float val = Constants.EMERGENCYSCORE/(1.0f + enemyPos.distanceTo(rc.getLocation()));
+        if (val > maxUtil){
+            maxUtil = val;
+            newTarget = enemyPos;
+            targetUpdated = true;
+        }
     }
 
-    static float enemyScore (int a) {
-        if (a == 5) return 8;
-        if (a == 4) return 15;
-        if (a == 2) return 12;
-        if (a == 1) return 8;
-        return 20;
+    static float enemyScore (MapLocation m, int a){
+        if (m == null) return 0;
+        float d = rc.getLocation().distanceTo(m);
+        float s = 0;
+        if (a == 5) s = 8;
+        else if (a == 4) s = 20;
+        else if (a == 3) s = 15;
+        else if (a == 2) s = 20;
+        else if (a == 1) s = 8;
+        else if (a == 0) s = 15;
+        return s/(1.0f + d);
     }
 
     static void broadcastLocations() {
         if (round != rc.getRoundNum()) return;
-
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        boolean sent = false;
 
+        float maxUtil2 = 0;
+        MapLocation newTarget2 = null;
+        int a2 = 0;
 
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
@@ -257,12 +235,21 @@ public class Soldier {
             int a = Constants.getIndex(ri.type);
             if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
             else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-            updateNewTarget(enemyPos, enemyScore(a), true);
-            if (!sent){
-                Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                sent = true;
+            float val = enemyScore(enemyPos, a);
+            if (val > maxUtil2) {
+                maxUtil2 = val;
+                newTarget2 = enemyPos;
+                a2 = a;
+                targetUpdated = true;
             }
         }
+
+        if (maxUtil2 > maxUtil){
+            maxUtil = maxUtil2;
+            newTarget = newTarget2;
+        }
+
+        if (newTarget2 != null) Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(newTarget2.x), Math.round(newTarget2.y), a2);
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {

@@ -1,4 +1,4 @@
-package Seedingplayer;
+package Seedingplayer2;
 
 import battlecode.common.*;
 
