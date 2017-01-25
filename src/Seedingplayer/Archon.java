@@ -9,7 +9,7 @@ import battlecode.common.*;
 public class Archon {
 
     static RobotController rc;
-    static int whoAmI = -1; //none of your business
+    private static int whoAmI = -1; //none of your business
     static int xBase, yBase;
 
     static boolean leader;
@@ -52,8 +52,8 @@ public class Archon {
                 }
             }
 
+            Map.checkMapBounds();
             if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
-            //Greedy.moveToSelf(rc, 9200);
             try {
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
                 if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
@@ -137,8 +137,30 @@ public class Archon {
 
 
     private static float getInitialScore(){
+        float distToEnemy = Constants.INF;
+        MapLocation myPos = rc.getLocation();
+        MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        for (MapLocation enemy: enemies){
+            distToEnemy = Math.min(distToEnemy,myPos.distanceTo(enemy));
+        }
 
-        return whoAmI + 10;
+
+        float totalArea = getSurfaceArea();
+        float treeArea = 0;
+        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
+        float extraBullets = GameConstants.BULLETS_INITIAL_AMOUNT;
+        for (TreeInfo tree: trees){
+            //se que aixo no esta be pero es una merda fer-ho exacte
+            treeArea += tree.getRadius()*tree.getRadius()*(float)Math.PI;
+            if (tree.getContainedRobot() == null) continue;
+            extraBullets += tree.getContainedRobot().bulletCost;
+        }
+
+        float freeArea = totalArea - treeArea;
+        float score = distToEnemy * extraBullets * freeArea;
+        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
+        System.out.println("Score = " + score);
+        return score;
     }
 
     private static MapLocation checkNearbyEnemies(){
@@ -231,15 +253,43 @@ public class Archon {
     }
 
     static void chooseBuildOrder(){
-
+        //TODO
     }
 
-    static boolean firstToExecute(){
-        try {
-            return rc.readBroadcast(Communication.ARCHON_INIT_SCORE[0]) != 0;
-        } catch (GameActionException e) {
-            e.printStackTrace();
+
+    public static float getSurfaceArea(){
+        MapLocation center = rc.getLocation();
+        float r = rc.getType().sensorRadius;
+        float dTop = Map.maxY - center.y;
+        float dRight = Map.maxX - center.x;
+        float dBot = center.y - Map.minY;
+        float dLeft = center.x - Map.minX;
+        float dHor = Math.min(dLeft,dRight);
+        float dVer = Math.min(dBot,dTop);
+        float dMax = Math.max(dHor,dVer);
+        float dMin = Math.min(dHor,dVer);
+        if (dMin > r){
+            //tot dintre el mapa
+            return (float) Math.PI * r * r;
         }
-        return false;
+        if (dMax > r){
+            //prop de l'aresta
+            float angle = 2 * (float) Math.acos(dMin / r);
+            return r*r*(2*(float)Math.PI+(float)Math.sin(angle)-angle)/2;
+        }
+        if (dMin*dMin + dMax*dMax < r*r){
+            //el vertex esta dintre el cercle
+            float a1 = (float) Math.acos(dMin/r);
+            float a2 = (float) Math.acos(dMax/r);
+            float S1 = dMax*dMin;
+            float S2 = r*dMin*(float)Math.sin(a1)/2;
+            float S3 = r*dMax*(float)Math.sin(a2)/2;
+            float S4 = r*r*(1.5f*(float)Math.PI -a1-a2)/2;
+            return S1+S2+S3+S4;
+        }
+        //el vertex esta casi a dins
+        float a1 = 2*(float) Math.acos(dMin/r);
+        float a2 = 2*(float) Math.acos(dMax/r);
+        return r*r*(2*(float)Math.PI + +(float)Math.sin(a1)-a1+(float)Math.sin(a2)-a2);
     }
 }

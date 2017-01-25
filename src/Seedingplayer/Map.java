@@ -9,10 +9,10 @@ public class Map {
 
     private static RobotController rc;
 
-    public static float mapMinX = -Constants.INF;
-    public static float mapMinY = -Constants.INF;
-    public static float mapMaxX = Constants.INF;
-    public static float mapMaxY = Constants.INF;
+    public static float minX = -Constants.INF;
+    public static float minY = -Constants.INF;
+    public static float maxX = Constants.INF;
+    public static float maxY = Constants.INF;
 
     public static void init(RobotController rc2){
         rc = rc2;
@@ -24,56 +24,56 @@ public class Map {
             return;
         }
         try {
-            if (mapMaxY == Constants.INF) {
+            if (maxY == Constants.INF) {
                 float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_UPPER_BOUND));
                 if (bound == Constants.INF) {
                     MapLocation m = checkMapBound(Direction.NORTH);
                     if (m != null) {
                         rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(m.y));
-                        mapMaxY = bound;
+                        maxY = bound;
                     }
                 }
                 else {
-                    mapMaxY = bound;
+                    maxY = bound;
                 }
             }
-            if (mapMinY == -Constants.INF) {
+            if (minY == -Constants.INF) {
                 float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LOWER_BOUND));
                 if (bound == -Constants.INF) {
                     MapLocation m = checkMapBound(Direction.SOUTH);
                     if (m != null) {
                         rc.broadcast(Communication.MAP_LOWER_BOUND, Float.floatToIntBits(m.y));
-                        mapMinY = m.y;
+                        minY = m.y;
                     }
                 }
                 else {
-                    mapMinY = bound;
+                    minY = bound;
                 }
             }
-            if (mapMinX == -Constants.INF) {
+            if (minX == -Constants.INF) {
                 float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_LEFT_BOUND));
                 if (bound == -Constants.INF) {
                     MapLocation m = checkMapBound(Direction.WEST);
                     if (m != null) {
                         rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(m.x));
-                        mapMinX = m.x;
+                        minX = m.x;
                     }
                 }
                 else {
-                    mapMinX = bound;
+                    minX = bound;
                 }
             }
-            if (mapMaxX == Constants.INF) {
+            if (maxX == Constants.INF) {
                 float bound = Float.intBitsToFloat(rc.readBroadcast(Communication.MAP_RIGHT_BOUND));
                 if (bound == Constants.INF) {
                     MapLocation m = checkMapBound(Direction.EAST);
                     if (m != null) {
                         rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(m.x));
-                        mapMaxX = m.x;
+                        maxX = m.x;
                     }
                 }
                 else {
-                    mapMaxX = bound;
+                    maxX = bound;
                 }
             }
 
@@ -102,6 +102,6 @@ public class Map {
     }
 
     public static boolean onCurrentMap(MapLocation pos){
-        return mapMinX < pos.x && pos.x < mapMaxX && mapMinY < pos.y && pos.y < mapMaxY;
+        return minX < pos.x && pos.x < maxX && minY < pos.y && pos.y < maxY;
     }
 }

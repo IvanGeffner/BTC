@@ -79,8 +79,6 @@ Idees per triar un ordre mes ofensiu/ defensiu:
 
 
 
-line of fire
-
 
 
 
@@ -90,11 +88,7 @@ line of fire
 
 
 Idees random:
-- que tothom faci shake
-- l'archon crea el primer gardener en coordenades enteres, i si pot, en la direccio contraria a l'archon enemic si esta molt a prop (ex. crumped)
 - que els tanks matin arbres neutrals/enemics
-- executar millor el build order (amb lo de units behind etc)
-- en el mapa chess els scouts es bugejen (es queden quiets quan arriben al final del mapa)
 - si hi ha molts arbres al principi (es a dir, si les posicions de construir estan ocupades), el gardener fa scout -> lumber en comptes de scout -> tree
 - que els gardeners puguin enviar un missatge "marxeu de la posicio X"
 - si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
@@ -104,6 +98,9 @@ Idees random:
 - fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
 - A vegades els soldats es queden rodejant l'archon enemic i no se ben be per que
 - lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
+- soldiers no disparen als archons els primers X torns
 - que els soldats facin be el focus (tanks > soldiers > gardeners > lumberjacks > archons > scouts)
 - que un pagès no es posi en una zona mes propera a l'enemic que a nosaltres
 - scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny
+
+- archons intenten construir sempre, excepte si estan en perill, excepte si son l'unic

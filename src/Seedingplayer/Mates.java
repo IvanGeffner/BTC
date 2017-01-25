@@ -30,9 +30,7 @@ public class Mates {
         return ((c.radiansBetween(a) > c.radiansBetween(b)) == left);
     }
 
-    private static boolean isPointInCircle(MapLocation point, MapLocation center, float radius){
-        return (center.distanceTo(point) <= radius);
-    }
+
 
 
     public static Direction extremeCircleDirection(MapLocation pos, MapLocation nextPos, float stride, MapLocation circlePos, float r, boolean left){

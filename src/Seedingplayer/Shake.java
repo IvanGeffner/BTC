@@ -13,9 +13,7 @@ public class Shake {
         int id = -1;
         TreeInfo[] Ti = rc.senseNearbyTrees(3, Team.NEUTRAL);
 
-        System.out.println("Entra shake " + Ti.length);
         for (TreeInfo ti : Ti){
-            System.out.println("bullets trobades: " + ti.getContainedBullets());
             if (ti.getContainedBullets() > maxBullets){
                 if (!rc.canShake(ti.getID())) continue;
                 maxBullets = ti.getContainedBullets();

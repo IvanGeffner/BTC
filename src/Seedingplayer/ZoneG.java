@@ -159,16 +159,16 @@ public class ZoneG {
         try {
             if (!Map.onCurrentMap(center) || (rc.canSenseAllOfCircle(center,rc.getType().bodyRadius) && !rc.onTheMap(center, rc.getType().bodyRadius))){
                 ZoneG.broadcastInfo(z,Constants.outOfMapZone);
-                if (center.x < Map.mapMinX) {
+                if (center.x < Map.minX) {
                     ZoneG.broadcastLimit(Communication.MIN_ZONE_X, z[0] + 1);
                 }
-                if (center.x > Map.mapMaxX) {
+                if (center.x > Map.maxX) {
                     ZoneG.broadcastLimit(Communication.MAX_ZONE_X, z[0] - 1);
                 }
-                if (center.y < Map.mapMinY) {
+                if (center.y < Map.minY) {
                     ZoneG.broadcastLimit(Communication.MIN_ZONE_Y, z[1] + 1);
                 }
-                if (center.y > Map.mapMaxY) {
+                if (center.y > Map.maxY) {
                     ZoneG.broadcastLimit(Communication.MAX_ZONE_Y, z[1] - 1);
                 }
                 return false;
