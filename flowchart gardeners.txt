@@ -18,38 +18,11 @@ ok	- Si hi ha un enemic, fuig (decideix la posicio mes allunyada dels enemics).
 
 -Si esta anant a la seva zona per primer cop i troba un enemic, reseteja
 
-	Si té una zona:
-ok	- Si no està a la zona, hi va
-ok~	- Si troba un arbre de la seva zona amb poca vida, el posa com a target
-ok		- Si ha de construir un robot, va al carrer vertical a construir-lo (es posa a la posició que seria per construir un arbre de la punta)
-ok		- Si ha de plantar un arbre, va a la posició de just a sobre/sota i s'espera a tenir bales
-	- Si no té res a fer, va al centre de la seva zona
-
-	
-codificació de zones en els broadcasts:
-
-posició (px,py) -> zona (zx,zy), amb 0 <= zx < 10, 0 <= zy < 12, => zx*12 + zy < 120 ->
-
-info d'una zona: 5 bits:
-	- b2b1b0: tipus de zona
-	- b4b3: ultim torn que s'ha actualitzat l'estat de la zona
-	
-per tant podem tenir 8 zones en cada int:
-	- Definim zone id = zx*12+zy, 0 <= id < 120 
-	- channel(zone id) = zone id / 8
-	- si tenim els 4 bits hem de fer
-	
-	
-	
-vector amb sentit oposat i modul 1/(dist+1)
-
 
 ok(no tested)- si estan anar a buscar la zona i hi ha un enemic, fugen
 - afegir tipus zona ocupada
 - si els ataca un no-scout, ficar el 8e arbre
 - triar millor on posen el 7e arbre
-- si es moren tots els gardeners que l'archon en faci un
-- que mirin be si una zona esta fora del mapa
 
 
 
@@ -89,7 +62,6 @@ Idees per triar un ordre mes ofensiu/ defensiu:
 
 Idees random:
 - que els tanks matin arbres neutrals/enemics
-- si hi ha molts arbres al principi (es a dir, si les posicions de construir estan ocupades), el gardener fa scout -> lumber en comptes de scout -> tree
 - que els gardeners puguin enviar un missatge "marxeu de la posicio X"
 - si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
 - si obtenim una tropa d'un arbre, actualitzar el build order 
@@ -104,3 +76,5 @@ Idees random:
 - scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny
 
 - archons intenten construir sempre, excepte si estan en perill, excepte si son l'unic
+- els soldats que fem al principi que es quedin a defensar, que si no malgasten bales
+- que construeixin els gardeners mes propers a l'enemic

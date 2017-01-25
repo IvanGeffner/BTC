@@ -7,7 +7,7 @@ import battlecode.common.RobotType;
  * Created by Ivan on 1/15/2017.
  */
 public class Constants {
-    public static int DEBUG = 1; // posar-ho a 0 quan es pugi el player a la web
+    public static int DEBUG = 0; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
     public static float eps = 0.001f;

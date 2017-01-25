@@ -238,6 +238,7 @@ public class Soldier {
     static float enemyScore (int a) {
         if (a == 5) return 8;
         if (a == 4) return 15;
+        if (a == 3) return 6;
         if (a == 2) return 12;
         if (a == 1) return 8;
         return 20;
