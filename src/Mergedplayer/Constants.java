@@ -7,7 +7,7 @@ import battlecode.common.RobotType;
  * Created by Ivan on 1/15/2017.
  */
 public class Constants {
-    public static int DEBUG = 1; // posar-ho a 0 quan es pugi el player a la web
+    public static int DEBUG = 0; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
     public static float eps = 0.001f;
@@ -51,7 +51,7 @@ public class Constants {
     public static float minHPGoWater = 25f;
     public static int TREEBUCLEBYTE = 1000;
     public static int BYTECODEPOSTMESSAGES = 9000;
-    public static int SAFETYMARGIN = 8000;
+    public static int SAFETYMARGIN = 7500;
     public static int SAFETYMARGINCHECKTREES = 4000;
     public static int SAFETYMARGINSCOUTS = 400;
     public static int LUMBERCHECK = 5000;

@@ -98,6 +98,8 @@ public class Tank {
 
     static void beginRound(){
 
+        Shake.shake(rc);
+
         shouldStop = false;
         targetUpdated = false;
         if (realTarget != null && rc.canSenseLocation(realTarget)){
