@@ -179,7 +179,7 @@ public class Archon {
         if (myPos.isWithinDistance(escapePos, Constants.eps)) return null;
         escapePos = myPos.add(myPos.directionTo(escapePos), 6);
 
-        rc.setIndicatorLine(myPos,escapePos, 0,255,255);
+        //rc.setIndicatorLine(myPos,escapePos, 0,255,255);
         return escapePos;
     }
 

@@ -109,7 +109,7 @@ public class Constants {
 
 
     //LUMBIS
-    static float CONVERSIONBULLETCOST = 25.0f;
+    static float CONVERSIONBULLETCOST = 12.5f;
     static float BASESCORELUMBERJACK = 0.003f;
     static float ENEMYTREESCORE = 7.5f;
     static float NEUTRALTREESCORE = 5.0f;
@@ -120,6 +120,7 @@ public class Constants {
     static int ARCHONVALUE = 1;
     public static int BYTECODEPOSTMESSAGESLUMBERJACK = 5000;
     static int CHANGETARGETLUMBERJACKS = 50;
+    static float ADDTODISTANCELUMBERJACK = 5.0f; 
 
 
     static int getIndex(RobotType r){

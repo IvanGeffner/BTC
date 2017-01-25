@@ -49,7 +49,7 @@ public class Lumberjack {
 
             if (realTarget != null){
                 System.out.println("Target1: " + realTarget.x + " " + realTarget.y + " " + maxUtil);
-                rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0 );
+                //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0 );
 
             }
 
@@ -114,7 +114,7 @@ public class Lumberjack {
         try {
             if(realTarget != null)
             {
-                float dist1 = rc.getLocation().distanceTo(realTarget) + 1.0f;
+                float dist1 = rc.getLocation().distanceTo(realTarget) + Constants.ADDTODISTANCELUMBERJACK;
                 maxUtil = scoreTarget/(dist1*dist1);
                 newTarget = realTarget;
             }
@@ -244,9 +244,10 @@ public class Lumberjack {
     {
         int[] m = Communication.decode(a);
         MapLocation unitTreePos = new MapLocation(m[1], m[2]);
-        System.out.println("Unit Cost in this tree: " + m[3]);
-        System.out.println("sent by: " + m[0]);
+        //System.out.println("Unit Cost in this tree: " + m[3]);
+        //System.out.println("sent by: " + m[0]);
         if(rc.canSenseLocation(unitTreePos)) return;
+        if(m[3] == 1000 || m[3] == -1 || m[3] == 80) m[3] = Constants.ARCHONVALUE; 
         calculateNewTarget(unitTreePos, m[3]/Constants.CONVERSIONBULLETCOST, m[0] != Constants.SCOUT);
     }
     static void workMessageEnemyTree(int a)
@@ -320,6 +321,7 @@ public class Lumberjack {
 
                 int val = rt.bulletCost;
                 if(rt == RobotType.ARCHON) val = Constants.ARCHONVALUE;
+                if(rt.bulletCost == 80) val = Constants.ARCHONVALUE; 
                 calculateNewTarget(ti.location, val/Constants.CONVERSIONBULLETCOST + Constants.eps, false);
                 if(!sent)
                 {
@@ -367,7 +369,7 @@ public class Lumberjack {
     //check if it's a better target than what I haves
     static void calculateNewTarget(MapLocation target, float score, boolean greedy)
     {
-        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
+        float dist1 = rc.getLocation().distanceTo(target) + Constants.ADDTODISTANCELUMBERJACK;
         float val = score/(dist1*dist1);
         if(val > maxUtil || (val == maxUtil && greedy == true))
         {
@@ -473,13 +475,13 @@ public class Lumberjack {
             if(ri.getTeam() == rc.getTeam().opponent())
             {
                 float val = 0.001f;
-                if(ri.getType() != RobotType.ARCHON) val = ri.getType().bulletCost/ri.getType().maxHealth;
+                if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
                 strikeValue += val*1000.0f;
             }
             if(ri.getTeam() == rc.getTeam())
             {
                 float val = 0.001f;
-                if(ri.getType() != RobotType.ARCHON) val = ri.getType().bulletCost/ri.getType().maxHealth;
+                if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
                 strikeValue -= val*1000.0f;
             }
         }
