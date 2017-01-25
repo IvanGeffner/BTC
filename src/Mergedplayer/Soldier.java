@@ -60,6 +60,7 @@ public class Soldier {
             if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
             else{
                 adjustTarget();
+                rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
                 Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
             }
 
@@ -107,6 +108,7 @@ public class Soldier {
             maxUtil = 0;
             maxScore = 0;
         } else if (realTarget != null && rc.getRoundNum() - roundTarget < Constants.CHANGETARGET){
+            System.out.println("He entrat!!!");
             maxUtil = 0;
             updateNewTarget(realTarget, maxScore, false);
         } else{
@@ -141,6 +143,7 @@ public class Soldier {
     }
 
     static void updateNewTarget(MapLocation target, float score, boolean update){
+        System.out.println("Possible target: " + target.x + " " + target.y + " " + score + " " + rc.getLocation().distanceTo(target));
         float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
         float val = score/(dist1*dist1);
         if (val > maxUtil){
@@ -210,17 +213,17 @@ public class Soldier {
     static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (a == 5) enemyBase = enemyPos;
+        if (m[3] == 5) enemyBase = enemyPos;
         if (rc.canSenseLocation(enemyPos)) return;
-        updateNewTarget(enemyPos, Constants.enemyScore(a), true);
+        updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
     static void workMessageEnemyGardener(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
-        if (a == 5) enemyBase = enemyPos;
-        updateNewTarget(enemyPos, Constants.enemyScore(a), true);
+        if (m[3] == 5) enemyBase = enemyPos;
+        updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
     static void workMessageStop(int a){
@@ -247,16 +250,17 @@ public class Soldier {
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation enemyPos = ri.getLocation();
+            rc.setIndicatorDot(enemyPos, 0, 255, 0);
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
             if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
             else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-            updateNewTarget(enemyPos, Constants.enemyScore(a), true);
-            if (!sent){
+            else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
                 sent = true;
             }
+            updateNewTarget(enemyPos, Constants.enemyScore(a), true);
         }
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());

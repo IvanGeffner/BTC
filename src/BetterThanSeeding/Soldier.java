@@ -78,7 +78,9 @@ public class Soldier {
             }
 
             if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
-            else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+            else {
+                Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+            }
 
             Clock.yield();
         }

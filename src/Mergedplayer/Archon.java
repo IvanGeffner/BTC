@@ -72,6 +72,8 @@ public class Archon {
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
 
+            broadcastLocations();
+
 
             Clock.yield();
         }
@@ -292,4 +294,48 @@ public class Archon {
         float a2 = 2*(float) Math.acos(dMax/r);
         return r*r*(2*(float)Math.PI + +(float)Math.sin(a1)-a1+(float)Math.sin(a2)-a2);
     }
+
+
+    static void broadcastLocations() {
+
+        RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        boolean sent = false;
+
+
+        for (RobotInfo ri : Ri) {
+            if (Clock.getBytecodesLeft() < 1500) return;
+            MapLocation enemyPos = ri.getLocation();
+            int x = Math.round(enemyPos.x);
+            int y = Math.round(enemyPos.y);
+            int a = Constants.getIndex(ri.type);
+            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+            Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
+        }
+
+        TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
+        if (Ti.length > 0) {
+            TreeInfo ti = Ti[0];
+            if (Clock.getBytecodesLeft() < 1000) return;
+            MapLocation treePos = ti.getLocation();
+            int x = Math.round(treePos.x);
+            int y = Math.round(treePos.y);
+            Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
+        }
+
+        Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+        for (TreeInfo ti : Ti) {
+            if (Clock.getBytecodesLeft() < 500) return;
+            MapLocation treePos = ti.getLocation();
+            int x = Math.round(treePos.x);
+            int y = Math.round(treePos.y);
+            RobotType r = ti.getContainedRobot();
+            if (r != null) {
+                int a = r.bulletCost;
+                if (r == RobotType.ARCHON) a = 1000;
+                Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
+            }
+        }
+    }
+
 }

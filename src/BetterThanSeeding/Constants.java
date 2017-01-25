@@ -121,7 +121,7 @@ public class Constants {
         else if (r == RobotType.SOLDIER) return 2;
         else if (r == RobotType.TANK) return 3;
         else if (r == RobotType.SCOUT) return 4;
-        else if (r == RobotType.ARCHON) return -1;
+        else if (r == RobotType.ARCHON) return 5;
         return -1;
     }
 

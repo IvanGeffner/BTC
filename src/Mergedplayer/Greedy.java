@@ -69,15 +69,15 @@ public class Greedy {
 
     static void changeTarget(MapLocation tar, RobotController rc){
         if (target != null && tar != null && target.distanceTo(tar) < Constants.eps) return;
+        target = tar;
         if (target != null && tar != null && !(rc.getType() == RobotType.GARDENER) && !(rc.getType() == RobotType.LUMBERJACK)){
             if (target.distanceTo(tar) < 1.5f){
-                if (!rc.canMove(target)){
-                    minDistToTarget = rc.getLocation().distanceTo(target);
+                if (!rc.canMove(tar)){
+                    minDistToTarget = rc.getLocation().distanceTo(tar);
                     return;
                 }
             }
         }
-        target = tar;
         Greedy.resetObstacle(rc);
     }
 
@@ -86,6 +86,9 @@ public class Greedy {
     static void moveGreedy(RobotController rc, MapLocation tar, int bytecodeleft){
         changeTarget(tar, rc);
         if (target == null) return;
+
+        System.out.println("heyaa");
+
         try {
             pos = rc.getLocation();
             if (R < 0) {

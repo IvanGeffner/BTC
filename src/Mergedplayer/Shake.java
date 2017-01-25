@@ -13,7 +13,7 @@ public class Shake {
 
         float maxBullets = 0;
         int id = -1;
-        TreeInfo[] Ti = rc.senseNearbyTrees(3, Team.NEUTRAL);
+        TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().bodyRadius + 1.0f, Team.NEUTRAL);
 
         for (TreeInfo ti : Ti){
             if (ti.getContainedBullets() > maxBullets){
