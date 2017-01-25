@@ -87,8 +87,6 @@ public class Greedy {
         changeTarget(tar, rc);
         if (target == null) return;
 
-        System.out.println("heyaa");
-
         try {
             pos = rc.getLocation();
             if (R < 0) {
@@ -149,7 +147,7 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (sortedEnemies.length > 0){
                     MapLocation enemyLoc = sortedEnemies[0].getLocation();
-                    if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                    if (!shoot && Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) > Math.PI + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 
@@ -157,7 +155,7 @@ public class Greedy {
 
 
             if (dirGreedy == null) {
-                shoot = Shoot.tryShoot(rc, 1);
+                if (!shoot) shoot = Shoot.tryShoot(rc, 1);
                 return;
             }
 

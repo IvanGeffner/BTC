@@ -15,25 +15,37 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 2, 2, 6, 4, 6, 1, 4, 2, 1, 6, 6,  6, 6, 0, 6, 2, 1, 6, 6, 2, 1, 6}; //22
-    public static int[] initialPositions = {0, 6, 1, 33, 4, 9999, 3};
-    public static int[] sequenceBuild = {2, 6, 6, 2, 6, 0, 2, 6, 1, 6, 3 ,6};
+    //public static int[] initialBuild = {0, 2, 2, 6, 4, 6, 1, 4, 2, 1, 6, 6,  6, 6, 0, 6, 2, 1, 6, 6, 2, 1, 6}; //22
+    //public static int[] initialPositions = {0, 6, 1, 33, 4, 9999, 3};
+    //public static int[] sequenceBuild = {2, 6, 6, 2, 6, 0, 2, 6, 1, 6, 3 ,6};
 
 
-    public static int[] rushInitBuild = {0,2,2,6,6,4,1,2,6};
+    public static int[] rushInitBuild = {-1,0,2,2,6,6,4,1,2,6};
     public static int[] rushSeqBuild =  {6,2,6,0,6,2,6,2,6,1,6,3};
 
-    public static int[] farCagedInitBuild = {0,4,1,6,6,1,4,2,6,6,1};
-    public static int[] farCagedSeqBuild =  {6,2,6,0,6,1,6,2,6,1,6,3};
-
-    public static int[] closeCagedInitBuild = {0,1,6,4,6,2,6,2,6,4,2};
+    public static int[] closeCagedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,2};
     public static int[] closeCagedSeqBuild = {6,1,6,0,6,2,6,2,6,1,6,3};
 
-    public static int[] farOpenInitBuild = {0,4,6,6,2,6,26,1,6,4};
+    public static int[] farOpenInitBuild = {-1,0,4,6,6,2,6,2,6,1,6,4};
     public static int[] farOpenSeqBuild = {6,2,6,0,6,2,6,1,6,3};
 
-    public static int[] balancedInitBuild = {0,2,6,1,6,4,6,2,6,4,6};
+    public static int[] farCagedInitBuild = {-1,0,4,1,6,6,1,4,2,6,6,1};
+    public static int[] farCagedSeqBuild =  {6,2,6,0,6,1,6,2,6,1,6,3};
+
+    public static int[] balancedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,6};
     public static int[] balancedSeqBuild = {6,1,6,0,6,2,6,2,6,3,6,2};
+
+    public static int[][] initBuilds = {rushInitBuild,closeCagedInitBuild,farOpenInitBuild,farCagedInitBuild,balancedInitBuild};
+    public static int[][] seqBuids = {rushSeqBuild,closeCagedSeqBuild,farOpenSeqBuild,farCagedSeqBuild,balancedSeqBuild};
+
+    public static int RUSH_BUILD = 0;
+    public static int CLOSE_CAGED_BUILD = 1;
+    public static int FAR_OPEN_BUILD = 2;
+    public static int FAR_CAGED_BUILD = 3;
+    public static int BALANCED_BUILD = 4;
+
+
+
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
@@ -43,8 +55,8 @@ public class Constants {
     public static int LAST_ROUND_BUILD = 2900;
     public static float BULLET_LIMIT = 2500;
 
-    public static int IBL = initialBuild.length;
-    public static int SBL = sequenceBuild.length;
+    //public static int IBL = initialBuild.length;
+    //public static int SBL = sequenceBuild.length;
 
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;

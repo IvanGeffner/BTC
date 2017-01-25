@@ -298,7 +298,7 @@ public class Gardener {
         try {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
+            System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
             if (tankIndex < smallUnitIndex) {
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;

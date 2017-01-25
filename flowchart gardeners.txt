@@ -47,8 +47,20 @@ Idees per triar un ordre mes ofensiu/ defensiu:
 	- Molt de bosc: fer bastants lumberjacks, molts soldiers, 0 tanks
 	- Average: fer uns quants lumberjacks, molts soldiers i pocs tanks
 	- Poc bosc: Fer pocs lumberjacks, bastants soldiers i bastants tanks
+	
+	
+	
+tipus de partida:
+-rush: gard soldi soldi tree scout
+-caged: gard lumber scout 
+-open
 
 
+Rush: Arena, Barrier, Clusters, map, Pascalstriangles, shrine, shrubbery, sprinkles, waves
+Close caged: Cramped, Denseforest, Digmeout, Enclosure, Hurdle, Lilforts, OMGtree, Standoff
+Far open: Barbell, BigEmpty, BigFull, Line of fire, myFirstMap, Sparseforest, 
+Far caged: Giantforest, 
+Balanced: Boxed, Bullseye, Chess, Crossfire, Default, Magicwoods, Maniple
 
 
 
@@ -78,3 +90,4 @@ Idees random:
 - archons intenten construir sempre, excepte si estan en perill, excepte si son l'unic
 - els soldats que fem al principi que es quedin a defensar, que si no malgasten bales
 - que construeixin els gardeners mes propers a l'enemic
+- fer que puguin regar i construir al mateix temps xd

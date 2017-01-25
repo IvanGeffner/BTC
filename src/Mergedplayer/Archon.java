@@ -20,6 +20,7 @@ public class Archon {
     public static void run(RobotController rcc) {
 
         rc = rcc;
+        if (rc.getRoundNum() > 1) init(); //pels archons que guanyem mes tard
 
         while (true) {
             Shake.shake(rc);
@@ -127,11 +128,8 @@ public class Archon {
             leader = true;
             chooseBuildOrder();
             for (int i = 0; i < Communication.unitChannels.length; ++i) {
-                try {
-                    rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
+                Build.updateAfterConstruct(i);
+                //inicialitzem els build indexs
             }
             tryConstruct();
 
@@ -140,31 +138,107 @@ public class Archon {
 
 
     private static float getInitialScore(){
+        float distToEnemy = distToEnemyArchons();
+        float extraBullets = freeRobotsNearby();
+        float freeArea = freeAreaNearby();
+
+        float score = distToEnemy * extraBullets * freeArea;
+        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
+        System.out.println("Score = " + score);
+        return score;
+    }
+
+
+    private static void chooseBuildOrder(){
+        float distToEnemy = Math.min(100,distToEnemyArchons()) / 100;   //entre 0 i 1
+        float freeArea = freeAreaToEnemy(); //entre 0 i 1
+
+        System.out.println("Dist enemy = " + distToEnemy);
+        System.out.println("free area = " + freeArea);
+
+        float x = distToEnemy;
+        float y = freeArea;
+        //component x: dist
+        //component y: freearea
+        float[] p1 = {0.3f,0.7f};
+        float[] p2 = {0.6f,0.35f};
+        float[] p3 = {0.8f,0.7f};
+        float[] p4 = {0.5f,0.85f};
+
+
+        try {
+            if (x < p4[0] && y >= p1[1] && (x - p1[0]) * (p4[1] - p1[1]) <= (y - p1[1]) * (p4[0] - p1[0])) {
+                rc.broadcast(Communication.BUILDPATH, Constants.RUSH_BUILD);
+            }else if (x < p2[0] && y < p1[1] && (x - p1[0]) * (p2[1] - p1[1]) > (y - p1[1]) * (p2[0] - p1[0])) {
+                rc.broadcast(Communication.BUILDPATH, Constants.CLOSE_CAGED_BUILD);
+            }else if (x >= p4[0] && y >= p3[1] && (x - p4[0]) * (p3[1] - p4[1]) <= (y - p4[1]) * (p3[0] - p4[0])) {
+                rc.broadcast(Communication.BUILDPATH, Constants.FAR_OPEN_BUILD);
+            }else if (x >= p2[0] && y < p3[1] && (x - p2[0]) * (p3[1] - p2[1]) > (y - p2[1]) * (p3[0] - p2[0])) {
+                rc.broadcast(Communication.BUILDPATH, Constants.FAR_CAGED_BUILD);
+            }else rc.broadcast(Communication.BUILDPATH, Constants.BALANCED_BUILD);
+            System.out.println("El build order es " + rc.readBroadcast(Communication.BUILDPATH));
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    //a l'archon mes proper inicial enemic
+    private static float distToEnemyArchons(){
         float distToEnemy = Constants.INF;
         MapLocation myPos = rc.getLocation();
         MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
         for (MapLocation enemy: enemies){
             distToEnemy = Math.min(distToEnemy,myPos.distanceTo(enemy));
         }
+        return distToEnemy;
+    }
 
-
-        float totalArea = getSurfaceArea();
-        float treeArea = 0;
+    private static float freeRobotsNearby(){
         TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
         float extraBullets = GameConstants.BULLETS_INITIAL_AMOUNT;
         for (TreeInfo tree: trees){
-            //se que aixo no esta be pero es una merda fer-ho exacte
-            treeArea += tree.getRadius()*tree.getRadius()*(float)Math.PI;
             if (tree.getContainedRobot() == null) continue;
             extraBullets += tree.getContainedRobot().bulletCost;
         }
-
-        float freeArea = totalArea - treeArea;
-        float score = distToEnemy * extraBullets * freeArea;
-        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
-        System.out.println("Score = " + score);
-        return score;
+        return extraBullets;
     }
+
+    private static float freeAreaNearby(){
+        float totalArea = getSurfaceArea();
+        float treeArea = 0;
+        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
+        for (TreeInfo tree: trees){
+            //se que aixo no esta be pero es una merda fer-ho exacte
+            treeArea += tree.getRadius()*tree.getRadius()*(float)Math.PI;
+        }
+        float freeArea = totalArea - treeArea;
+        return Math.max(0,freeArea);
+    }
+
+    private static float freeAreaToEnemy(){
+        MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
+        MapLocation myPos = rc.getLocation();
+        float r = rc.getType().sensorRadius;
+        float meanFreeArea = 0;
+        for (MapLocation enemy: enemies){
+            Direction dirEnemy = myPos.directionTo(enemy);
+            float treeArea = 0;
+            for (TreeInfo tree: trees){
+                Direction dirTree = myPos.directionTo(tree.getLocation());
+                if (Math.abs(dirEnemy.radiansBetween(dirTree)) > Math.PI / 4) continue; //agafem nomes l'angle de 90 graus cap a l'archon
+                treeArea += tree.getRadius() * tree.getRadius() * Math.PI;
+            }
+            float quarter = (r*r*(float)Math.PI)/4;
+            float ratioFreeArea = (quarter -treeArea) / quarter;
+            meanFreeArea += Math.max(0,ratioFreeArea);
+        }
+        meanFreeArea = meanFreeArea / enemies.length;
+        System.out.println("% area cap a l'enemic = " + meanFreeArea);
+        return meanFreeArea;
+    }
+
 
     private static MapLocation checkNearbyEnemies(){
         //return null;
@@ -253,10 +327,6 @@ public class Archon {
         } catch (GameActionException e) {
             e.printStackTrace();
         }
-    }
-
-    static void chooseBuildOrder(){
-        //TODO
     }
 
 
