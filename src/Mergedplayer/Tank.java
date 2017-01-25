@@ -26,6 +26,7 @@ public class Tank {
     static float maxUtil;
     static float maxScore;
 
+    static MapLocation pos;
     static int round;
     static int roundTarget;
     static boolean targetUpdated;
@@ -42,6 +43,7 @@ public class Tank {
 
         while (true) {
 
+            pos = rc.getLocation();
             beginRound();
 
 
@@ -57,10 +59,30 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+
+            if (shouldStop) {
+                System.out.println("STAAAAAAAAAAAAAAAHP");
+                Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+            }
             else{
+                System.out.println("no stop");
                 adjustTarget();
-                Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                try {
+                    System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                }
+                catch(Exception e){
+                    System.out.println("No hi ha realTarget");
+                }
+                boolean overTrees = false;
+                if (pos.distanceTo(realTarget) > 0*rc.getType().sensorRadius*2) {
+                    overTrees = shouldWalkOverTrees();
+                }
+                try {
+                    if (overTrees) rc.move(realTarget);
+                    else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
             }
 
             Clock.yield();
@@ -122,7 +144,7 @@ public class Tank {
     static void adjustTarget(){
         try {
             if (realTarget == null) {
-                realTarget = rc.getLocation();
+                realTarget = pos;
                 return;
             }
             if (!rc.canSenseLocation(realTarget)) return;
@@ -130,10 +152,10 @@ public class Tank {
             if (r == null) return;
             RobotType rt = r.getType();
             if (rt == RobotType.GARDENER) {
-                if (rc.getLocation().distanceTo(r.getLocation()) < rc.getType().bodyRadius + 1.5f) realTarget = rc.getLocation();
+                if (pos.distanceTo(r.getLocation()) < rc.getType().bodyRadius + 1.5f) realTarget = pos;
             }
             if (rt == RobotType.ARCHON) {
-                if (rc.getLocation().distanceTo(r.getLocation()) < rc.getType().bodyRadius + 2.5f) realTarget = rc.getLocation();
+                if (pos.distanceTo(r.getLocation()) < rc.getType().bodyRadius + 2.5f) realTarget = pos;
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -142,8 +164,8 @@ public class Tank {
     }
 
     static void updateNewTarget(MapLocation target, float score, boolean update){
-        System.out.println("Possible target: " + target.x + " " + target.y + " " + score + " " + rc.getLocation().distanceTo(target));
-        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
+        System.out.println("Possible target: " + target.x + " " + target.y + " " + score + " " + pos.distanceTo(target));
+        float dist1 = pos.distanceTo(target) + 1.0f;
         float val = score/(dist1*dist1);
         if (val > maxUtil){
             maxUtil = val;
@@ -227,8 +249,8 @@ public class Tank {
 
     static void workMessageStop(int a){
         int[] m = Communication.decode(a);
-        MapLocation pos = new MapLocation(m[1], m[2]);
-        if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
+        MapLocation newPos = new MapLocation(m[1], m[2]);
+        if (pos.distanceTo(newPos) < rc.getType().bodyRadius) shouldStop = true;
     }
 
     static void workMessageEmergency(int a){
@@ -237,7 +259,6 @@ public class Tank {
         if (rc.canSenseLocation(enemyPos)) return;
         updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
     }
-
 
     static void broadcastLocations() {
         if (round != rc.getRoundNum()) return;
@@ -293,5 +314,27 @@ public class Tank {
         }
     }
 
-
+    static boolean shouldWalkOverTrees() {
+        if (rc.canMove(realTarget)) return false;
+        float stride = rc.getType().strideRadius;
+        MapLocation newPos = pos.add(pos.directionTo(realTarget), stride);
+        if (pos.distanceTo(realTarget) < stride) newPos = realTarget;
+        float strikeValue = 0;
+        int neutrals = 0;
+        TreeInfo[] Ti = rc.senseNearbyTrees(newPos, rc.getType().bodyRadius, null);
+        for (TreeInfo ti: Ti) {
+            if (ti.getTeam() == Team.NEUTRAL) neutrals += 1;
+            else if (ti.getTeam() == rc.getTeam()) strikeValue -= Constants.ENEMYTREESCORE;
+            else strikeValue += Constants.ENEMYTREESCORE;
+        }
+        RobotInfo[] Ri = rc.senseNearbyRobots(newPos, rc.getType().bodyRadius, null);
+        for (RobotInfo ri: Ri) {
+            float val = 0.001f;
+            if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
+            if(ri.getTeam() == rc.getTeam().opponent()) strikeValue += val*1000.0f;
+            else strikeValue -= val*1000.0f;
+        }
+        System.out.println("StrikeValue: " + strikeValue + ", arbres neutrals: " + neutrals);
+        return strikeValue > 0 || (Math.abs(strikeValue) < Constants.eps && neutrals > 0);
+    }
 }
