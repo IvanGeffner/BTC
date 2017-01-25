@@ -43,6 +43,7 @@ public class Tank {
         while (true) {
 
             beginRound();
+            Shake.shake(rc);
 
 
             round = rc.getRoundNum();

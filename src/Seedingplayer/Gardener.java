@@ -244,8 +244,7 @@ public class Gardener {
         escapePos = myPos.add(myPos.directionTo(escapePos), 6);
 
         //rc.setIndicatorLine(myPos,escapePos, 0,255,255);
-        return null;
-        //return escapePos;
+        return escapePos;
     }
 
     private static MapLocation returnToZone(){
