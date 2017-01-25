@@ -60,7 +60,6 @@ public class Soldier {
             if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
             else{
                 adjustTarget();
-                rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
                 Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
             }
 
@@ -250,14 +249,20 @@ public class Soldier {
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation enemyPos = ri.getLocation();
-            rc.setIndicatorDot(enemyPos, 0, 255, 0);
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
-            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+            if (a == 0){
+                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+                ++initialMessageEnemyGardener;
+            }
+            else if (a == 5){
+                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+                ++initialMessageEnemyGardener;
+            }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
+                ++initialMessageEnemy;
                 sent = true;
             }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
