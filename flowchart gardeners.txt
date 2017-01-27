@@ -91,3 +91,7 @@ Idees random:
 - els soldats que fem al principi que es quedin a defensar, que si no malgasten bales
 - que construeixin els gardeners mes propers a l'enemic
 - fer que puguin regar i construir al mateix temps xd
+- soldats ataquen al que tingui menys vida
+
+-CONSTRUIR EN MES DE 4 DIRS
+- que els soldats disparin arbres a partir del torn X
