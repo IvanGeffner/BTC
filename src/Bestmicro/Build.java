@@ -29,7 +29,6 @@ public class Build {
         float totalMoney = 0;
         boolean aliveArchon = Communication.areArchonsAlive();
         boolean aliveGardener = Communication.areGardenersAlive();
-        System.out.println("alive pages " + aliveGardener);
         if (!aliveGardener){
             if (unit == Constants.GARDENER) return RobotType.GARDENER.bulletCost;
             else return Constants.INF;
@@ -76,7 +75,6 @@ public class Build {
         try {
             int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
             int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
-            System.out.println("i1 i2 " + indexUnit1 + "," + indexUnit2);
             if(indexUnit1 > indexUnit2) return 0;
             //Sabem que index1 <= index2
 

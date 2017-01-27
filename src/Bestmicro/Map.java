@@ -86,7 +86,7 @@ public class Map {
     }
 
 
-    static MapLocation checkMapBound(Direction dir) {
+    private static MapLocation checkMapBound(Direction dir) {
         try {
             MapLocation pos = rc.getLocation();
             if (!rc.onTheMap(pos.add(dir, rc.getType().sensorRadius- Constants.eps))) {
@@ -115,7 +115,7 @@ public class Map {
                 pos.y + r < maxY;
     }
 
-    public static float distToEdge(MapLocation pos){
+    static float distToEdge(MapLocation pos){
         return Math.min(Math.min(pos.x-minX,pos.y-minY),Math.min(maxX-pos.x,maxY-pos.y));
     }
 }

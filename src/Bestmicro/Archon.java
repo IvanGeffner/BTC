@@ -57,7 +57,7 @@ public class Archon {
             }
 
             if (myTurn() && rc.getRoundNum() > 10) {
-                tryConstruct();
+                if (Communication.countArchons() == 1 || !danger) tryConstruct();
             }
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());

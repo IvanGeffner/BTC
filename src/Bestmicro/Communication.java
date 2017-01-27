@@ -136,13 +136,16 @@ public class Communication {
     }
 
     static boolean areArchonsAlive(){
+        return countArchons() > 0;
+    }
+
+    static int countArchons(){
         try {
-            int lastRoundArchons = rc.readBroadcast(ARCHONS_LAST_TURN);
-            return lastRoundArchons > 0;
+            return rc.readBroadcast(ARCHONS_LAST_TURN);
         } catch (GameActionException e) {
             e.printStackTrace();
         }
-        return false;
+        return -1;
     }
 
     static boolean areGardenersAlive(){

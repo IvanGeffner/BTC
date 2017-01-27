@@ -170,7 +170,6 @@ public class ZoneG {
         broadcastInfo(zone, Constants.busyZone);
     }
 
-
     //assigna una zona a la variable zone i inicialitza la resta de coses
     static void assign(int[] assignedZone){
         if (hasValue(zone)){
@@ -210,7 +209,7 @@ public class ZoneG {
 
     }
 
-    //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 4.5
+    //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 5
     static void messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
         int max_bytecode = 3000;
         int bytecode_init = Clock.getBytecodeNum();
@@ -218,7 +217,7 @@ public class ZoneG {
         boolean sendOuterTrees = true;
 
         float innerDistance = 3f;
-        float outerDistance = 4.5f; //perque hi capiguen els pagesos veins = sqrt(28)+1
+        float outerDistance = 5f;
 
         int outerTreeCount = 0;
 
@@ -240,7 +239,7 @@ public class ZoneG {
         }
     }
 
-    static void messageCutNeutralTree(MapLocation treeLocation) {
+    private static void messageCutNeutralTree(MapLocation treeLocation) {
         if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
         Communication.sendMessage(Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
@@ -291,8 +290,9 @@ public class ZoneG {
             Direction d = rc.getLocation().directionTo(hexPos[i]);
             float enemy_angle = 60;
             int min_turn_tank = 700;
+            int low_HP = 10;
             if (rc.getRoundNum() < min_turn_tank) enemy_angle = 30;
-            if (Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
+            if (rc.getHealth() > low_HP && Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
             try {
                 if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
                 return i;
