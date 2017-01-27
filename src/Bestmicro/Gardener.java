@@ -27,7 +27,18 @@ public class Gardener {
             Bot.shake(rc);
             Bot.donate(rc);
             Communication.sendReport(Communication.GARDENER_REPORT);
-            if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
+            if (ZoneG.hasValue(zone)) {
+                ZoneG.broadcastMyZone();
+                checkNeutralTreesInZone();
+                tryPlanting();
+                if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
+                    ZoneG.broadcastInfo(zone, Constants.abandonedZone);
+                    zone = ZoneG.nullZone();
+                    ZoneG.resetMyZone();
+                    System.out.println("No esta a la zona, reseteja");
+                }
+
+            }
             MapLocation newTarget;
             newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
 
@@ -48,14 +59,7 @@ public class Gardener {
                 checkIfArrivedToZone();
             } else {
                 //si ja esta a la zona
-                checkNeutralTreesInZone();
-                tryPlanting();
-                if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
-                    ZoneG.broadcastInfo(zone, Constants.abandonedZone);
-                    zone = ZoneG.nullZone();
-                    ZoneG.resetMyZone();
-                    System.out.println("No esta a la zona, reseteja");
-                }
+
             }
             tryConstruct();
             Map.checkMapBounds();
@@ -100,8 +104,8 @@ public class Gardener {
         float minDist = Constants.INF;
         int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
         for (int i = 0; i < xHex.length; i++){
-            if (i > 10 && ZoneG.hasValue(closest_empty_zone)){
-                //nomes busquem zones abandonades fins a 10 pel bytecode
+            if (i > 25 && ZoneG.hasValue(closest_empty_zone)){
+                //nomes busquem zones abandonades fins a 25 pel bytecode
                 System.out.println("Retorna closest empty zone = " + closest_empty_zone[0] + "," + closest_empty_zone[1]);
                 return closest_empty_zone;
             }
@@ -208,7 +212,7 @@ public class Gardener {
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
     private static MapLocation checkNearbyEnemies(){
         //return null;
-        RobotInfo[] enemies = rc.senseNearbyRobots(4, rc.getTeam().opponent());
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation myPos = rc.getLocation();
         MapLocation escapePos = rc.getLocation();
         //System.out.println("Numero enemics: " + enemies.length);
