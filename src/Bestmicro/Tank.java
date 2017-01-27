@@ -33,6 +33,8 @@ public class Tank {
 
     static boolean shouldStop = false;
 
+    static MapLocation emergencyTarget;
+
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -58,21 +60,24 @@ public class Tank {
                 e.printStackTrace();
             }
 
-            if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
-            else{
-                adjustTarget();
-                try {
-                    System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
-                    rc.setIndicatorLine(pos, realTarget, 0,255,255);
-                }
-                catch(Exception e){
-                    System.out.println("No hi ha realTarget");
-                }
-                try {
-                    if (shouldWalkOverTrees()) rc.move(realTarget);
-                    else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
-                } catch (GameActionException e) {
-                    e.printStackTrace();
+            if (emergencyTarget != null) Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
+            else {
+
+                if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+                else {
+                    adjustTarget();
+                    try {
+                        System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                        rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
+                    } catch (Exception e) {
+                        System.out.println("No hi ha realTarget");
+                    }
+                    try {
+                        if (shouldWalkOverTrees()) rc.move(realTarget);
+                        else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                    } catch (GameActionException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
@@ -229,8 +234,8 @@ public class Tank {
     static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (m[3] == 5) enemyBase = enemyPos;
         if (rc.canSenseLocation(enemyPos)) return;
+        if (m[3] == 5) enemyBase = enemyPos;
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -259,33 +264,73 @@ public class Tank {
     static void broadcastLocations() {
         int byte1 = Clock.getBytecodeNum();
 
+        emergencyTarget = null;
+
         if (round != rc.getRoundNum()) return;
 
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean sent = false;
 
+        int foundSoldier = 0;
+        int foundTank = 0;
+
+        float xSol = 0, ySol = 0, xTank = 0, yTank = 0;
+
+
+        MapLocation pos = rc.getLocation();
 
         for (RobotInfo ri : Ri) {
-            if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
             int a = Constants.getIndex(ri.type);
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                ++initialMessageEnemyGardener;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                ++initialMessageEnemyGardener;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                enemyBase = enemyPos;
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                ++initialMessageEnemy;
+                initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
                 sent = true;
+            }
+
+            if (a == 2){
+                ++foundSoldier;
+                float dinv = 1/pos.distanceTo(enemyPos);
+                xSol += dinv*(pos.x - enemyPos.x);
+                ySol += dinv*(pos.y - enemyPos.y);
+            }
+
+            if (a == 3){
+                ++foundTank;
+                float dinv = 1/pos.distanceTo(enemyPos);
+                xTank += dinv*(pos.x - enemyPos.x);
+                yTank += dinv*(pos.y - enemyPos.y);
             }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
         }
+
+
+        float randomDev = (0.5f - (float)Math.random())/5.0f;
+
+        if (foundTank > 0){
+            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
+            if (dir != null){
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
+            }
+        } else if (foundSoldier > 0){
+            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
+            if (dir != null){
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
+            }
+        }
+
+        if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {

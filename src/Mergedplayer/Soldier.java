@@ -32,6 +32,8 @@ public class Soldier {
 
     static boolean shouldStop = false;
 
+    MapLocation emergencyTarget = null;
+
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -259,15 +261,15 @@ public class Soldier {
             int a = Constants.getIndex(ri.type);
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                ++initialMessageEnemyGardener;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                ++initialMessageEnemyGardener;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                ++initialMessageEnemy;
+                initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
                 sent = true;
             }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
