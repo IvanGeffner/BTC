@@ -1,4 +1,4 @@
-package Mergedplayermicro2;
+package Bestmicro;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
@@ -10,7 +10,7 @@ public class Constants {
     public static int DEBUG = 0; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
-    public static float eps = 0.00001f;
+    public static float eps = 0.001f;
     public static float INF = 9999f;
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
@@ -69,7 +69,7 @@ public class Constants {
     public static int MAXSORT = 22;
     public static int GREEDYTRIES = 8;
 
-    public static float SAFETYDISTANCE = 6.55f;
+    public static float SAFETYDISTANCE = 3f;
     public static float EMERGENCYSCORE = 25f;
 
     public static final int COSTCYCLE1 = 135;
@@ -86,8 +86,7 @@ public class Constants {
 
     public static final int BYTECODEATSHOOTING = 7500;
 
-    public static int NUMELEMENTS = 6;
-    public static int NUMELEMENTS2 = 4;
+    public static int NUMELEMENTS = 5;
 
     public static float PRECISION_MAP_BOUNDS = 0.1f;
     public static float SCOUT_RISK_DISTANCE = 6;
@@ -161,9 +160,9 @@ public class Constants {
 
     static float safetyDistance(RobotType r){
         if (r == RobotType.LUMBERJACK) return 2f;
-        //else if (r == RobotType.SOLDIER) return 6.05f;
-        //else if (r == RobotType.TANK) return 6.55f;
-       // else if (r == RobotType.SCOUT) return 0.25f;
+        else if (r == RobotType.SOLDIER) return 3.1f;
+        else if (r == RobotType.TANK) return 3.1f;
+        else if (r == RobotType.SCOUT) return 0.25f;
         return 0;
     }
 

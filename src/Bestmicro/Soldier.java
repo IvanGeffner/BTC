@@ -1,4 +1,4 @@
-package Mergedplayermicro2;
+package Bestmicro;
 
 import battlecode.common.*;
 

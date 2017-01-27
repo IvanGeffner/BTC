@@ -1,11 +1,6 @@
-package Mergedplayermicro2;
+package Bestmicro;
 
 import battlecode.common.*;
-
-//CONSTANTS
-
-//SOLDIER
-
 
 /**
  * Created by Ivan on 1/21/2017.
@@ -29,13 +24,12 @@ public class Shoot {
                 RobotType r = ri.getType();
                 MapLocation m = ri.getLocation();
                 float R = r.bodyRadius;
+                float d = m.distanceTo(pos);
 
                 R += r.strideRadius;
-
+                R = Math.min(d, R);
 
                 Direction dir = pos.directionTo(m);
-
-                float d = m.distanceTo(pos);
 
                 float a = (float)Math.asin(R/d);
 
@@ -103,21 +97,14 @@ public class Shoot {
 
                 if (dirRight.radiansBetween(dirLeft) > Constants.eps){
 
-                    R = ri.getType().bodyRadius;
-                    float an = (float) Math.asin(R/d);
-
-
                     float realAngle = dirRight.radiansBetween(dirLeft)/2;
 
                     System.out.println("Shooting Angle: " + realAngle);
                     float multiplier = 1;
 
-                    if (r == RobotType.SCOUT) multiplier = 0.2f;
-                    else if (r == RobotType.LUMBERJACK) multiplier = 1.2f;
-
 
                     float x;
-                    if (r == RobotType.ARCHON) x = 10;
+                    if (r == RobotType.ARCHON) x = 2.5f;
                     else x = 2.0f*((float)r.bulletCost)/r.maxHealth;
 
                     System.out.println("x = " + x);
