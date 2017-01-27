@@ -29,6 +29,13 @@ public class Build {
         float totalMoney = 0;
         boolean aliveArchon = Communication.areArchonsAlive();
         boolean aliveGardener = Communication.areGardenersAlive();
+        for (int i = 0; i < 7; i++){
+            try {
+                System.out.println("Index " + i + " = " + rc.readBroadcast(Communication.unitChannels[i]));
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }
         if (!aliveGardener){
             if (unit == Constants.GARDENER) return RobotType.GARDENER.bulletCost;
             else return Constants.INF;
@@ -47,7 +54,7 @@ public class Build {
             //totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             //totalMoney += computeHowManyBehind(Constants.TANK, unit);
             //totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
-            //totalMoney += computeHowManyBehind(Constants.TREE, unit);
+            if (rc.getRoundNum() < 500) totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }else if(unit == Constants.GARDENER){
             //totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);
@@ -61,7 +68,7 @@ public class Build {
             //totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);
             //totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
-            //totalMoney += computeHowManyBehind(Constants.TREE, unit);
+            if (rc.getRoundNum() < 500) totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }
         float myBulletCost;
         if (unit == Constants.TREE) myBulletCost = GameConstants.BULLET_TREE_COST;
@@ -75,49 +82,53 @@ public class Build {
         try {
             int indexUnit1 = rc.readBroadcast(Communication.unitChannels[unit1]);
             int indexUnit2 = rc.readBroadcast(Communication.unitChannels[unit2]);
+            int[] initBuild = Constants.initBuilds[rc.readBroadcast(Communication.BUILDPATH)];
+            int[] sequenceBuild = Constants.seqBuids[rc.readBroadcast(Communication.BUILDPATH)];
+            int iniLen = initBuild.length;
+            int seqLen = sequenceBuild.length;
             if(indexUnit1 > indexUnit2) return 0;
             //Sabem que index1 <= index2
 
             int howManyBehind = 0;
-            if(indexUnit2 < Constants.IBL){
+            if(indexUnit2 < iniLen){
                 // index1 <= index2 < IBL
                 for (int i = indexUnit1; i < indexUnit2; ++i)
-                    if (Constants.initialBuild[i] == unit1) howManyBehind++;
+                    if (initBuild[i] == unit1) howManyBehind++;
 
-            } else if (indexUnit1 < Constants.IBL) {
+            } else if (indexUnit1 < iniLen) {
                 // index1 < IBL <= index2
                 int totalInSequence = 0;
                 int totalLastSequence = 0;
-                for (int i = indexUnit1; i < Constants.IBL; ++i) if (Constants.initialBuild[i] == unit1) howManyBehind++;
-                for (int i = 0; i < Constants.SBL; ++i){
-                    if (Constants.sequenceBuild[i] == unit1){
+                for (int i = indexUnit1; i < iniLen; ++i) if (initBuild[i] == unit1) howManyBehind++;
+                for (int i = 0; i < seqLen; ++i){
+                    if (sequenceBuild[i] == unit1){
                         ++totalInSequence;
-                        if (i < indexUnit2% Constants.SBL) ++totalLastSequence;
+                        if (i < indexUnit2% seqLen) ++totalLastSequence;
                     }
                 }
-                int extraWholeSequences = ((indexUnit2 - Constants.IBL)/ Constants.SBL);
+                int extraWholeSequences = ((indexUnit2 - iniLen)/ seqLen);
                 howManyBehind += totalLastSequence + totalInSequence*extraWholeSequences;
             } else {
                 // IBL < index1 <= index2
                 int totalInSequence = 0;
                 int totalOffSet = 0;
-                for (int i = 0; i < Constants.SBL; ++i) {
-                    if (Constants.sequenceBuild[i] == unit1) {
+                for (int i = 0; i < seqLen; ++i) {
+                    if (sequenceBuild[i] == unit1) {
                         ++totalInSequence;
                     }
                 }
-                int z = indexUnit2% Constants.SBL;
+                int z = indexUnit2% seqLen;
                 for (int i = indexUnit1; true ;++i){
-                    int realI = i% Constants.SBL;
+                    int realI = i% seqLen;
                     if (realI == z) break;
-                    if (Constants.sequenceBuild[realI] == unit1) ++howManyBehind;
+                    if (sequenceBuild[realI] == unit1) ++howManyBehind;
                     ++totalOffSet;
                 }
 
-                howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/ Constants.SBL)*totalInSequence;
+                howManyBehind += ((indexUnit2 - indexUnit1 - totalOffSet)/ seqLen)*totalInSequence;
             }
             System.out.println("Hi ha " + howManyBehind + " " +unit1 + " behind " + unit2);
-            if (unit1 < 5) return howManyBehind* Constants.ProductionUnits[unit1].bulletCost;
+            if (unit1 < 6) return howManyBehind* Constants.ProductionUnits[unit1].bulletCost;
             else return howManyBehind* (int)GameConstants.BULLET_TREE_COST;
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -171,27 +182,31 @@ public class Build {
     //quan construim el robot, actualitzem l'index de la llista de construccio
     static void updateAfterConstruct(int unitConstructed){
         try {
+            int[] initBuild = Constants.initBuilds[rc.readBroadcast(Communication.BUILDPATH)];
+            int[] sequenceBuild = Constants.seqBuids[rc.readBroadcast(Communication.BUILDPATH)];
+            int iniLen = initBuild.length;
+            int seqLen = sequenceBuild.length;
             int unitCurrentIndex = rc.readBroadcast(Communication.unitChannels[unitConstructed]);
             int unitNextIndex;
-            if (unitCurrentIndex < Constants.IBL) {
+            if (unitCurrentIndex < iniLen) {
                 //si esta a la build inicial
                 int i = unitCurrentIndex+1;
-                while (i < Constants.IBL && Constants.initialBuild[i] != unitConstructed) i++;
+                while (i < iniLen && initBuild[i] != unitConstructed) i++;
                 //ja no es torna a fer a la build inicial
-                if (i == Constants.IBL){
+                if (i == iniLen){
                     int j = 0;
-                    while (j < Constants.SBL && Constants.sequenceBuild[j] != unitConstructed) j++;
-                    if (j == Constants.SBL){
+                    while (j < seqLen && sequenceBuild[j] != unitConstructed) j++;
+                    if (j == seqLen){
                         //ja no la tornem a fer mai mes
                         unitNextIndex = (int) Constants.INF;
                     }else{
-                        unitNextIndex = Constants.IBL + j;
+                        unitNextIndex = iniLen + j;
                     }
                 }else unitNextIndex = i;
             }else {
                 int i = 0;
-                while (i < Constants.SBL && Constants.sequenceBuild[(unitCurrentIndex+1+i) % Constants.SBL] != unitConstructed) i++;
-                if (i == Constants.SBL) unitNextIndex = (int) Constants.INF;
+                while (i < seqLen && sequenceBuild[(unitCurrentIndex+1+i) % seqLen] != unitConstructed) i++;
+                if (i == seqLen) unitNextIndex = (int) Constants.INF;
                 else unitNextIndex = unitCurrentIndex + 1 + i;
             }
             rc.broadcast(Communication.unitChannels[unitConstructed], unitNextIndex);

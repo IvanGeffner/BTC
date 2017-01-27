@@ -17,7 +17,7 @@ public class Shake {
 
         for (TreeInfo ti : Ti){
             if (ti.getContainedBullets() > maxBullets){
-                if (!rc.canShake(ti.getID())) break;
+                if (!rc.canShake(ti.getID())) continue;
                 maxBullets = ti.getContainedBullets();
                 id = ti.getID();
             }
