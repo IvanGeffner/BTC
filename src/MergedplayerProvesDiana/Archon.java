@@ -13,31 +13,38 @@ public class Archon {
     static int xBase, yBase;
 
     static boolean leader;
-    static boolean danger;
 
     static MapLocation realTarget;
 
-
-
+    static int initialMessageNeedTroop = 0; 
+    
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
 
         rc = rcc;
-        if (rc.getRoundNum() > 1) init(); //pels archons que guanyem mes tard
-
+        if (rc.getRoundNum() > 5) init();
+        initialMessageNeedTroop = 0; 
+        try {
+			initialMessageNeedTroop = rc.readBroadcast(Communication.NEEDTROOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+		} catch (GameActionException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
         while (true) {
-            Shake.shake(rc);
+            Bot.shake(rc);
+            Bot.donate(rc);
             if (rc.getRoundNum() == 2) init2();
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
+            Communication.askForUnits();
+            if(readMessages()) Clock.yield(); 
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
             if (newTarget != null){
-                danger = true;
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
             }else {
-                danger = false;
                 newTarget = checkShakeTrees();
                 if (newTarget != null){
                     System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
@@ -59,7 +66,7 @@ public class Archon {
             }
 
             Map.checkMapBounds();
-            if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
+            if (myTurn() && rc.getRoundNum() > 10) tryConstruct();
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -133,8 +140,11 @@ public class Archon {
             leader = true;
             chooseBuildOrder();
             for (int i = 0; i < Communication.unitChannels.length; ++i) {
-                Build.updateAfterConstruct(i);
-                //inicialitzem els build indexs
+                try {
+                    rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
             }
             tryConstruct();
 
@@ -143,107 +153,31 @@ public class Archon {
 
 
     private static float getInitialScore(){
-        float distToEnemy = distToEnemyArchons();
-        float extraBullets = freeRobotsNearby();
-        float freeArea = freeAreaNearby();
-
-        float score = distToEnemy * extraBullets * freeArea;
-        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
-        System.out.println("Score = " + score);
-        return score;
-    }
-
-
-    private static void chooseBuildOrder(){
-        float distToEnemy = Math.min(100,distToEnemyArchons()) / 100;   //entre 0 i 1
-        float freeArea = freeAreaToEnemy(); //entre 0 i 1
-
-        System.out.println("Dist enemy = " + distToEnemy);
-        System.out.println("free area = " + freeArea);
-
-        float x = distToEnemy;
-        float y = freeArea;
-        //component x: dist
-        //component y: freearea
-        float[] p1 = {0.3f,0.7f};
-        float[] p2 = {0.6f,0.35f};
-        float[] p3 = {0.8f,0.7f};
-        float[] p4 = {0.5f,0.85f};
-
-
-        try {
-            if (x < p4[0] && y >= p1[1] && (x - p1[0]) * (p4[1] - p1[1]) <= (y - p1[1]) * (p4[0] - p1[0])) {
-                rc.broadcast(Communication.BUILDPATH, Constants.RUSH_BUILD);
-            }else if (x < p2[0] && y < p1[1] && (x - p1[0]) * (p2[1] - p1[1]) > (y - p1[1]) * (p2[0] - p1[0])) {
-                rc.broadcast(Communication.BUILDPATH, Constants.CLOSE_CAGED_BUILD);
-            }else if (x >= p4[0] && y >= p3[1] && (x - p4[0]) * (p3[1] - p4[1]) <= (y - p4[1]) * (p3[0] - p4[0])) {
-                rc.broadcast(Communication.BUILDPATH, Constants.FAR_OPEN_BUILD);
-            }else if (x >= p2[0] && y < p3[1] && (x - p2[0]) * (p3[1] - p2[1]) > (y - p2[1]) * (p3[0] - p2[0])) {
-                rc.broadcast(Communication.BUILDPATH, Constants.FAR_CAGED_BUILD);
-            }else rc.broadcast(Communication.BUILDPATH, Constants.BALANCED_BUILD);
-            System.out.println("El build order es " + rc.readBroadcast(Communication.BUILDPATH));
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    //a l'archon mes proper inicial enemic
-    private static float distToEnemyArchons(){
         float distToEnemy = Constants.INF;
         MapLocation myPos = rc.getLocation();
         MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
         for (MapLocation enemy: enemies){
             distToEnemy = Math.min(distToEnemy,myPos.distanceTo(enemy));
         }
-        return distToEnemy;
-    }
 
-    private static float freeRobotsNearby(){
-        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        float extraBullets = GameConstants.BULLETS_INITIAL_AMOUNT;
-        for (TreeInfo tree: trees){
-            if (tree.getContainedRobot() == null) continue;
-            extraBullets += tree.getContainedRobot().bulletCost;
-        }
-        return extraBullets;
-    }
 
-    private static float freeAreaNearby(){
         float totalArea = getSurfaceArea();
         float treeArea = 0;
         TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
+        float extraBullets = GameConstants.BULLETS_INITIAL_AMOUNT;
         for (TreeInfo tree: trees){
             //se que aixo no esta be pero es una merda fer-ho exacte
             treeArea += tree.getRadius()*tree.getRadius()*(float)Math.PI;
+            if (tree.getContainedRobot() == null) continue;
+            extraBullets += tree.getContainedRobot().bulletCost;
         }
+
         float freeArea = totalArea - treeArea;
-        return Math.max(0,freeArea);
+        float score = distToEnemy * extraBullets * freeArea;
+        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
+        System.out.println("Score = " + score);
+        return score;
     }
-
-    private static float freeAreaToEnemy(){
-        MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
-        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        MapLocation myPos = rc.getLocation();
-        float r = rc.getType().sensorRadius;
-        float meanFreeArea = 0;
-        for (MapLocation enemy: enemies){
-            Direction dirEnemy = myPos.directionTo(enemy);
-            float treeArea = 0;
-            for (TreeInfo tree: trees){
-                Direction dirTree = myPos.directionTo(tree.getLocation());
-                if (Math.abs(dirEnemy.radiansBetween(dirTree)) > Math.PI / 4) continue; //agafem nomes l'angle de 90 graus cap a l'archon
-                treeArea += tree.getRadius() * tree.getRadius() * Math.PI;
-            }
-            float quarter = (r*r*(float)Math.PI)/4;
-            float ratioFreeArea = (quarter -treeArea) / quarter;
-            meanFreeArea += Math.max(0,ratioFreeArea);
-        }
-        meanFreeArea = meanFreeArea / enemies.length;
-        System.out.println("% area cap a l'enemic = " + meanFreeArea);
-        return meanFreeArea;
-    }
-
 
     private static MapLocation checkNearbyEnemies(){
         //return null;
@@ -288,13 +222,25 @@ public class Archon {
     }
 
     private static void tryConstruct(){
-
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
+        try {
+            System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
+            System.out.println("Index " + 1 + " = " + rc.readBroadcast(Communication.unitChannels[1]));
+            System.out.println("Index " + 2 + " = " + rc.readBroadcast(Communication.unitChannels[2]));
+            System.out.println("Index " + 3 + " = " + rc.readBroadcast(Communication.unitChannels[3]));
+            System.out.println("Index " + 4 + " = " + rc.readBroadcast(Communication.unitChannels[4]));
+            System.out.println("Index " + 5 + " = " + rc.readBroadcast(Communication.unitChannels[5]));
+
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
         try{
-            for (int i = 0; i < 4; ++i){
-                if (rc.canHireGardener(Constants.main_dirs[i])){
-                    rc.hireGardener(Constants.main_dirs[i]);
+            Direction d = Direction.EAST;
+            for (int i = 0; i < 50; ++i){
+                Direction d2 = d.rotateLeftDegrees(360*i/50);
+                if (rc.canHireGardener(d2)){
+                    rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);
                     return;
@@ -333,6 +279,10 @@ public class Archon {
         } catch (GameActionException e) {
             e.printStackTrace();
         }
+    }
+
+    static void chooseBuildOrder(){
+        //TODO
     }
 
 
@@ -414,5 +364,46 @@ public class Archon {
             }
         }
     }
+    
+    private static boolean readMessages()
+    {
+    	if(rc.getTeamBullets() < 100) return false; 
+    	boolean needTroop = false; 
+    	boolean needLumberjack = false;
+    	try {
+    		int channel = Communication.NEEDTROOPCHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
+            {
+                int a = rc.readBroadcast(channel + i);
+                int t = workMessageTroopNeeded(a);
+                if(t == Communication.NEEDSOLDIERTANK) 
+                {
+                	//rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(Direction.NORTH, 10), 233, 0, 255);
+                	needTroop = true; 
+                }
+                if(t == Communication.NEEDLUMBERJACK) needLumberjack = true; 
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageNeedTroop = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    	if(needTroop) return true; 
+    	if(needLumberjack) return true; 
+    	return false; 
+    }
 
+    static int workMessageTroopNeeded(int a) //deixo com a funcio per si fem ponderacions
+    {
+        int[] m = Communication.decode(a);
+       //MapLocation unitTreePos = new MapLocation(m[1], m[2]);
+        //System.out.println("Unit Cost in this tree: " + m[3]);
+        //System.out.println("sent by: " + m[0]);
+        //if(rc.canSenseLocation(unitTreePos)) return;
+        return m[3];
+    }
+    
 }

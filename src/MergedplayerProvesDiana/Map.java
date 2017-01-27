@@ -107,4 +107,15 @@ public class Map {
     public static boolean onCurrentMap(MapLocation pos){
         return minX < pos.x && pos.x < maxX && minY < pos.y && pos.y < maxY;
     }
+
+    public static boolean onCurrentMap(MapLocation pos, float r){
+        return  minX < pos.x - r &&
+                pos.x + r < maxX &&
+                minY < pos.y - r &&
+                pos.y + r < maxY;
+    }
+
+    public static float distToEdge(MapLocation pos){
+        return Math.min(Math.min(pos.x-minX,pos.y-minY),Math.min(maxX-pos.x,maxY-pos.y));
+    }
 }

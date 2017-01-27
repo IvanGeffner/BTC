@@ -15,38 +15,9 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    //public static int[] initialBuild = {0, 2, 2, 6, 4, 6, 1, 4, 2, 1, 6, 6,  6, 6, 0, 6, 2, 1, 6, 6, 2, 1, 6}; //22
-    //public static int[] initialPositions = {0, 6, 1, 33, 4, 9999, 3};
-    //public static int[] sequenceBuild = {2, 6, 6, 2, 6, 0, 2, 6, 1, 6, 3 ,6};
-
-
-    //gardener 0, lumbi 1, soldier 2, tank 3, scout 4, archon 5, 6 soldat
-    public static int[] rushInitBuild = {-1,0,2,2,6,2,6,6,6,6,6,6};
-    public static int[] rushSeqBuild =  {0,6,6,6,6,6,6,6,2,2,3};
-
-    public static int[] closeCagedInitBuild = {-1,0,2,2,6,2,6,6,6,6,6,6};
-    public static int[] closeCagedSeqBuild = {0,6,6,6,6,6,6,6,2,2,3};
-
-    public static int[] farOpenInitBuild = {-1,0,2,2,6,2,6,6,6,6,6,6};
-    public static int[] farOpenSeqBuild = {0,6,6,6,6,6,6,6,2,2,3};
-
-    public static int[] farCagedInitBuild = {-1,0,2,6,2,2,6,6,6,6,6,6};
-    public static int[] farCagedSeqBuild =  {0,6,6,6,6,6,6,6,2,2,3};
-
-    public static int[] balancedInitBuild = {-1,0,2,2,6,2,6,6,6,6,6,6};
-    public static int[] balancedSeqBuild = {0,6,6,6,6,6,6,6,2,2,3};
-
-    public static int[][] initBuilds = {rushInitBuild,closeCagedInitBuild,farOpenInitBuild,farCagedInitBuild,balancedInitBuild};
-    public static int[][] seqBuids = {rushSeqBuild,closeCagedSeqBuild,farOpenSeqBuild,farCagedSeqBuild,balancedSeqBuild};
-
-    public static int RUSH_BUILD = 0;
-    public static int CLOSE_CAGED_BUILD = 1;
-    public static int FAR_OPEN_BUILD = 2;
-    public static int FAR_CAGED_BUILD = 3;
-    public static int BALANCED_BUILD = 4;
-
-
-
+    public static int[] initialBuild = {0, 2, 5, 2, 5, 5, 5, 5, 5}; //26
+    public static int[] initialPositions = {0, 9999, 1, 9999, 9999, 2};
+    public static int[] sequenceBuild = {0,5,5,5,5,5,2};
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
@@ -56,8 +27,8 @@ public class Constants {
     public static int LAST_ROUND_BUILD = 2900;
     public static float BULLET_LIMIT = 2500;
 
-    //public static int IBL = initialBuild.length;
-    //public static int SBL = sequenceBuild.length;
+    public static int IBL = initialBuild.length;
+    public static int SBL = sequenceBuild.length;
 
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;
@@ -70,6 +41,11 @@ public class Constants {
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
     public static int BROADCASTMAXSOLDIER = 600;
 
+    public static int TC = 4; //TreeColumns
+    public static int TR = 2; //TRows
+    public static int DR = 5; //Distance Row-Row
+    public static int ModulR = 2*TR + DR;
+    public static int ModulC = 2*TC + DR;
     public static int SouthTree = 4;
     public static int NorthTree = 6;
     public static float minHPWater = 45f;
@@ -97,8 +73,8 @@ public class Constants {
     public static float EMERGENCYSCORE = 25f;
 
     public static final int COSTCYCLE1 = 135;
-    public static final int COSTCYCLE2 = 420;
-    public static final int COSTSORT = 110;
+    public static final int COSTCYCLE2 = 200;
+    public static final int COSTSORT = 120;
     public static final int COSTSELECTION = 33;
 
     public static int emptyZone = 0;
@@ -130,8 +106,7 @@ public class Constants {
     public static int SOLDIER = 2;
     public static int TANK = 3;
     public static int SCOUT = 4;
-    public static int ARCHON = 5;
-    public static int TREE = 6;
+    public static int TREE = 5;
 
 
     //LUMBIS
@@ -151,7 +126,6 @@ public class Constants {
 
     static float MAXVICTORYPONTS = 1000.0f;
 
-    //gardener 0, lumbi 1, soldier 2, tank 3, scout 4, archon 5
     static int getIndex(RobotType r){
         if (r == RobotType.GARDENER) return 0;
         else if (r == RobotType.LUMBERJACK) return 1;
