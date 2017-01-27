@@ -22,6 +22,7 @@ public class Gardener {
 
     private static int initialMessageNeedTroop = 0; 
     static boolean lumberjackBuilt = false; 
+    static int myRound; 
     
     public static void run(RobotController rcc) {
         rc = rcc;
@@ -83,6 +84,7 @@ public class Gardener {
         Map.init(rc);
         Build.init(rc);
         lumberjackBuilt = false; 
+        myRound = rc.getRoundNum(); 
         MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
         int xBase = Math.round(base.x);
         int yBase = Math.round(base.y);

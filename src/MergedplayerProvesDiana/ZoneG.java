@@ -240,7 +240,7 @@ public class ZoneG {
 
     static void messageCutNeutralTree(MapLocation treeLocation) {
         if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
-        Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),Communication.NEEDLUMBERJACK);
+        if(rc.getRoundNum() - Gardener.myRound > 40) Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),Communication.NEEDLUMBERJACK);
         Communication.sendMessage(Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
 

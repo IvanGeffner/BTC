@@ -233,4 +233,13 @@ public class Communication {
       	return 0.0f; //sudando d'scouts i archons
 	}
 
+    static int countArchons(){
+        try {
+            return rc.readBroadcast(ARCHONS_LAST_TURN);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    
 }

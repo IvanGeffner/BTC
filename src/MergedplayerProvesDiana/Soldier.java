@@ -32,6 +32,8 @@ public class Soldier {
 
     static boolean shouldStop = false;
 
+    static MapLocation emergencyTarget;
+
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -52,18 +54,22 @@ public class Soldier {
             updateTarget();
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
+
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius)) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
+                else {
+
+                    if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+                    else {
+                        adjustTarget();
+
+                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
+
+                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                    }
+                }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
-            }
-
-            if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
-            else{
-                adjustTarget();
-
-                rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
-
-                Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
             }
 
             Clock.yield();
@@ -104,7 +110,6 @@ public class Soldier {
         Bot.shake(rc);
         Bot.donate(rc);
         Communication.askForUnits();
-
         shouldStop = false;
         targetUpdated = false;
         if (realTarget != null && rc.canSenseLocation(realTarget)){
@@ -220,8 +225,8 @@ public class Soldier {
     static void workMessageEnemy(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (m[3] == 5) enemyBase = enemyPos;
         if (rc.canSenseLocation(enemyPos)) return;
+        if (m[3] == 5) enemyBase = enemyPos;
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -250,6 +255,8 @@ public class Soldier {
     static void broadcastLocations() {
         int byte1 = Clock.getBytecodeNum();
 
+        emergencyTarget = null;
+
         if (round != rc.getRoundNum()) return;
 
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -270,21 +277,16 @@ public class Soldier {
             int a = Constants.getIndex(ri.type);
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                ++initialMessageEnemyGardener;
-
-                if(initialMessageEnemyGardener >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemyGardener = 0; 
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                ++initialMessageEnemyGardener;
-
-                if(initialMessageEnemyGardener >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemyGardener = 0; 
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                enemyBase = enemyPos;
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                ++initialMessageEnemy;
-
-                if(initialMessageEnemy >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemy = 0; 
+                initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
                 sent = true;
             }
 
@@ -310,16 +312,12 @@ public class Soldier {
         if (foundTank > 0){
             Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
             if (dir != null){
-                newTarget = pos.add(dir, rc.getType().strideRadius+1);
-                maxUtil = 0;
-                maxScore = 0;
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         } else if (foundSoldier > 0){
             Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
             if (dir != null){
-                newTarget = pos.add(dir, rc.getType().strideRadius+1);
-                maxUtil = 0;
-                maxScore = 0;
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         }
 
