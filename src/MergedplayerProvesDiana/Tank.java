@@ -98,8 +98,10 @@ public class Tank {
 
     static void beginRound(){
 
-        Shake.shake(rc);
+        Bot.shake(rc);
+        Bot.donate(rc);
         Communication.askForUnits();
+
         shouldStop = false;
         targetUpdated = false;
         if (realTarget != null && rc.canSenseLocation(realTarget)){
@@ -260,14 +262,20 @@ public class Tank {
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
                 ++initialMessageEnemyGardener;
+
+                if(initialMessageEnemyGardener >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemyGardener = 0; 
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
                 ++initialMessageEnemyGardener;
+
+                if(initialMessageEnemyGardener >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemyGardener = 0; 
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
                 ++initialMessageEnemy;
+
+                if(initialMessageEnemy >= Communication.CYCLIC_CHANNEL_LENGTH) initialMessageEnemy = 0; 
                 sent = true;
             }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
