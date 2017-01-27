@@ -1,13 +1,13 @@
 package Bestmicro;
 
-import battlecode.common.RobotController;
-import battlecode.common.Team;
-import battlecode.common.TreeInfo;
+import battlecode.common.*;
 
 /**
- * Created by Pau on 24/01/2017.
+ * Created by Pau on 27/01/2017.
  */
-public class Shake {
+public class Bot {
+//aqui fiquem tot el que facin tots els robots
+
 
     static void shake(RobotController rc){
 
@@ -27,6 +27,19 @@ public class Shake {
             else return;
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    static void donate(RobotController rc) {
+        try {
+            if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT-20);
+            if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
+                float donation = Math.max(0, rc.getTeamBullets() - 20);
+                if (donation > 20) ;
+                rc.donate(donation);
+            }
+        } catch (GameActionException e) {
             e.printStackTrace();
         }
     }

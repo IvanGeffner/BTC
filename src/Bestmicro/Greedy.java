@@ -9,7 +9,6 @@ import java.util.HashMap;
  * Created by Ivan on 1/15/2017.
  */
 public class Greedy {
-    //EM DONA EXCEPCIO A LA LINIA 169
 
     static int left = 0;
     static int newObs;

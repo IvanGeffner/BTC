@@ -24,6 +24,9 @@ public class ZoneG {
     static MapLocation zoneOrigin;
     private static Direction enemyDir;
 
+    static int[] xHex;
+    static int[] yHex;
+
     private static int zoneRows = 44;
     private static int zoneColumns = 44;
     private static int zonesPerChannel = 6;
@@ -35,7 +38,7 @@ public class ZoneG {
     private static int treesPerZone = 6; // !!!
     private static int buildPositionsPerZone = 6;
 
-    static int turnsResetZone = 45;
+    static int turnsResetZone = 50;
 
     static MapLocation[] hexPos = new MapLocation[6];
     //static MapLocation[] treePos = new MapLocation[treesPerZone];
@@ -51,6 +54,7 @@ public class ZoneG {
 
     static void init(RobotController rc2){
         rc = rc2;
+        espiral(6);
     }
 
     static boolean hasValue(int[] z){
@@ -97,15 +101,32 @@ public class ZoneG {
 
     static int[] getZoneFromPos(MapLocation pos){
         System.out.println("AAAAA");
-        int[] z = new int[2];
+        int[] ret = new int[2];
         float a00 = 2f/7f; //1/(float)Math.sqrt(28);
         float a01 = -1f/6f; //-1/(float)Math.sqrt(84);
         float a10 = 0f;
         float a11 = 1f/3f; //2/(float)Math.sqrt(84);
         System.out.println(a00 * (pos.x - zoneOriginX));
-        z[0] = Math.round(a00 * (pos.x - zoneOriginX) + a01 * (pos.y - zoneOriginY));
-        z[1] = Math.round(a10 * (pos.x - zoneOriginX) + a11 * (pos.y - zoneOriginY)); //arrodonit no esta del tot be pero close enough
-        return z;
+        float x = a00 * (pos.x - zoneOriginX) + a01 * (pos.y - zoneOriginY);
+        float y = a10 * (pos.x - zoneOriginX) + a11 * (pos.y - zoneOriginY);
+        float z = -x-y;
+        int rx = Math.round(x);
+        int ry = Math.round(y);
+        int rz = Math.round(z);
+        float dx = Math.abs(rx - x);
+        float dy = Math.abs(ry - y);
+        float dz = Math.abs(rz - z);
+
+
+        if (dx > dy && dx > dz){
+            rx = -ry-rz;
+        }else if (dy > dz) {
+            ry = -rx - rz;
+        }
+
+        ret[0] = rx;
+        ret[1] = ry;
+        return ret;
     }
 
 
@@ -458,5 +479,30 @@ public class ZoneG {
 
     static boolean insideLimits(int[] z){
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
+    }
+
+    private static int[] nextZone(int[] z,int dir){
+        int[][] dirs = {{1,0},{0,1},{-1,1},{-1,0},{0,-1},{1,-1}};
+        return new int[]{z[0]+dirs[dir][0], z[1]+dirs[dir][1]};
+    }
+
+    static void espiral(int radi){
+        xHex = new int[radi*(radi+1)*3+1];
+        yHex = new int[radi*(radi+1)*3+1];
+        xHex[0] = yHex[0] = 0;
+        int count = 1;
+        for (int i = 1; i <= radi; i++){
+            int[] z = {0,-i};
+
+            for (int j = 0; j < 6; j++){
+                for (int k = 0; k < i; k++){
+                    //System.out.println(count + "," + xHex.length);
+                    xHex[count] = z[0];
+                    yHex[count] = z[1];
+                    count++;
+                    z = nextZone(z,j);
+                }
+            }
+        }
     }
 }

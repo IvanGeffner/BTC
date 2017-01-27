@@ -128,6 +128,7 @@ public class Archon {
             chooseBuildOrder();
             for (int i = 0; i < Communication.unitChannels.length; ++i) {
                 try {
+                    Build.updateAfterConstruct(i);
                     rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
                 } catch (GameActionException e) {
                     e.printStackTrace();

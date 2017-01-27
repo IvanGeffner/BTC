@@ -51,7 +51,8 @@ public class Scout {
             //readMessages();
             checkMapBounds();
 
-            Shake.shake(rc);
+            Bot.shake(rc);
+            Bot.donate(rc);
 
             System.out.println("0");
             MapLocation newTarget = findBestTree();

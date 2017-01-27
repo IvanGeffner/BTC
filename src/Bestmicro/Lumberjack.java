@@ -110,7 +110,8 @@ public class Lumberjack {
         shouldStop = false;
         shouldMove = true;
         targetUpdated = false;
-        Shake.shake(rc);
+        Bot.shake(rc);
+        Bot.donate(rc);
         try {
             if(realTarget != null)
             {

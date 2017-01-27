@@ -98,7 +98,8 @@ public class Tank {
 
     static void beginRound(){
 
-        Shake.shake(rc);
+        Bot.shake(rc);
+        Bot.donate(rc);
 
         shouldStop = false;
         targetUpdated = false;

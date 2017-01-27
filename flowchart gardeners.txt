@@ -95,3 +95,6 @@ Idees random:
 
 -CONSTRUIR EN MES DE 4 DIRS
 - que els soldats disparin arbres a partir del torn X
+-arreglar els victory points
+- si estem encallats al torn x matem l'archon
+- si no hem vist cap soldat fins al torn X anem a fer turtle

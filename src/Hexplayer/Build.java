@@ -54,7 +54,7 @@ public class Build {
             totalMoney += computeHowManyBehind(Constants.SOLDIER, unit);
             totalMoney += computeHowManyBehind(Constants.TANK, unit);
             totalMoney += computeHowManyBehind(Constants.SCOUT, unit);
-            totalMoney += computeHowManyBehind(Constants.TREE, unit);
+            //totalMoney += computeHowManyBehind(Constants.TREE, unit);
         }else{
             if (aliveArchon) totalMoney += computeHowManyBehind(Constants.GARDENER, unit);
             //totalMoney += computeHowManyBehind(Constants.LUMBERJACK, unit);

@@ -20,9 +20,11 @@ public class Archon {
     public static void run(RobotController rcc) {
 
         rc = rcc;
+        if (rc.getRoundNum() > 5) init();
 
         while (true) {
-            Shake.shake(rc);
+            Bot.shake(rc);
+            Bot.donate(rc);
             if (rc.getRoundNum() == 2) init2();
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
@@ -53,7 +55,7 @@ public class Archon {
             }
 
             Map.checkMapBounds();
-            if (myTurn() && rc.getRoundNum() > 5) tryConstruct();
+            if (myTurn() && rc.getRoundNum() > 10) tryConstruct();
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -211,10 +213,23 @@ public class Archon {
     private static void tryConstruct(){
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
+        try {
+            System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
+            System.out.println("Index " + 1 + " = " + rc.readBroadcast(Communication.unitChannels[1]));
+            System.out.println("Index " + 2 + " = " + rc.readBroadcast(Communication.unitChannels[2]));
+            System.out.println("Index " + 3 + " = " + rc.readBroadcast(Communication.unitChannels[3]));
+            System.out.println("Index " + 4 + " = " + rc.readBroadcast(Communication.unitChannels[4]));
+            System.out.println("Index " + 5 + " = " + rc.readBroadcast(Communication.unitChannels[5]));
+
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
         try{
-            for (int i = 0; i < 4; ++i){
-                if (rc.canHireGardener(Constants.main_dirs[i])){
-                    rc.hireGardener(Constants.main_dirs[i]);
+            Direction d = Direction.EAST;
+            for (int i = 0; i < 50; ++i){
+                Direction d2 = d.rotateLeftDegrees(360*i/50);
+                if (rc.canHireGardener(d2)){
+                    rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);
                     return;
