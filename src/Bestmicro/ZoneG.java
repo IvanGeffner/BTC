@@ -31,7 +31,7 @@ public class ZoneG {
     static int turnsResetZone = 50;
 
     static MapLocation[] hexPos = new MapLocation[6];
-    static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
+    private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
 
     static void init(RobotController rc2){
@@ -54,6 +54,7 @@ public class ZoneG {
         zone = nullZone();
     }
 
+    //centre de la zona z
     static MapLocation center(int[] z){
         //float d = 5.5f; //arrel de 28 + epsilon
         float d = 3.5f; //2sqrt3
@@ -62,6 +63,7 @@ public class ZoneG {
         return zoneOrigin.add(v1,d * z[0]).add(v2,d*z[1]);
     }
 
+    //centre de la meva zona
     static MapLocation center(){
         if (!hasValue(zone)){
             try {
@@ -80,14 +82,14 @@ public class ZoneG {
         zoneOrigin = new MapLocation(zoneOriginX,zoneOriginY);
     }
 
+    //diu a quina zona pertany una posicio
+    //els calculs son una merde pero estan be, els he trobat per internet
     static int[] getZoneFromPos(MapLocation pos){
-        System.out.println("AAAAA");
         int[] ret = new int[2];
         float a00 = 2f/7f; //1/(float)Math.sqrt(28);
         float a01 = -1f/6f; //-1/(float)Math.sqrt(84);
         float a10 = 0f;
         float a11 = 1f/3f; //2/(float)Math.sqrt(84);
-        System.out.println(a00 * (pos.x - zoneOriginX));
         float x = a00 * (pos.x - zoneOriginX) + a01 * (pos.y - zoneOriginY);
         float y = a10 * (pos.x - zoneOriginX) + a11 * (pos.y - zoneOriginY);
         float z = -x-y;
@@ -97,14 +99,11 @@ public class ZoneG {
         float dx = Math.abs(rx - x);
         float dy = Math.abs(ry - y);
         float dz = Math.abs(rz - z);
-
-
         if (dx > dy && dx > dz){
             rx = -ry-rz;
         }else if (dy > dz) {
             ry = -rx - rz;
         }
-
         ret[0] = rx;
         ret[1] = ry;
         return ret;
@@ -136,6 +135,7 @@ public class ZoneG {
         return null;
     }
 
+    //broadcast d'un tipus de zona
     static void broadcastInfo(int[] z, int newZoneType){
         if (z[0] == Constants.INF) return;
         int zone_id = ZoneG.getID(z);
@@ -170,6 +170,8 @@ public class ZoneG {
         broadcastInfo(zone, Constants.busyZone);
     }
 
+
+    //assigna una zona a la variable zone i inicialitza la resta de coses
     static void assign(int[] assignedZone){
         if (hasValue(zone)){
             try {
@@ -208,7 +210,7 @@ public class ZoneG {
 
     }
 
-    //envia missatge de tallar els arbres en la capsa de 3x3 i si no n'hi ha cap en la de 5.5x5.5
+    //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 4.5
     static void messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
         int max_bytecode = 3000;
         int bytecode_init = Clock.getBytecodeNum();
@@ -216,7 +218,7 @@ public class ZoneG {
         boolean sendOuterTrees = true;
 
         float innerDistance = 3f;
-        float outerDistance = 6.3f; //perque hi capiguen els pagesos veins = sqrt(28)+1
+        float outerDistance = 4.5f; //perque hi capiguen els pagesos veins = sqrt(28)+1
 
         int outerTreeCount = 0;
 
@@ -243,7 +245,7 @@ public class ZoneG {
         Communication.sendMessage(Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
     }
 
-//arreglarla
+    //conta a quants dels 6 forats pot construir un robot
     static int countAvailableRobotBuildPositions(){
         //no ho fa be si la zona esta abandonada
         if (!hasValue(zone)){
@@ -259,9 +261,9 @@ public class ZoneG {
             try {
                 if (rc.canSenseAllOfCircle(hexPos[i],RobotType.SOLDIER.bodyRadius) &&
                         !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) {
-                    if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
+                    //if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
                     count++;
-                }else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
+                }//else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
@@ -270,7 +272,7 @@ public class ZoneG {
         return count;
     }
 
-
+    //retorna el millor index per plantar un arbre
     static int indexToPlant(){
         //quan arriba aqui esta garantit que som al centre
         if (!hasValue(zone)){
@@ -288,7 +290,8 @@ public class ZoneG {
             }
             Direction d = rc.getLocation().directionTo(hexPos[i]);
             float enemy_angle = 60;
-            if (rc.getRoundNum() < 1000) enemy_angle = 30;
+            int min_turn_tank = 700;
+            if (rc.getRoundNum() < min_turn_tank) enemy_angle = 30;
             if (Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
             try {
                 if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;

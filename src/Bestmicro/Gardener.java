@@ -47,6 +47,7 @@ public class Gardener {
                 //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
                 checkIfArrivedToZone();
             } else {
+                //si ja esta a la zona
                 checkNeutralTreesInZone();
                 tryPlanting();
                 if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
@@ -57,14 +58,11 @@ public class Gardener {
                 }
             }
             tryConstruct();
-            //System.out.println("despres de decidir tot " + Clock.getBytecodeNum());
-
-
             Map.checkMapBounds();
             updateTarget(newTarget);
             waterNearbyTree();
             if (realTarget == null) {
-                if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
+                //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
@@ -95,6 +93,7 @@ public class Gardener {
         }
     }
 
+    //retorna una zona del voltant que estigui buida
     private static int[] searchZone() {
         if (ZoneG.hasValue(zoneIWant)) return zoneIWant;
         int[] closest_empty_zone = ZoneG.nullZone();
@@ -141,7 +140,7 @@ public class Gardener {
         return ZoneG.nullZone();
     }
 
-    //mira si ja esta al centre de la zona
+    //mira si ja esta al centre de la zona a la que estic anant
     private static void checkIfArrivedToZone(){
         MapLocation centerIWant = ZoneG.center(zoneIWant);
         //System.out.println("El centre esta dintre? " + onCurrentMap(centerIWant));
@@ -149,7 +148,7 @@ public class Gardener {
             zoneIWant = ZoneG.nullZone();
             return;
         }
-        if (rc.canSenseLocation(centerIWant)){
+        if (rc.canSenseLocation(centerIWant)){ //avisa als lumbers que tallin els arbres d'on vull anar
             TreeInfo[] treesNearCenter = rc.senseNearbyTrees(centerIWant,-1,Team.NEUTRAL);
             ZoneG.messageNeutralTreesInCircle(centerIWant,treesNearCenter);
         }
@@ -157,17 +156,17 @@ public class Gardener {
         int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
             if (zoneType == Constants.busyZone) {
-                zoneIWant = ZoneG.nullZone();
+                zoneIWant = ZoneG.nullZone(); //si la zona esta ocupada, resetejo
                 return;
             }
             if (!rc.onTheMap(centerIWant,rc.getType().bodyRadius)){
                 ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
-                zoneIWant = ZoneG.nullZone();
+                zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
                 return;
             }
             if (Map.distToEdge(centerIWant) < 5){
                 ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
-                zoneIWant = ZoneG.nullZone();
+                zoneIWant = ZoneG.nullZone(); //aixo es un parche que he ficat, nose si esta be fer-ho
                 return;
             }
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
@@ -181,6 +180,7 @@ public class Gardener {
         }
     }
 
+    //rega l'arbre amb menys vida
     private static void waterNearbyTree(){
         if (!rc.canWater()) return;
         TreeInfo[] myTrees = rc.senseNearbyTrees(rc.getType().bodyRadius + Constants.interaction_dist_from_edge, rc.getTeam());
@@ -193,7 +193,7 @@ public class Gardener {
             }
         }
         if (minID != -1) try {
-            if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.senseTree(minID).getLocation(),0, 255, 0);
+            //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.senseTree(minID).getLocation(),0, 255, 0);
             rc.water(minID);
         } catch (GameActionException e) {
             e.printStackTrace();
@@ -205,6 +205,7 @@ public class Gardener {
         ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
     }
 
+    //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
     private static MapLocation checkNearbyEnemies(){
         //return null;
         RobotInfo[] enemies = rc.senseNearbyRobots(4, rc.getTeam().opponent());
@@ -222,40 +223,37 @@ public class Gardener {
         escapePos = myPos.add(myPos.directionTo(escapePos), 6);
 
         //rc.setIndicatorLine(myPos,escapePos, 0,255,255);
-        return null;
-        //return escapePos;
+        //return null;
+        return escapePos;
     }
 
-    private static MapLocation tryPlanting(){
+    private static void tryPlanting(){
         //System.out.println("Entra plantar");
-        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
-        if (ZoneG.countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
+        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
+        if (ZoneG.countAvailableRobotBuildPositions() < 2) return; //Si nomes hi ha una posicio, la reservem per robots
         if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps){
             System.out.println("No planto perque no soc al centre");
-            return null;
+            return;
         }
         if (!Build.allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
-            return null; //comprova bullets
+            return; //comprova bullets
         }
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
         //System.out.println("Planta l'arbre " + index);
-        if (index == -1) return null;
-        MapLocation plantingPosition = rc.getLocation();
-        MapLocation newTreePosition = ZoneG.hexPos[index];
-        Direction plantingDirection = plantingPosition.directionTo(newTreePosition);
-        if (rc.getLocation().distanceTo(plantingPosition) < Constants.eps && rc.canPlantTree(plantingDirection)){
+        if (index == -1) return;
+        MapLocation myPos = rc.getLocation();
+        Direction plantingDirection = myPos.directionTo(ZoneG.hexPos[index]);
+        if (rc.getLocation().distanceTo(myPos) < Constants.eps && rc.canPlantTree(plantingDirection)){
             try {
-                //Si pot plantar l'arbre, el planta i no cal que retorni cap direccio
+                //Planta l'arbre
                 rc.plantTree(plantingDirection);
                 Build.incrementTreesBuilt();
                 Build.updateAfterConstruct(Constants.TREE);
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
-            return null;
         }
-        return plantingPosition;
     }
 
 
@@ -270,7 +268,7 @@ public class Gardener {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
             //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
-            if (tankIndex < smallUnitIndex) {
+            if (tankIndex < smallUnitIndex) { //decideix si es mes prioritari fer tank o fer una altra cosa
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;
             }else{

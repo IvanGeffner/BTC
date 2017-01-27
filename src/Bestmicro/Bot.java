@@ -10,7 +10,6 @@ public class Bot {
 
 
     static void shake(RobotController rc){
-
         float maxBullets = 0;
         int id = -1;
         TreeInfo[] Ti = rc.senseNearbyTrees(rc.getType().bodyRadius + 1.0f, Team.NEUTRAL);

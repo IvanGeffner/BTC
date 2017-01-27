@@ -25,11 +25,13 @@ public class Archon {
         while (true) {
             Bot.shake(rc);
             Bot.donate(rc);
+            Map.checkMapBounds();
             if (rc.getRoundNum() == 2) init2();
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
+            boolean danger = (newTarget != null);
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
@@ -54,8 +56,9 @@ public class Archon {
                 }
             }
 
-            Map.checkMapBounds();
-            if (myTurn() && rc.getRoundNum() > 10) tryConstruct();
+            if (myTurn() && rc.getRoundNum() > 10) {
+                tryConstruct();
+            }
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);

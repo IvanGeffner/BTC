@@ -77,13 +77,8 @@ Idees random:
 - que els gardeners puguin enviar un missatge "marxeu de la posicio X"
 - si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
 - si obtenim una tropa d'un arbre, actualitzar el build order 
-- el primer gardener es construeix en l'archon mes llunya de l'enemic (si es pot)
-- els soldats van a melee vs gardeners i archons, i per culpa d'aixo rodegen el mapa i sen van, canviar-ho
 - fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
-- A vegades els soldats es queden rodejant l'archon enemic i no se ben be per que
 - lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
-- soldiers no disparen als archons els primers X torns
-- que els soldats facin be el focus (tanks > soldiers > gardeners > lumberjacks > archons > scouts)
 - que un pagès no es posi en una zona mes propera a l'enemic que a nosaltres
 - scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny
 
@@ -93,8 +88,8 @@ Idees random:
 - fer que puguin regar i construir al mateix temps xd
 - soldats ataquen al que tingui menys vida
 
--CONSTRUIR EN MES DE 4 DIRS
 - que els soldats disparin arbres a partir del torn X
 -arreglar els victory points
 - si estem encallats al torn x matem l'archon
 - si no hem vist cap soldat fins al torn X anem a fer turtle
+- utilitzar els missatges enemics per saber la seva posicio
