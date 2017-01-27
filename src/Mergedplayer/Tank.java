@@ -69,6 +69,7 @@ public class Tank {
                 adjustTarget();
                 try {
                     System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                    rc.setIndicatorLine(pos, realTarget, 0,255,255);
                 }
                 catch(Exception e){
                     System.out.println("No hi ha realTarget");
@@ -78,7 +79,7 @@ public class Tank {
                     overTrees = shouldWalkOverTrees();
                 }
                 try {
-                    if (overTrees) rc.move(realTarget);
+                    if (overTrees && rc.canMove(realTarget)) rc.move(realTarget);
                     else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                 } catch (GameActionException e) {
                     e.printStackTrace();
@@ -321,7 +322,6 @@ public class Tank {
     }
 
     static boolean shouldWalkOverTrees() {
-        if (rc.canMove(realTarget)) return false;
         float stride = rc.getType().strideRadius;
         MapLocation newPos = pos.add(pos.directionTo(realTarget), stride);
         if (pos.distanceTo(realTarget) < stride) newPos = realTarget;
