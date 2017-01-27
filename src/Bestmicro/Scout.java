@@ -1,4 +1,4 @@
-package MergedplayerProvesDiana;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -52,16 +52,12 @@ public class Scout {
             checkMapBounds();
 
             Shake.shake(rc);
-            Communication.askForUnits();
+
             System.out.println("0");
             MapLocation newTarget = findBestTree();
-
             // si no estem escapant, o si ho estem fent pero la direccio de l'arbre es semblant a la d'escapament
-            if (escaping <= 0) updateTarget(newTarget);
-            else {
-                if (newTarget != null && currentDirection != null) {
-                    if (Math.abs(currentDirection.degreesBetween(pos.directionTo(newTarget))) < 90) updateTarget(newTarget);
-                }
+            if (escaping <= 0 || (newTarget != null && Math.abs(currentDirection.degreesBetween(pos.directionTo(newTarget))) < 90)) {
+                updateTarget(newTarget);
             }
 
             updateSightZones();

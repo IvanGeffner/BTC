@@ -99,7 +99,7 @@ public class Soldier {
     static void beginRound(){
 
         Shake.shake(rc);
-
+        Communication.askForUnits();
         shouldStop = false;
         targetUpdated = false;
         if (realTarget != null && rc.canSenseLocation(realTarget)){

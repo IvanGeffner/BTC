@@ -1,4 +1,4 @@
-package MergedplayerProvesDiana;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -111,7 +111,6 @@ public class Lumberjack {
         shouldMove = true;
         targetUpdated = false;
         Shake.shake(rc);
-        Communication.askForUnits();
         try {
             if(realTarget != null)
             {
@@ -248,15 +247,15 @@ public class Lumberjack {
         //System.out.println("Unit Cost in this tree: " + m[3]);
         //System.out.println("sent by: " + m[0]);
         if(rc.canSenseLocation(unitTreePos)) return;
-        if(m[3] == 1000 || m[3] == -1 || m[3] == 80) m[3] = Constants.ARCHONVALUE; 
-        calculateNewTarget(unitTreePos, m[3]/Constants.CONVERSIONBULLETCOST, m[0] != Constants.SCOUT);
+        if(m[3] == 1000 || m[3] == -1 || m[3] == 80) m[3] = Constants.ARCHONVALUE;
+        calculateNewTarget(unitTreePos, m[3]/ Constants.CONVERSIONBULLETCOST, m[0] != Constants.SCOUT);
     }
     static void workMessageEnemyTree(int a)
     {
         int[] m = Communication.decode(a);
         MapLocation enemyTreePos = new MapLocation(m[1], m[2]);
         if(rc.canSenseLocation(enemyTreePos)) return;
-        calculateNewTarget(enemyTreePos,Constants.ENEMYTREESCORE, m[0] != Constants.SCOUT);
+        calculateNewTarget(enemyTreePos, Constants.ENEMYTREESCORE, m[0] != Constants.SCOUT);
     }
     static void workMessageChopTree(int a)
     {
@@ -322,8 +321,8 @@ public class Lumberjack {
 
                 int val = rt.bulletCost;
                 if(rt == RobotType.ARCHON) val = Constants.ARCHONVALUE;
-                if(rt.bulletCost == 80) val = Constants.ARCHONVALUE; 
-                calculateNewTarget(ti.location, val/Constants.CONVERSIONBULLETCOST + Constants.eps, false);
+                if(rt.bulletCost == 80) val = Constants.ARCHONVALUE;
+                calculateNewTarget(ti.location, val/ Constants.CONVERSIONBULLETCOST + Constants.eps, false);
                 if(!sent)
                 {
                     sent = true;
@@ -407,7 +406,7 @@ public class Lumberjack {
             {
                 if(!rc.canChop(ti.getID())) continue;
                 if(ti.getTeam() == rc.getTeam()) continue;
-                cont += Math.floor((ti.getHealth()-Constants.eps)/GameConstants.LUMBERJACK_CHOP_DAMAGE)+1;
+                cont += Math.floor((ti.getHealth()- Constants.eps)/GameConstants.LUMBERJACK_CHOP_DAMAGE)+1;
                 if(ti.getTeam() == rc.getTeam().opponent())
                 {
                     float val = Constants.ENEMYTREESCORE - ti.getHealth()/100000.0f;

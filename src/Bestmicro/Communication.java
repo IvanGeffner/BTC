@@ -1,7 +1,9 @@
-package MergedplayerProvesDiana;
+package Bestmicro;
 
 
-import battlecode.common.*;
+import battlecode.common.GameActionException;
+import battlecode.common.GameActionExceptionType;
+import battlecode.common.RobotController;
 
 /**
  * Created by Ivan on 1/15/2017.
@@ -19,8 +21,6 @@ public class Communication {
     static final int EMERGENCYCHANNEL = 1500;
     static final int TREEWITHGOODIES = 1600;
     static final int PLANTTREECHANNEL = 1700;
-    //demanar tropes
-    static final int NEEDTROOPCHANNEL = 2000; 
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
@@ -56,13 +56,12 @@ public class Communication {
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
 
 
-    
     static int xBase = 9999, yBase = 9999;
 
 
     //BC parameters
-    //gardener lumberjack soldier tank scout archon trees
-    static final int[] unitChannels = {501, 502, 503, 504, 505, 506, 507};
+    //gardener lumberjack soldier tank scout trees
+    static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
     static final int INITIALIZED = 507;
 
     static final int ARCHON_TURN = 508;
@@ -70,15 +69,6 @@ public class Communication {
     static final int ARCHONS_LAST_TURN = 510;
 
     static final int MAX_BROADCAST_MESSAGE = 500;
-
-
-    static final int BUILDPATH = 515;
-
-    //ask for units
-    static final int NEEDSOLDIERTANK = 0; 
-    static final int NEEDLUMBERJACK = 1; 
-    
-    static final float LUMBERJACKSCORE = 5.0f; 
 
     static final int typeMask = 0xF0000000; //at most 15
     static final int iOffMask = 0x0FF00000; //at most 255
@@ -164,75 +154,5 @@ public class Communication {
         }
         return false;
     }
-    
-    //funcio per demanar unitats
-    static void askForUnits()
-    {
-    	MapLocation me = rc.getLocation(); 
-    	RobotInfo[] Ri = rc.senseNearbyRobots(); 
-    	float soldiertank = 0.0f;
-    	float lumberjack = 0.0f; 
-    	boolean found = false; 
-    	for(RobotInfo ri : Ri)
-    	{
-    		if(ri.getTeam().equals(rc.getTeam())) 
-    		{
-    			soldiertank -= dangerScore(Constants.getIndex(ri.getType()));
-    			if(ri.getType().equals(RobotType.LUMBERJACK)) lumberjack -= LUMBERJACKSCORE; 
-    		}
-    		if(ri.getTeam().equals(rc.getTeam().opponent())) 
-    		{
-    			found = true; 
-    			soldiertank += dangerScore(Constants.getIndex(ri.getType()));
-    		}
-    	}
-    	soldiertank -= dangerScore(Constants.getIndex(rc.getType()));
-    	if(soldiertank >= 0.0f && found)
-    	{
-    		int x = Math.round(me.x);
-            int y = Math.round(me.y);
-        	sendMessage(rc, NEEDTROOPCHANNEL, x, y, NEEDSOLDIERTANK);
-    	}
-    	
 
-    	
-    	TreeInfo[] Ti = rc.senseNearbyTrees();
-    	found = false;
-    	for(TreeInfo ti : Ti)
-    	{
-    		if(ti.getTeam().equals(rc.getTeam())) continue; 
-    		
-    		if(ti.getTeam().equals(Team.NEUTRAL) && ti.containedRobot != null) 
-    		{
-    			found = true; 
-    			lumberjack += unitTreeScore(Constants.getIndex(ti.containedRobot));
-    		}
-    	}
-    	
-    	if(rc.getType().equals(RobotType.LUMBERJACK)) lumberjack -= LUMBERJACKSCORE; 
-    	
-    	if(found && lumberjack >= 0)
-    	{
-    		int x = Math.round(me.x);
-            int y = Math.round(me.y);
-        	sendMessage(rc, NEEDTROOPCHANNEL, x, y, NEEDLUMBERJACK);
-    	}
-    }
-    
-    static float dangerScore(int rt)
-    {
-    	if(rt == 4) return 1.0f; //scouts
-    	//if(rt == 0) return 2; //granjers?
-    	if(rt == 2) return 5.0f; //soldier mega important
-    	if(rt == 3) return 10.0f; // tank hiper mega important
-    	return 0.0f; //archons (i granjers) 0
-    }
-    
-    static float unitTreeScore(int rt)
-    {
-    	if(rt == 0) return 1.0f; 
-    	if(rt == 2) return 2.5f; 
-    	if(rt == 3) return 5.0f; 
-    	return 0.0f; //sudando d'scouts i archons
-    }
 }

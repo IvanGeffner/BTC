@@ -1,4 +1,4 @@
-package MergedplayerProvesDiana;
+package Bestmicro;
 
 import battlecode.common.RobotController;
 import battlecode.common.Team;
@@ -17,7 +17,7 @@ public class Shake {
 
         for (TreeInfo ti : Ti){
             if (ti.getContainedBullets() > maxBullets){
-                if (!rc.canShake(ti.getID())) continue;
+                if (!rc.canShake(ti.getID())) break;
                 maxBullets = ti.getContainedBullets();
                 id = ti.getID();
             }

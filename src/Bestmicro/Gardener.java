@@ -1,4 +1,4 @@
-package MergedplayerProvesDiana;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -16,23 +16,18 @@ public class Gardener {
 
     private static float maxDistToCenter = 3f;
 
-    static int initialMessageNeedTroop = 0;
+
 
 
     private static int[] Xsorted = {0, -1, 1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
     private static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
 
 
-    public static boolean lumberjackBuilt; 
-    public static int myRound; 
-    
     public static void run(RobotController rcc) {
         rc = rcc;
         Initialize();
         while (true) {
             Shake.shake(rc);
-            Communication.askForUnits();
-            readMessages();
             Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
@@ -111,9 +106,6 @@ public class Gardener {
 
     //nomes es fa la primera ronda
     private static void Initialize(){
-    	initialMessageNeedTroop = 0; 
-    	lumberjackBuilt = false; 
-    	myRound = rc.getRoundNum(); 
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
@@ -130,8 +122,6 @@ public class Gardener {
             }else{
                 ZoneG.setOrigin(xOrigin,Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y)));
             }
-            
-            initialMessageNeedTroop = rc.readBroadcast(Communication.TREEWITHGOODIES + Communication.CYCLIC_CHANNEL_LENGTH);
         } catch (GameActionException e) {
             e.printStackTrace();
         }
@@ -268,12 +258,13 @@ public class Gardener {
     private static MapLocation tryPlanting(){
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
+        if (ZoneG.countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
         if (!Build.allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
         }
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        System.out.println("Planta l'arbre " + index);
+        //System.out.println("Planta l'arbre " + index);
         if (index == -1) return null;
         MapLocation plantingPosition = ZoneG.plantingPos[index];
         MapLocation newTreePosition = ZoneG.treePos[index];
@@ -307,7 +298,7 @@ public class Gardener {
         try {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
+            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
             if (tankIndex < smallUnitIndex) {
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;
@@ -376,148 +367,11 @@ public class Gardener {
         return null;
     }
 
-    private static void readMessages()
-    {
-    	boolean needTroop = false; 
-    	boolean needLumberjack = false;
-    	try {
-    		int channel = Communication.NEEDTROOPCHANNEL;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;)
-            {
-                int a = rc.readBroadcast(channel + i);
-                int t = workMessageTroopNeeded(a);
-                if(t == Communication.NEEDSOLDIERTANK) needTroop = true; 
-                if(t == Communication.NEEDLUMBERJACK) needLumberjack = true; 
-                ++i;
-                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }
-            initialMessageNeedTroop = lastMessage;
-        } catch (GameActionException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-    	if(needTroop) tryTroop(); 
-    	if(needLumberjack && !lumberjackBuilt) tryLumberjack();
-    }
 
 
-    static int workMessageTroopNeeded(int a)
-    {
-        int[] m = Communication.decode(a);
-       //MapLocation unitTreePos = new MapLocation(m[1], m[2]);
-        //System.out.println("Unit Cost in this tree: " + m[3]);
-        //System.out.println("sent by: " + m[0]);
-        //if(rc.canSenseLocation(unitTreePos)) return;
-        return m[3];
-    }
 
-    static void tryTroop()
-    {
-        
-    	try
-		{
-    		/*
-    		 * TODO arreglar-ho per poder fer tanks
-    		int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
-            int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
-            RobotType t; 
-            int c; 
-            if(tankIndex < smallUnitIndex && Build.allowedToConstruct(Constants.TANK)) 
-            {
-            	c = Constants.TANK;
-            	t = RobotType.TANK; 
-            }
-            
-            else 
-            {
-            	c = Constants.SOLDIER; 
-            	t = RobotType.SOLDIER; 
-            }
-            */
-            
-            int c = Constants.SOLDIER; 
-            RobotType t = RobotType.SOLDIER; 
-            
-            if(!Build.allowedToConstruct(Constants.SOLDIER)) return; 
-    		Direction d = Direction.NORTH; 
-    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-    		{
-    			rc.buildRobot(t, d);
-    			Build.updateAfterConstruct(c);
-    		}
-    		else
-    		{
-	    		d = Direction.SOUTH; 
-	    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-	    		{
-	    			rc.buildRobot(t, d);
-	    			Build.updateAfterConstruct(c);
-	    		}
-	    		else
-	    		{
-		    		d = Direction.EAST; 
-		    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-		    		{
-		    			rc.buildRobot(t, d);
-		    			Build.updateAfterConstruct(c);
-		    		}
-		    		else
-		    		{
-			    		d = Direction.WEST; 
-			    		if(rc.canBuildRobot(RobotType.SOLDIER, d))
-			    		{
-			    			rc.buildRobot(t, d);
-			    			Build.updateAfterConstruct(c);
-			    		}
-		    		}
-	    		}
-    		}
-		} catch (GameActionException e){
-            e.printStackTrace();
-		}
-	}
-    static void tryLumberjack()
-    {
-    	try
-		{
-    		Direction d = Direction.NORTH; 
-    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-    		{
-    			lumberjackBuilt = true;
-    			rc.buildRobot(RobotType.LUMBERJACK, d);
-    		}
-    		else
-    		{
-	    		d = Direction.SOUTH; 
-	    		if(rc.canBuildRobot(RobotType.SOLDIER, d))
-	    		{
-	    			lumberjackBuilt = true;
-	    			rc.buildRobot(RobotType.LUMBERJACK, d);
-	    		}
-	    		else
-	    		{
-		    		d = Direction.EAST; 
-		    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-		    		{
-		    			lumberjackBuilt = true;
-		    			rc.buildRobot(RobotType.LUMBERJACK, d);
-		    		}
-		    		else
-		    		{
-			    		d = Direction.WEST; 
-			    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) 
-			    		{
-			    			lumberjackBuilt = true;
-			    			rc.buildRobot(RobotType.LUMBERJACK, d);
-			    		}
-		    		}
-	    		}
-    		}
-		} catch (GameActionException e){
-            e.printStackTrace();
-		}
-	}
+
+
 
 
     private static void updateTarget(MapLocation newTarget){
