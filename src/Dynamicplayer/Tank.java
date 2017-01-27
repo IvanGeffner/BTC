@@ -350,7 +350,7 @@ public class Tank {
             RobotType r = ti.getContainedRobot();
             if (r != null) {
                 int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 1000;
+                if (r == RobotType.ARCHON) a = 400;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }

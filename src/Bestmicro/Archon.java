@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -227,37 +227,6 @@ public class Archon {
         } catch (GameActionException e) {
             e.printStackTrace();
         }*/
-        Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
-        for (int i = 0; i < 24; i++){
-            Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
-            if (rc.canBuildRobot(RobotType.GARDENER,d2)){
-                try {
-                    rc.buildRobot(RobotType.GARDENER,d2);
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-                Build.incrementRobotsBuilt();
-                Build.updateAfterConstruct(Constants.GARDENER);
-            }
-            d2 = enemyDir.rotateRightDegrees(360*i/12);
-            if (rc.canBuildRobot(RobotType.GARDENER,d2)){
-                try {
-                    rc.buildRobot(RobotType.GARDENER,d2);
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-                Build.incrementRobotsBuilt();
-                Build.updateAfterConstruct(Constants.GARDENER);
-
-            }
-        }
-
-
-
-
-
-
-
         try{
             Direction d = Direction.EAST;
             for (int i = 0; i < 50; ++i){
@@ -277,7 +246,7 @@ public class Archon {
 
     private static boolean myTurn(){
         try {
-            int archonNumber = Math.max(0,rc.readBroadcast(Communication.ARCHONS_LAST_TURN));
+            int archonNumber = rc.readBroadcast(Communication.ARCHONS_LAST_TURN);
             return (rc.getRoundNum()%archonNumber == whoAmI);
         } catch (Exception e) {
             System.out.println(e.getMessage());

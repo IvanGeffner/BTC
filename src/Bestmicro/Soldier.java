@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -343,7 +343,7 @@ public class Soldier {
             RobotType r = ti.getContainedRobot();
             if (r != null) {
                 int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 400;
+                if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }
