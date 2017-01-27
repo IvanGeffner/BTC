@@ -1,4 +1,4 @@
-package Bestmicro;
+package Dynamicplayer;
 
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
