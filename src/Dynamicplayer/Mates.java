@@ -1,4 +1,4 @@
-package Bestmicro;
+package Dynamicplayer;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

@@ -1,4 +1,4 @@
-package Bestmicro;
+package Dynamicplayer;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
