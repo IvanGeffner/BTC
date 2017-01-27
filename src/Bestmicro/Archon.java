@@ -216,7 +216,7 @@ public class Archon {
     private static void tryConstruct(){
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
-        try {
+        /*try {
             System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
             System.out.println("Index " + 1 + " = " + rc.readBroadcast(Communication.unitChannels[1]));
             System.out.println("Index " + 2 + " = " + rc.readBroadcast(Communication.unitChannels[2]));
@@ -226,7 +226,7 @@ public class Archon {
 
         } catch (GameActionException e) {
             e.printStackTrace();
-        }
+        }*/
         try{
             Direction d = Direction.EAST;
             for (int i = 0; i < 50; ++i){
@@ -244,7 +244,7 @@ public class Archon {
         }
     }
 
-    static boolean myTurn(){
+    private static boolean myTurn(){
         try {
             int archonNumber = rc.readBroadcast(Communication.ARCHONS_LAST_TURN);
             return (rc.getRoundNum()%archonNumber == whoAmI);

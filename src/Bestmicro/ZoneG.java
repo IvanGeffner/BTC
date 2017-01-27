@@ -285,7 +285,7 @@ public class ZoneG {
         for (int i = 0; i < treesPerZone; i++){
             if (Map.distToEdge(hexPos[i]) < 5f) {
                 //System.out.println("arbre " + i + " fora del mapa");
-                continue;
+                //continue;
             }
             Direction d = rc.getLocation().directionTo(hexPos[i]);
             float enemy_angle = 60;
