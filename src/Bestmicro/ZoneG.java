@@ -258,7 +258,10 @@ public class ZoneG {
         for (int i = 0; i < buildPositionsPerZone; i++){
             try {
                 if (rc.canSenseAllOfCircle(hexPos[i],RobotType.SOLDIER.bodyRadius) &&
-                        !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) count++;
+                        !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) {
+                    if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
+                    count++;
+                }else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
@@ -266,6 +269,7 @@ public class ZoneG {
         System.out.println("Te " + count + " posicions per construir");
         return count;
     }
+
 
     static int indexToPlant(){
         //quan arriba aqui esta garantit que som al centre

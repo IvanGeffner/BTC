@@ -29,15 +29,17 @@ public class Gardener {
             Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
-            newTarget = checkNearbyEnemies();
+            newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
 
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
             }else if (!ZoneG.hasValue(zone)) {
+                //si esta buscant zona
                 if (rc.getRoundNum() % ZoneG.turnsResetZone == 0) zoneIWant = ZoneG.nullZone();
                 zoneIWant = searchZone();
                 if (ZoneG.hasValue(zoneIWant)) {
+                    //es posa la zona triada com a objectiu
                     newTarget = ZoneG.center(zoneIWant);
                     System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget);
                     if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 255, 255);
@@ -130,7 +132,7 @@ public class Gardener {
             MapLocation newCenter = ZoneG.center(newZone);
             if (Map.distToEdge(newCenter) < 5f) continue;
             float distToZone = rc.getLocation().distanceTo(newCenter);
-            rc.setIndicatorDot(newCenter,(int)Math.min(255,distToZone*15),0,0);
+            if (Constants.DEBUG == 1) rc.setIndicatorDot(newCenter,(int)Math.min(255,distToZone*15),0,0);
             if (zoneType == Constants.emptyZone && distToZone < minDist){
                 closest_empty_zone = newZone;
                 minDist = distToZone;
@@ -139,6 +141,7 @@ public class Gardener {
         return ZoneG.nullZone();
     }
 
+    //mira si ja esta al centre de la zona
     private static void checkIfArrivedToZone(){
         MapLocation centerIWant = ZoneG.center(zoneIWant);
         //System.out.println("El centre esta dintre? " + onCurrentMap(centerIWant));
@@ -292,8 +295,8 @@ public class Gardener {
         }
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit);
         Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
-        for (int i = 0; i < 20; i++){
-            Direction d2 = enemyDir.rotateLeftDegrees(360*i/10);
+        for (int i = 0; i < 24; i++){
+            Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
@@ -303,7 +306,7 @@ public class Gardener {
                 Build.incrementRobotsBuilt();
                 Build.updateAfterConstruct(unit);
             }
-            d2 = enemyDir.rotateRightDegrees(360*i/10);
+            d2 = enemyDir.rotateRightDegrees(360*i/12);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
