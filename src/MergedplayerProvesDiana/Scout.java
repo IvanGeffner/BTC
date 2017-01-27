@@ -53,7 +53,7 @@ public class Scout {
 
             Bot.shake(rc);
             Bot.donate(rc);
-            Communication.askForUnits();
+            //Communication.askForUnits();
 
             System.out.println("0");
             MapLocation newTarget = findBestTree();
