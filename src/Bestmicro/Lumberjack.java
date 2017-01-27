@@ -304,7 +304,7 @@ public class Lumberjack {
                 int x = Math.round(enemyTree.x);
                 int y = Math.round(enemyTree.y);
                 Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
-                initialMessageEnemyTree = (initialMessageEnemyTree+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                ++initialMessageEnemyTree;
             }
         }
 
@@ -330,8 +330,7 @@ public class Lumberjack {
                     int x = Math.round(neutralTree.x);
                     int y = Math.round(neutralTree.y);
                     Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, val);
-
-                    initialMessageGoodieTree = (initialMessageGoodieTree+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                    ++initialMessageGoodieTree;
                 }
             }
 
@@ -352,18 +351,17 @@ public class Lumberjack {
                 if (a == 0)
                 {
                     Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-
-                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                    ++initialMessageEnemyGardener;
                 }
                 else if (a == 5)
                 {
                     Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                    ++initialMessageEnemyGardener;
                 }
                 else
                 {
                     Communication.sendMessage(Communication.ENEMYCHANNEL, x, y, a);
-                    initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                    ++initialMessageEnemy;
                 }
             }
         }
