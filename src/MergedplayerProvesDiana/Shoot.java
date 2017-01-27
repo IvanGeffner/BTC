@@ -1,4 +1,4 @@
-package MergedplayerMicro;
+package MergedplayerProvesDiana;
 
 import battlecode.common.*;
 
@@ -24,12 +24,13 @@ public class Shoot {
                 RobotType r = ri.getType();
                 MapLocation m = ri.getLocation();
                 float R = r.bodyRadius;
-                float d = m.distanceTo(pos);
 
                 R += r.strideRadius;
-                R = Math.min(d, R);
+
 
                 Direction dir = pos.directionTo(m);
+
+                float d = m.distanceTo(pos);
 
                 float a = (float)Math.asin(R/d);
 

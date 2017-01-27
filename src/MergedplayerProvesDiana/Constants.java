@@ -1,4 +1,4 @@
-package Mergedplayer;
+package MergedplayerProvesDiana;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
@@ -7,7 +7,7 @@ import battlecode.common.RobotType;
  * Created by Ivan on 1/15/2017.
  */
 public class Constants {
-    public static int DEBUG = 1; // posar-ho a 0 quan es pugi el player a la web
+    public static int DEBUG = 0; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
     public static float eps = 0.001f;
@@ -15,37 +15,9 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    //public static int[] initialBuild = {0, 2, 2, 6, 4, 6, 1, 4, 2, 1, 6, 6,  6, 6, 0, 6, 2, 1, 6, 6, 2, 1, 6}; //22
-    //public static int[] initialPositions = {0, 6, 1, 33, 4, 9999, 3};
-    //public static int[] sequenceBuild = {2, 6, 6, 2, 6, 0, 2, 6, 1, 6, 3 ,6};
-
-
-    public static int[] rushInitBuild = {-1,0,2,2,6,6,4,1,2,6};
-    public static int[] rushSeqBuild =  {6,2,6,0,6,2,6,6,2,6,1,6,3};
-
-    public static int[] closeCagedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,2};
-    public static int[] closeCagedSeqBuild = {6,1,6,0,6,2,6,2,6,1,6,3};
-
-    public static int[] farOpenInitBuild = {-1,0,4,6,6,2,6,2,6,1,6,4};
-    public static int[] farOpenSeqBuild = {6,2,6,6,0,6,2,6,6,1,6,6,3};
-
-    public static int[] farCagedInitBuild = {-1,0,4,1,6,6,1,4,2,6,6,1};
-    public static int[] farCagedSeqBuild =  {6,2,6,6,0,6,1,6,6,2,6,1,6,6,3};
-
-    public static int[] balancedInitBuild = {-1,0,2,6,1,6,4,6,2,6,4,6};
-    public static int[] balancedSeqBuild = {6,1,6,6,0,6,2,6,2,6,6,3,6,2};
-
-    public static int[][] initBuilds = {rushInitBuild,closeCagedInitBuild,farOpenInitBuild,farCagedInitBuild,balancedInitBuild};
-    public static int[][] seqBuids = {rushSeqBuild,closeCagedSeqBuild,farOpenSeqBuild,farCagedSeqBuild,balancedSeqBuild};
-
-    public static int RUSH_BUILD = 0;
-    public static int CLOSE_CAGED_BUILD = 1;
-    public static int FAR_OPEN_BUILD = 2;
-    public static int FAR_CAGED_BUILD = 3;
-    public static int BALANCED_BUILD = 4;
-
-
-
+    public static int[] initialBuild = {0, 2, 2, 5, 4, 5, 1, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 5, 5, 2, 1, 5}; //22
+    public static int[] initialPositions = {0, 6, 1, 33, 4, 3};
+    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
@@ -55,8 +27,8 @@ public class Constants {
     public static int LAST_ROUND_BUILD = 2900;
     public static float BULLET_LIMIT = 2500;
 
-    //public static int IBL = initialBuild.length;
-    //public static int SBL = sequenceBuild.length;
+    public static int IBL = initialBuild.length;
+    public static int SBL = sequenceBuild.length;
 
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;
@@ -69,6 +41,11 @@ public class Constants {
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
     public static int BROADCASTMAXSOLDIER = 600;
 
+    public static int TC = 4; //TreeColumns
+    public static int TR = 2; //TRows
+    public static int DR = 5; //Distance Row-Row
+    public static int ModulR = 2*TR + DR;
+    public static int ModulC = 2*TC + DR;
     public static int SouthTree = 4;
     public static int NorthTree = 6;
     public static float minHPWater = 45f;
@@ -96,8 +73,8 @@ public class Constants {
     public static float EMERGENCYSCORE = 25f;
 
     public static final int COSTCYCLE1 = 135;
-    public static final int COSTCYCLE2 = 420;
-    public static final int COSTSORT = 110;
+    public static final int COSTCYCLE2 = 200;
+    public static final int COSTSORT = 120;
     public static final int COSTSELECTION = 33;
 
     public static int emptyZone = 0;
@@ -129,8 +106,7 @@ public class Constants {
     public static int SOLDIER = 2;
     public static int TANK = 3;
     public static int SCOUT = 4;
-    public static int ARCHON = 5;
-    public static int TREE = 6;
+    public static int TREE = 5;
 
 
     //LUMBIS

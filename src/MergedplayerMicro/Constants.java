@@ -39,6 +39,7 @@ public class Constants {
     public static int BYTECODEPOSTEMERGENCYMESSAGES = 9000;
     public static int BYTECODEPOSTSTOPMESSAGES = 8750;
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
+    public static int BROADCASTMAXSOLDIER = 600;
 
     public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows

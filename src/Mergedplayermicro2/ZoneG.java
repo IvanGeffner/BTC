@@ -1,4 +1,4 @@
-package Mergedplayer;
+package Mergedplayermicro2;
 
 import battlecode.common.*;
 
@@ -223,30 +223,8 @@ public class ZoneG {
             }
             return;
         }
-        Direction dBase = chooseOrientation();
-
-        float a = 2.01f;
-        float b = 2.85f;
-        float c = 5.02f;
-        float p = (float)Math.PI/4;
-        float[] treeDist = {b,a,b,a,b,a,b};
-        float[] treeRot = {p,2*p,3*p,4*p,5*p,6*p,7*p};
-        float[] plantDist = {a,0,a,0,a,0,a};
-        float[] plantRot = {0,0,4*p,0,4*p,0,0};
-        float[] waterDist = {0,0,0,0,0,0,0};
-        float[] waterRot = {0,0,0,0,0,0,0};
-
-        float[] buildDist = {0,0,0,0};
-        float[] buildRot = {0,0,0,0};
-        float[] newRobotDist = {a,a,a,a};
-        float[] newRobotRot = {0,2*p,4*p,6*p};
-        float[] buildTankDist = {a,a,a,a};
-        float[] buildTankRot = {0,2*p,4*p,6*p};
-        float[] newTankDist = {c,c,c,c};
-        float[] newTankRot = {0,2*p,4*p,6*p};
-/*
-        //float[] treeOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f,2.01f};
-        //float[] treeOffsetY = {-2.05f,-2.05f,-2.05f,2.05f,2.05f,2.05f,0f};
+        float[] treeOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f,2.01f};
+        float[] treeOffsetY = {-2.05f,-2.05f,-2.05f,2.05f,2.05f,2.05f,0f};
         float[] plantingOffsetX = {-2.01f,0f,2.01f, -2.01f, 0f, 2.01f,0f};
         float[] plantingOffsetY = {-0.05f,-0.05f,-0.05f,0.05f,0.05f,0.05f,0f};
         float[] wateringOffsetX = {0f,0f,0f,0f,0f,0f,0f};
@@ -272,13 +250,12 @@ public class ZoneG {
         float[] buildTankPosX = new float[buildPositionsPerZone];
         float[] buildTankPosY = new float[buildPositionsPerZone];
         float[] newTankPosX = new float[buildPositionsPerZone];
-        float[] newTankPosY = new float[buildPositionsPerZone];*/
-        indexVertexTrees = new int[] {2,4};
+        float[] newTankPosY = new float[buildPositionsPerZone];
 
         zone = assignedZone;
         center = center(zone);
         broadcastInfo(assignedZone, Constants.busyZone);
-/*
+
         try {
             if(treesPerZone == 7 && !rc.onTheMap(center.add(Direction.WEST,6f))){
                 treeOffsetX[6] = -2.01f;
@@ -294,15 +271,9 @@ public class ZoneG {
             }
         } catch (GameActionException e) {
             e.printStackTrace();
-        }*/
-
-
+        }
         for (int i = 0; i < treesPerZone; i++){
-
-            treePos[i] = center.add(dBase.rotateRightRads(treeRot[i]),treeDist[i]);
-            plantingPos[i] = center.add(dBase.rotateRightRads(plantRot[i]),plantDist[i]);
-            wateringPos[i] = center.add(dBase.rotateRightRads(waterRot[i]),waterDist[i]);
-            /*treePosX[i] = center.x + treeOffsetX[i];
+            treePosX[i] = center.x + treeOffsetX[i];
             treePosY[i] = center.y + treeOffsetY[i];
             treePos[i] = new MapLocation(treePosX[i], treePosY[i]);
             plantingPosX[i] = center.x + plantingOffsetX[i];
@@ -310,16 +281,12 @@ public class ZoneG {
             plantingPos[i] = new MapLocation(plantingPosX[i], plantingPosY[i]);
             wateringPosX[i] = center.x + wateringOffsetX[i];
             wateringPosY[i] = center.y + wateringOffsetY[i];
-            wateringPos[i] = new MapLocation(wateringPosX[i], wateringPosY[i]);*/
+            wateringPos[i] = new MapLocation(wateringPosX[i], wateringPosY[i]);
             treeHP[i] = -1;
         }
 
         for (int i = 0; i < buildPositionsPerZone; i++){
-            buildPos[i] = center.add(dBase.rotateRightRads(buildRot[i]),buildDist[i]);
-            newRobotPos[i] = center.add(dBase.rotateRightRads(newRobotRot[i]),newRobotDist[i]);
-            buildTankPos[i] = center.add(dBase.rotateRightRads(buildTankRot[i]),buildTankDist[i]);
-            newTankPos[i] = center.add(dBase.rotateRightRads(newTankRot[i]),newTankDist[i]);
-            /*buildPosX[i] = center.x + buildOffsetX[i];
+            buildPosX[i] = center.x + buildOffsetX[i];
             buildPosY[i] = center.y + buildOffsetY[i];
             buildPos[i] = new MapLocation(buildPosX[i], buildPosY[i]);
             newRobotPosX[i] = center.x + newRobotOffsetX[i];
@@ -330,33 +297,8 @@ public class ZoneG {
             buildTankPos[i] = new MapLocation(buildTankPosX[i],buildTankPosY[i]);
             newTankPosX[i] = center.x + newTankOffsetX[i];
             newTankPosY[i] = center.y + newTankOffsetY[i];
-            newTankPos[i] = new MapLocation(newTankPosX[i],newTankPosY[i]);*/
+            newTankPos[i] = new MapLocation(newTankPosX[i],newTankPosY[i]);
         }
-    }
-
-    static Direction chooseOrientation(){
-        MapLocation myPos = rc.getLocation();
-        MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam().opponent());
-        MapLocation minPos = null;
-        float minDist = Constants.INF;
-        for (MapLocation a: archons){
-            if (myPos.distanceTo(a) < minDist){
-                minPos = a;
-                minDist = myPos.distanceTo(a);
-            }
-        }
-        Direction d = myPos.directionTo(minPos);
-        float dx = d.getDeltaX(1);
-        float dy = d.getDeltaY(1);
-        if (dx+dy > 0){
-            if (dx-dy > 0) return Direction.getEast();
-            return Direction.getNorth();
-
-        }else{
-            if (dx-dy > 0) return Direction.getSouth();
-            return Direction.getWest();
-        }
-
     }
 
     static void updateTreeHP(){
@@ -484,17 +426,12 @@ public class ZoneG {
         float minDist = Constants.INF;
         int minIndex = -1;
         for (int i = 0; i < treesPerZone; i++){
-            if (treeHP[i] > 0) {
-                System.out.println("arbre " + i + " ja fet");
-                continue;
-            }
-            if ((i%2 == 1) && ZoneG.countAvailableRobotBuildPositions() < 2) continue; //Si nomes hi ha una posicio, la reservem per robots
-
+            if (treeHP[i] > 0) continue;
             if (!Map.onCurrentMap(treePos[i]) || !Map. onCurrentMap(plantingPos[i])) {
                 //System.out.println("arbre " + i + " fora del mapa");
                 continue;
             }
-            if (i == 3){
+            if (i == 6){
                 if (treeHP[indexVertexTrees[0]] == -1 || treeHP[indexVertexTrees[1]] == -1) continue;
             }
             try {

@@ -1,4 +1,4 @@
-package Mergedplayer;
+package Mergedplayermicro2;
 
 import battlecode.common.*;
 
@@ -258,12 +258,13 @@ public class Gardener {
     private static MapLocation tryPlanting(){
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
+        if (ZoneG.countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
         if (!Build.allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
         }
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        System.out.println("Planta l'arbre " + index);
+        //System.out.println("Planta l'arbre " + index);
         if (index == -1) return null;
         MapLocation plantingPosition = ZoneG.plantingPos[index];
         MapLocation newTreePosition = ZoneG.treePos[index];
@@ -297,7 +298,7 @@ public class Gardener {
         try {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
+            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
             if (tankIndex < smallUnitIndex) {
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;

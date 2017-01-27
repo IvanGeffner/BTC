@@ -1,4 +1,4 @@
-package MergedplayerMicro;
+package MergedplayerProvesDiana;
 
 import battlecode.common.*;
 

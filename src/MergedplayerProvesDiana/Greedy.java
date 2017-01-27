@@ -1,4 +1,4 @@
-package Mergedplayer;
+package MergedplayerProvesDiana;
 
 import battlecode.common.*;
 
@@ -86,6 +86,8 @@ public class Greedy {
     static void moveGreedy(RobotController rc, MapLocation tar, int bytecodeleft){
         changeTarget(tar, rc);
         if (target == null) return;
+
+        System.out.println("heyaa");
 
         try {
             pos = rc.getLocation();
@@ -267,6 +269,8 @@ public class Greedy {
     }
 
     public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
+
+        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
 
         if (tries >= Constants.GREEDYTRIES) return null;
 
@@ -463,6 +467,8 @@ public class Greedy {
     }
 
     public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
+
+        System.out.println("LOW BYTECODEE!!");
 
 
         if (dir == null){
@@ -681,6 +687,8 @@ public class Greedy {
     }
 
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
+
+       System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -1034,34 +1042,36 @@ public class Greedy {
 
         int i = lowerIndex;
         int j = higherIndex;
-        //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
-        int pivot = intervals[(higherIndex+lowerIndex)/2];
-        while (i <= j) {
+            //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
+            int pivot = intervals[(higherIndex+lowerIndex)/2];
+            while (i <= j) {
 
-            while (intervals[i] < pivot) {
-                i++;
+                while (intervals[i] < pivot) {
+                    i++;
+                }
+                while (intervals[j] > pivot) {
+                    j--;
+                }
+                if (i <= j) {
+                    int temp = intervals[i];
+                    intervals[i] = intervals[j];
+                    intervals[j] = temp;
+                    i++;
+                    j--;
+                }
             }
-            while (intervals[j] > pivot) {
-                j--;
+            // call quickSort() method recursively
+            if (lowerIndex < j) {
+                quickSort(lowerIndex, j);
             }
-            if (i <= j) {
-                int temp = intervals[i];
-                intervals[i] = intervals[j];
-                intervals[j] = temp;
-                i++;
-                j--;
-            }
-        }
-        // call quickSort() method recursively
-        if (lowerIndex < j) {
-            quickSort(lowerIndex, j);
-        }
-        if (i < higherIndex){
-            quickSort(i, higherIndex);
+            if (i < higherIndex){
+                quickSort(i, higherIndex);
         }
     }
 
     static void addIntervalsImproved (BulletInfo b){
+
+        System.out.println("Tractament bala: " + Clock.getBytecodeNum());
 
         MapLocation m1 = b.getLocation();
         MapLocation m2 = m1.add(b.getDir(),b.getSpeed());
@@ -1122,6 +1132,8 @@ public class Greedy {
                 if (hCoord2 <= hCoordm2) dirv22 = Dirm2.rotateRightRads(angle);
             }
         }
+
+        System.out.println("Final Tractament bala: " + Clock.getBytecodeNum());
 
 
         if (dirv11 != null) {

@@ -181,11 +181,14 @@ public class Tank {
     }
 
     static void readMessages(){
+        boolean shouldRead = true;
+        if (rc.getRoundNum() - Greedy.bulletDodge <= 1) shouldRead = false;
+
         try {
             int channel = Communication.ENEMYCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemy);
-            for (int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYMESSAGES; ) {
+            //System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemy);
+            for (int i = initialMessageEnemy; shouldRead && i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEnemy(a);
                 ++i;
@@ -195,8 +198,8 @@ public class Tank {
 
             channel = Communication.EMERGENCYCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEmergency);
-            for (int i = initialMessageEmergency; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTEMERGENCYMESSAGES; ) {
+            //System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEmergency);
+            for (int i = initialMessageEmergency; shouldRead && i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTEMERGENCYMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEmergency(a);
                 ++i;
@@ -206,8 +209,8 @@ public class Tank {
 
             channel = Communication.STOPCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageStop);
-            for (int i = initialMessageStop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTSTOPMESSAGES; ) {
+            //System.out.println("Last and Initial: " + lastMessage + " " + initialMessageStop);
+            for (int i = initialMessageStop; shouldRead && i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTSTOPMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageStop(a);
                 ++i;
@@ -217,8 +220,8 @@ public class Tank {
 
             channel = Communication.ENEMYGARDENERCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemyGardener);
-            for (int i = initialMessageEnemyGardener; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYGARDENERMESSAGES; ) {
+            //System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemyGardener);
+            for (int i = initialMessageEnemyGardener; shouldRead && i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTENEMYGARDENERMESSAGES; ) {
                 int a = rc.readBroadcast(channel + i);
                 workMessageEnemyGardener(a);
                 ++i;
@@ -261,6 +264,8 @@ public class Tank {
     }
 
     static void broadcastLocations() {
+        int byte1 = Clock.getBytecodeNum();
+
         if (round != rc.getRoundNum()) return;
 
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
@@ -268,7 +273,7 @@ public class Tank {
 
 
         for (RobotInfo ri : Ri) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
+            if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
@@ -292,16 +297,17 @@ public class Tank {
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
             TreeInfo ti = Ti[0];
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
             Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
         }
 
+        if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
+
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
-            if (Clock.getBytecodesLeft() < Constants.SAFETYMARGIN) return;
+            if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);

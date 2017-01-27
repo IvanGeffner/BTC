@@ -1,4 +1,4 @@
-package MergedplayerMicro;
+package Mergedplayermicro2;
 
 import battlecode.common.*;
 

@@ -1,4 +1,4 @@
-package Mergedplayer;
+package MergedplayerProvesDiana;
 
 import battlecode.common.*;
 
@@ -21,13 +21,16 @@ public class Gardener {
 
     private static int[] Xsorted = {0, -1, 1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
     private static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
-
+    
+    private static boolean lumberjackNeed = false; 
 
     public static void run(RobotController rcc) {
         rc = rcc;
         Initialize();
         while (true) {
             Shake.shake(rc);
+            checkEnemyRatio();
+            //if(lumberjackNeed) buildLumberjack(); 
             Communication.sendReport(Communication.GARDENER_REPORT);
             if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
             MapLocation newTarget;
@@ -106,6 +109,7 @@ public class Gardener {
 
     //nomes es fa la primera ronda
     private static void Initialize(){
+    	lumberjackNeed = false; 
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
@@ -125,7 +129,113 @@ public class Gardener {
         } catch (GameActionException e) {
             e.printStackTrace();
         }
+        //checkLumberjackNeed(); 
     }
+
+    private static void checkEnemyRatio()
+    {
+    	RobotInfo[] Ri = rc.senseNearbyRobots(); 
+    	int enemies = 0; 
+    	boolean found = false; 
+    	for(RobotInfo ri : Ri)
+    	{
+    		if(ri.getTeam().equals(rc.getTeam())) if(!ri.getType().equals(RobotType.TANK) || !
+    		ri.getType().equals(RobotType.SOLDIER)) continue;
+    		if(ri.getTeam().equals(rc.getTeam())) --enemies; 
+    		else 
+    		{
+    			found = true; 
+    			if(ri.getType() == RobotType.SCOUT) enemies += 0.5; 
+    			else ++enemies; 
+    		}
+    	}
+    	
+    	if(enemies > 0 || (enemies == 0 && found)) 
+    	{
+    		try
+    		{
+	    		Direction d = Direction.NORTH; 
+	    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+	    		else
+	    		{
+		    		d = Direction.SOUTH; 
+		    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+		    		else
+		    		{
+			    		d = Direction.EAST; 
+			    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+			    		else
+			    		{
+				    		d = Direction.WEST; 
+				    		if(rc.canBuildRobot(RobotType.SOLDIER, d)) rc.buildRobot(RobotType.SOLDIER, d);
+			    		}
+		    		}
+	    		}
+    		} catch (GameActionException e){
+                e.printStackTrace();
+            }
+    	}
+    }
+    
+    private static void checkLumberjackNeed()
+    {
+    	TreeInfo[] Ti = rc.senseNearbyTrees(); 
+    	int lumbi = 0; 
+    	for(TreeInfo ti : Ti)
+    	{
+    		if(ti.getTeam() != Team.NEUTRAL) continue; 
+    		++lumbi; 
+    		if(lumbi == 2)
+    		{
+    			lumberjackNeed = true; 
+    			return; 
+    		}
+    	}
+    }
+
+    private static void buildLumberjack()
+    {
+    	try
+		{
+    		Direction d = Direction.NORTH; 
+    		if(rc.canBuildRobot(RobotType.LUMBERJACK, d)) 
+    			{
+    				lumberjackNeed = false; 
+    				rc.buildRobot(RobotType.LUMBERJACK, d);
+    			}
+    		else
+    		{
+	    		d = Direction.SOUTH; 
+	    		if(rc.canBuildRobot(RobotType.LUMBERJACK, d)) 
+	    		{
+	    			lumberjackNeed = false; 
+	    			rc.buildRobot(RobotType.LUMBERJACK, d);
+	    		}
+	    		else
+	    		{
+		    		d = Direction.EAST; 
+		    		if(rc.canBuildRobot(RobotType.LUMBERJACK, d)) 
+		    		{
+		    			lumberjackNeed = false; 
+		    			rc.buildRobot(RobotType.LUMBERJACK, d);
+		    		}
+		    		else
+		    		{
+			    		d = Direction.WEST; 
+			    		if(rc.canBuildRobot(RobotType.LUMBERJACK, d))
+			    		{
+			    			lumberjackNeed = false; 
+			    			rc.buildRobot(RobotType.LUMBERJACK, d);
+		    		
+			    		}
+		    		}
+	    		}
+    		}
+		} catch (GameActionException e){
+            e.printStackTrace();
+        }
+	}
+
 
     private static int[] searchZone() {
         if (ZoneG.hasValue(zoneIWant)) return zoneIWant;
@@ -258,12 +368,13 @@ public class Gardener {
     private static MapLocation tryPlanting(){
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return null;
+        if (ZoneG.countAvailableRobotBuildPositions() < 2) return null; //Si nomes hi ha una posicio, la reservem per robots
         if (!Build.allowedToConstruct(Constants.TREE)) {
             //System.out.println("No tinc prou bullets per plantar");
             return null; //comprova bullets
         }
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        System.out.println("Planta l'arbre " + index);
+        //System.out.println("Planta l'arbre " + index);
         if (index == -1) return null;
         MapLocation plantingPosition = ZoneG.plantingPos[index];
         MapLocation newTreePosition = ZoneG.treePos[index];
@@ -297,7 +408,7 @@ public class Gardener {
         try {
             int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
             int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
+            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
             if (tankIndex < smallUnitIndex) {
                 firstUnit = Constants.TANK;
                 secondUnit = smallUnit;
