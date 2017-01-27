@@ -55,31 +55,29 @@ public class Tank {
             updateTarget();
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
 
-            if (emergencyTarget != null) Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
-            else {
-
-                if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius))
+                    Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
                 else {
-                    adjustTarget();
-                    try {
-                        System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
-                        rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
-                    } catch (Exception e) {
-                        System.out.println("No hi ha realTarget");
-                    }
-                    try {
+
+                    if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+                    else {
+                        adjustTarget();
+                        try {
+                            System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                            rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
+                        } catch (Exception e) {
+                            System.out.println("No hi ha realTarget");
+                        }
                         if (shouldWalkOverTrees()) rc.move(realTarget);
                         else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
-                    } catch (GameActionException e) {
-                        e.printStackTrace();
+
                     }
                 }
-            }
+            }catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
 
             Clock.yield();
         }

@@ -54,22 +54,22 @@ public class Soldier {
             updateTarget();
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
+
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius)) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
+                else {
+
+                    if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
+                    else {
+                        adjustTarget();
+
+                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
+
+                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                    }
+                }
             }catch (Exception e) {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
-            }
-
-            if (emergencyTarget != null) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
-            else {
-
-                if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
-                else {
-                    adjustTarget();
-
-                    rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
-
-                    Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
-                }
             }
 
             Clock.yield();
