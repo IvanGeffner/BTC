@@ -22,6 +22,7 @@ public class Communication {
     static final int TREEWITHGOODIES = 1600;
     static final int PLANTTREECHANNEL = 1700;
     static final int NEEDTROOPCHANNEL = 2000;
+    static final int GARD_FREE_SPOTS = 2100;
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
@@ -34,12 +35,6 @@ public class Communication {
 
     static int ZONE_ORIGIN_X = 697;//coordenades del centre de la zona (0,0)
     static int ZONE_ORIGIN_Y = 698;//son les coordenades on spawneja el primer gardener
-
-    static int MIN_ZONE_X = 691;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
-    static int MIN_ZONE_Y = 692;//osigui si la x de zona maxima es 6, aqui es guardara un -14
-    static int MAX_ZONE_X = 693;//i si la de zona minima es -3 aqui es guardara un 17
-    static int MAX_ZONE_Y = 694;
-    static int ZONE_LIMIT_OFFSET = 20;
 
     static final int MAP_UPPER_BOUND = 700; // valors amb precisio de Constants.PRECISION_MAP_BOUNDS de
     static final int MAP_LOWER_BOUND = 701; // les coordenades x o y respecte l'archon 0 dels limits del mapa
@@ -55,6 +50,8 @@ public class Communication {
 
     static final int NEEDSOLDIERTANK = 0;
     static final int NEEDLUMBERJACK = 1;
+    static final int NEEDGARDENER = 2;
+
 
 
     static int xBase = 9999, yBase = 9999;

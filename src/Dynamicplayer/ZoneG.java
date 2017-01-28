@@ -33,9 +33,25 @@ public class ZoneG {
     static MapLocation[] hexPos = new MapLocation[6];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
+    static RobotInfo[] allies;
+    static RobotInfo[] enemies;
+    static TreeInfo[] neutralTrees;
+
 
     static void init(RobotController rc2){
         rc = rc2;
+    }
+
+    static void initTurn() {
+        allies = rc.senseNearbyRobots(-1, rc.getTeam());
+        enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+        try {
+            int freeSpots = rc.readBroadcast(Communication.GARD_FREE_SPOTS) + freeSpots();
+            rc.broadcast(Communication.GARD_FREE_SPOTS,freeSpots);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     static boolean hasValue(int[] z){
@@ -303,6 +319,28 @@ public class ZoneG {
         return -1;
     }
 
+
+    private static int freeSpots(){
+        int ret = 0;
+        for (int i = 0; i < 6; i++){
+            if (isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS)) ret++;
+        }
+        return ret;
+    }
+
+    private static boolean isFree(MapLocation pos, float r){
+        if (Map.distToEdge(pos) <= r) return false;
+        for (TreeInfo tree: neutralTrees){
+            if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+        }
+        for (RobotInfo robot: allies){
+            if (robot.getLocation().distanceTo(pos) <= robot.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+        }
+        for (RobotInfo robot: enemies){
+            if (robot.getLocation().distanceTo(pos) <= robot.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+        }
+        return true;
+    }
     static boolean insideLimits(int[] z){
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
     }

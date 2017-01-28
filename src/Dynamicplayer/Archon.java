@@ -1,6 +1,7 @@
 package Dynamicplayer;
 
 import battlecode.common.*;
+import sun.reflect.generics.tree.Tree;
 
 
 /**
@@ -13,6 +14,16 @@ public class Archon {
     static int xBase, yBase;
 
     static boolean leader;
+    static boolean firstArchon;
+    static boolean shouldBuildGardener;
+    static boolean danger;
+    static int totalFreeSpots;
+
+    static int initialMessageFreeSpots = 0;
+    static RobotInfo[] allies;
+    static RobotInfo[] enemies;
+    static TreeInfo[] neutralTrees;
+    static TreeInfo[] enemyTrees;
 
     static MapLocation realTarget;
 
@@ -23,15 +34,10 @@ public class Archon {
         if (rc.getRoundNum() > 5) init();
 
         while (true) {
-            Bot.shake(rc);
-            Bot.donate(rc);
-            Map.checkMapBounds();
-            if (rc.getRoundNum() == 2) init2();
-            updateArchonCount();
-            if (rc.getRoundNum() == 1) init();
+            initTurn();
             MapLocation newTarget;
             newTarget = checkNearbyEnemies();
-            boolean danger = (newTarget != null);
+            danger = (newTarget != null);
             if (newTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
@@ -56,9 +62,7 @@ public class Archon {
                 }
             }
 
-            if (myTurn() && rc.getRoundNum() > 10) {
-                if (Communication.countArchons() == 1 || !danger) tryConstruct();
-            }
+            tryConstruct();
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -130,7 +134,6 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
-            chooseBuildOrder();
             for (int i = 0; i < Communication.unitChannels.length; ++i) {
                 try {
                     rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
@@ -139,10 +142,57 @@ public class Archon {
                 }
             }
             tryConstruct();
+        }
 
+        try {
+            initialMessageFreeSpots = rc.readBroadcast(Communication.GARD_FREE_SPOTS + Communication.CYCLIC_CHANNEL_LENGTH);
+        } catch (GameActionException e) {
+            e.printStackTrace();
         }
     }
 
+    private static void initTurn(){
+        firstArchon = false;
+        shouldBuildGardener = false;
+        totalFreeSpots = 0;
+        allies = rc.senseNearbyRobots(-1, rc.getTeam());
+        enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+        enemyTrees = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
+        Bot.shake(rc);
+        Bot.donate(rc);
+        Map.checkMapBounds();
+        if (rc.getRoundNum() == 2) init2();
+        updateArchonCount();
+        if (rc.getRoundNum() == 1) init();
+
+        readMessages();
+        int maxFreeSpotsToRequestGardener = 2;
+        if (totalFreeSpots > maxFreeSpotsToRequestGardener) shouldBuildGardener = true;
+        broadcastLocations();
+    }
+
+    private static void readMessages(){
+        try {
+            int channel = Communication.GARD_FREE_SPOTS;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            for(int i = initialMessageFreeSpots; i != lastMessage;) {
+                int a = rc.readBroadcast(channel + i);
+                workMessageFreeSpots(a);
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageFreeSpots = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private static void workMessageFreeSpots(int bitmap){
+        int[] m = Communication.decode(bitmap);
+        totalFreeSpots += m[3];
+    }
 
     private static float getInitialScore(){
         float distToEnemy = Constants.INF;
@@ -151,8 +201,6 @@ public class Archon {
         for (MapLocation enemy: enemies){
             distToEnemy = Math.min(distToEnemy,myPos.distanceTo(enemy));
         }
-
-
         float totalArea = getSurfaceArea();
         float treeArea = 0;
         TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
@@ -214,7 +262,11 @@ public class Archon {
     }
 
     private static void tryConstruct(){
-        if (!Build.allowedToConstruct(Constants.GARDENER)) return;
+        if (!shouldBuildGardener) return;
+        if (rc.getRoundNum() < 10) return; //per no començar amb dos pagesos
+        if (Communication.countArchons() > 1 && danger) return; //no fa gardener si esta en perill i hi ha mes archons
+        if (!myTurn()) return; //per repartir-se els pagesos entre els archons
+        //if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
         /*try {
             System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
@@ -251,13 +303,6 @@ public class Archon {
 
             }
         }
-
-
-
-
-
-
-
         try{
             Direction d = Direction.EAST;
             for (int i = 0; i < 50; ++i){
@@ -291,6 +336,7 @@ public class Archon {
             int archonTurn = rc.readBroadcast(Communication.ARCHON_TURN);
             int archonCount = rc.readBroadcast(Communication.ARCHON_COUNT);
             if (archonTurn != rc.getRoundNum()){
+                firstArchon = true;
                 rc.broadcast(Communication.ARCHON_TURN,rc.getRoundNum());
                 rc.broadcast(Communication.ARCHON_COUNT,1);
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archonCount);
@@ -303,11 +349,6 @@ public class Archon {
             e.printStackTrace();
         }
     }
-
-    static void chooseBuildOrder(){
-        //TODO
-    }
-
 
     public static float getSurfaceArea(){
         MapLocation center = rc.getLocation();
@@ -345,15 +386,8 @@ public class Archon {
         return r*r*(2*(float)Math.PI + +(float)Math.sin(a1)-a1+(float)Math.sin(a2)-a2);
     }
 
-
     static void broadcastLocations() {
-
-        RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        boolean sent = false;
-
-
-        for (RobotInfo ri : Ri) {
-            if (Clock.getBytecodesLeft() < 1500) return;
+        for (RobotInfo ri : enemies) {
             MapLocation enemyPos = ri.getLocation();
             int x = Math.round(enemyPos.x);
             int y = Math.round(enemyPos.y);
@@ -362,19 +396,13 @@ public class Archon {
             else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
         }
-
-        TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
-        if (Ti.length > 0) {
-            TreeInfo ti = Ti[0];
-            if (Clock.getBytecodesLeft() < 1000) return;
-            MapLocation treePos = ti.getLocation();
+        for (TreeInfo tree: enemyTrees){
+            MapLocation treePos = tree.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
             Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
         }
-
-        Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
-        for (TreeInfo ti : Ti) {
+        for (TreeInfo ti : neutralTrees) {
             if (Clock.getBytecodesLeft() < 500) return;
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
@@ -387,5 +415,4 @@ public class Archon {
             }
         }
     }
-
 }

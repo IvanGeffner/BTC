@@ -10,7 +10,9 @@ public class Gardener {
     private static MapLocation realTarget;
     private static int initialMessageNeedTroop = 0;
     static boolean lumberjackBuilt = false;
-
+    static boolean shouldBuildTroop = false;
+    static boolean shouldBuildLumber = false;
+    
 
     private static int[] zone = ZoneG.nullZone();
     private static int[] zoneIWant = ZoneG.nullZone();
@@ -24,9 +26,7 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
-            Bot.shake(rc);
-            Bot.donate(rc);
-            Communication.sendReport(Communication.GARDENER_REPORT);
+            initTurn();
             MapLocation newTarget = null;
             if (ZoneG.hasValue(zone)) {
                 //si soc a la zona
@@ -59,9 +59,7 @@ public class Gardener {
                     checkIfArrivedToZone();
                 }
             }
-            readMessages();
             tryConstruct();
-            Map.checkMapBounds();
             updateTarget(newTarget);
             waterNearbyTree();
             if (realTarget == null) {
@@ -96,9 +94,19 @@ public class Gardener {
         }
     }
 
+    private static void initTurn(){
+        Bot.shake(rc);
+        Bot.donate(rc);
+        Map.checkMapBounds();
+        Communication.sendReport(Communication.GARDENER_REPORT);
+        shouldBuildLumber = false;
+        shouldBuildTroop = false;
+        readMessages();
+        ZoneG.initTurn();
+        broadcastLocations();
+    }
+
     private static void readMessages(){
-        boolean needTroop = false;
-        boolean needLumberjack = false;
         try {
             int channel = Communication.NEEDTROOPCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
@@ -106,9 +114,8 @@ public class Gardener {
                 int bitmap = rc.readBroadcast(channel + i);
                 int t = workMessageTroopNeeded(bitmap);
                 if(t == -1) continue;
-                needTroop = (t == Communication.NEEDSOLDIERTANK);
-                if(t == Communication.NEEDSOLDIERTANK) needTroop = true;
-                if(t == Communication.NEEDLUMBERJACK) needLumberjack = true;
+                if(t == Communication.NEEDSOLDIERTANK) shouldBuildTroop = true;
+                if(t == Communication.NEEDLUMBERJACK && !lumberjackBuilt) shouldBuildLumber = true;
                 ++i;
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
@@ -117,8 +124,6 @@ public class Gardener {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-        if(needTroop) tryBuildTroop();
-        if(needLumberjack && !lumberjackBuilt) tryConstructUnit(Constants.LUMBERJACK);
     }
 
 
@@ -132,6 +137,25 @@ public class Gardener {
             if(rc.getLocation().distanceSquaredTo(sender) > 10.0f) return -1;
         }
         return m[3];
+    }
+
+    static void broadcastLocations() {
+        for (RobotInfo ri : ZoneG.enemies) {
+            MapLocation enemyPos = ri.getLocation();
+            int x = Math.round(enemyPos.x);
+            int y = Math.round(enemyPos.y);
+            int a = Constants.getIndex(ri.type);
+            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+        }
+        TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
+        if (Ti.length > 0) {
+            TreeInfo ti = Ti[0];
+            MapLocation treePos = ti.getLocation();
+            int x = Math.round(treePos.x);
+            int y = Math.round(treePos.y);
+            Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
+        }
     }
 
     private static void tryBuildTroop(){
@@ -290,6 +314,7 @@ public class Gardener {
         //System.out.println("Entra plantar");
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
         if (ZoneG.countAvailableRobotBuildPositions() < 2) return; //Si nomes hi ha una posicio, la reservem per robots
+        if (shouldBuildLumber || shouldBuildTroop) return; //no planta si te alguna cosa mes prioritaria
         if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps){
             System.out.println("No planto perque no soc al centre");
             return;
@@ -390,6 +415,8 @@ public class Gardener {
         return null;
     }
    */
+
+
 
     private static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
