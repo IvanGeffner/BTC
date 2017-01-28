@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package NoShoot;
 
 import battlecode.common.*;
 
@@ -227,6 +227,9 @@ public class Soldier {
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
         if (m[3] == 5) enemyBase = enemyPos;
+        if (m[3] == 2 || m[3] == 4) {
+            if (rc.getRoundNum() < 1200) return;
+        }
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -235,6 +238,9 @@ public class Soldier {
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
         if (m[3] == 5) enemyBase = enemyPos;
+        if (m[3] == 2 || m[3] == 4) {
+            if (rc.getRoundNum() < 1200) return;
+        }
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -248,7 +254,7 @@ public class Soldier {
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
-        updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
+        //updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
     }
 
 
@@ -302,6 +308,9 @@ public class Soldier {
                 float dinv = 1/pos.distanceTo(enemyPos);
                 xTank += dinv*(pos.x - enemyPos.x);
                 yTank += dinv*(pos.y - enemyPos.y);
+            }
+            if (a == 2 || a == 4) {
+                if (rc.getRoundNum() < 1200) continue;
             }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
         }

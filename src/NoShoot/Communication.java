@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package NoShoot;
 
 
 import battlecode.common.GameActionException;

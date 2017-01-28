@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Visionplayer;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Soldier {
+public class Tank {
 
     static RobotController rc;
 
@@ -15,6 +15,7 @@ public class Soldier {
 
     static MapLocation base;
     static MapLocation enemyBase;
+    static MapLocation pos;
     static int xBase;
     static int yBase;
 
@@ -46,7 +47,7 @@ public class Soldier {
 
             beginRound();
 
-
+            pos = rc.getLocation();
             round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
@@ -55,22 +56,28 @@ public class Soldier {
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
 
-                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius)) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius))
+                    Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
                 else {
 
                     if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
                     else {
                         adjustTarget();
+                        try {
+                            System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                            //rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
+                        } catch (Exception e) {
+                            System.out.println("No hi ha realTarget");
+                        }
+                        if (shouldWalkOverTrees()) rc.move(realTarget);
+                        else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
-                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
-
-                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                     }
                 }
             }catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
 
             Clock.yield();
         }
@@ -240,8 +247,8 @@ public class Soldier {
 
     static void workMessageStop(int a){
         int[] m = Communication.decode(a);
-        MapLocation pos = new MapLocation(m[1], m[2]);
-        if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
+        MapLocation stopPos = new MapLocation(m[1], m[2]);
+        if (stopPos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
     }
 
     static void workMessageEmergency(int a){
@@ -277,16 +284,16 @@ public class Soldier {
             int a = Constants.getIndex(ri.type);
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
                 enemyBase = enemyPos;
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
                 sent = true;
             }
 
@@ -343,11 +350,33 @@ public class Soldier {
             RobotType r = ti.getContainedRobot();
             if (r != null) {
                 int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 400;
+                if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }
     }
 
-
+    static boolean shouldWalkOverTrees() {
+        if (!rc.canMove(realTarget)) return false;
+        float stride = rc.getType().strideRadius;
+        MapLocation newPos = pos.add(pos.directionTo(realTarget), stride);
+        if (pos.distanceTo(realTarget) < stride) newPos = realTarget;
+        float strikeValue = 0;
+        int neutrals = 0;
+        TreeInfo[] Ti = rc.senseNearbyTrees(newPos, rc.getType().bodyRadius, null);
+        for (TreeInfo ti: Ti) {
+            if (ti.getTeam() == Team.NEUTRAL) neutrals += 1;
+            else if (ti.getTeam() == rc.getTeam()) strikeValue -= Constants.ENEMYTREESCORE;
+            else strikeValue += Constants.ENEMYTREESCORE;
+        }
+        RobotInfo[] Ri = rc.senseNearbyRobots(newPos, rc.getType().bodyRadius, null);
+        for (RobotInfo ri: Ri) {
+            float val = 0.001f;
+            if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
+            if(ri.getTeam() == rc.getTeam().opponent()) strikeValue += val*1000.0f;
+            else strikeValue -= val*1000.0f;
+        }
+        System.out.println("StrikeValue: " + strikeValue + ", arbres neutrals: " + neutrals);
+        return strikeValue > 0 || (Math.abs(strikeValue) < Constants.eps && neutrals > 0);
+    }
 }

@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Visionplayer;
 
 import battlecode.common.*;
 
@@ -8,8 +8,6 @@ public class Gardener {
     private static RobotController rc;
 
     private static MapLocation realTarget;
-    private static int initialMessageNeedTroop = 0;
-    static boolean lumberjackBuilt = false;
 
 
     private static int[] zone = ZoneG.nullZone();
@@ -18,6 +16,8 @@ public class Gardener {
 
     private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
     private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14};
+    //private static int[] Xsorted = {0, -1, 1, 0, 0, 1, -1, -1, 1, -2, 2, 0, 0, 1, -1, -1, -2, -2, 1, 2, 2, -2, 2, 2, -2, 0, 3, 0, -3, -3, -1, 3, -1, 3, -3, 1, 1, -3, 2, -2, -3, 3, 3, 2, -2, -4, 0, 4, 0, -4, -4, 4, -1, -1, 1, 1, 4, -3, 3, 3, -3, -4, -2, 4, 4, -4, 2, 2, -2, 3, 4, 0, 3, -3, -5, 0, -3, -4, 4, -4, 5, 5, 1, -1, -1, -5, -5, 5, 1, 2, 5, 2, -2, -2, -5, 5, -5, 4, -4, -4, 4, -3, -3, 5, 3, 3, -5, -5, 5, 6, -6, 0, 0, 1, -1, 6, -6, -6, 6, 1, -1, -6, -2, -6, 2, 6, 6, 2, -2, -4, -4, -5, 5, 5, 4, -5, 4, -6, 6, -3, -3, 6, 3, 3, -6, -7, 0, 0, 7, -1, -7, -7, -5, 7, 1, 7, 1, 5, -1, 5, -5, 6, 4, -4, -4, 6, 4, -6, -6, -2, 2, 7, -2, 2, 7, -7, -7, 3, -7, 7, 3, -3, 7, -7, -3, 6, 5, -6, -6, 5, -5, -5, 6, -8, 0, 0, 8, -4, 7, 8, 4, 8, -1, -1, -4, -8, -8, 1, -7, -7, 1, 4, 7, 8, 8, 2, 2, -2, -2, -8, -8, 6, -6, -6, 6, -3, 8, -8, -3, -8, 8, 3, 3, -7, 7, -7, 7, -5, 5, 5, -5, -8, -4, 4, 8, -4, 4, -8, 8, -7, 7, 6, -7, 7, -6, -6, 6, 8, 5, -5, -8, -8, 8, -5, 5, 7, -7, -7, 7, -8, 8, 6, -8, 8, 6, -6, -6, 8, -8, 8, 7, 7, -7, -7, -8, 8, -8, -8, 8};
+    //private static int[] Ysorted = {0, 0, 0, -1, 1, 1, -1, 1, -1, 0, 0, 2, -2, -2, 2, -2, -1, 1, 2, -1, 1, 2, -2, 2, -2, -3, 0, 3, 0, 1, -3, 1, 3, -1, -1, -3, 3, -2, -3, 3, 2, -2, 2, 3, -3, 0, -4, 0, 4, 1, -1, 1, -4, 4, -4, 4, -1, 3, -3, 3, -3, -2, 4, 2, -2, 2, 4, -4, -4, -4, 3, -5, 4, 4, 0, 5, -4, 3, -3, -3, 0, -1, 5, 5, -5, -1, 1, 1, -5, 5, 2, -5, -5, 5, -2, -2, 2, -4, -4, 4, 4, 5, -5, -3, 5, -5, 3, -3, 3, 0, 0, -6, 6, 6, 6, -1, 1, -1, 1, -6, -6, 2, 6, -2, -6, -2, 2, 6, -6, -5, 5, 4, 4, -4, -5, -4, 5, 3, 3, -6, 6, -3, -6, 6, -3, 0, -7, 7, 0, -7, -1, 1, 5, -1, -7, 1, 7, 5, 7, -5, -5, 4, 6, -6, 6, -4, -6, 4, -4, 7, 7, -2, -7, -7, 2, 2, -2, 7, -3, 3, -7, 7, -3, 3, -7, -5, 6, 5, -5, -6, -6, 6, 5, 0, 8, -8, 0, 7, 4, -1, -7, 1, -8, 8, -7, -1, 1, -8, 4, -4, 8, 7, -4, -2, 2, 8, -8, 8, -8, 2, -2, -6, 6, -6, 6, -8, 3, 3, 8, -3, -3, -8, 8, 5, -5, -5, 5, 7, 7, -7, -7, 4, -8, 8, -4, 8, -8, -4, 4, -6, -6, 7, 6, 6, -7, 7, -7, -5, -8, 8, -5, 5, 5, -8, 8, -7, -7, 7, 7, -6, -6, -8, 6, 6, 8, 8, -8, 7, -7, -7, 8, -8, 8, -8, 7, -8, 8, -8, 8};
 
 
     public static void run(RobotController rcc) {
@@ -27,10 +27,27 @@ public class Gardener {
             Bot.shake(rc);
             Bot.donate(rc);
             Communication.sendReport(Communication.GARDENER_REPORT);
-            MapLocation newTarget = null;
-            if (ZoneG.hasValue(zone)) {
-                //si soc a la zona
-                ZoneG.broadcastMyZone();
+            if (ZoneG.hasValue(zone)) ZoneG.broadcastMyZone();
+            MapLocation newTarget;
+            newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
+
+            if (newTarget != null){
+                System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
+                if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
+            }else if (!ZoneG.hasValue(zone)) {
+                //si esta buscant zona
+                if (rc.getRoundNum() % ZoneG.turnsResetZone == 0) zoneIWant = ZoneG.nullZone();
+                zoneIWant = searchZone();
+                if (ZoneG.hasValue(zoneIWant)) {
+                    //es posa la zona triada com a objectiu
+                    newTarget = ZoneG.center(zoneIWant);
+                    System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget);
+                    if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 255, 255);
+                }
+                //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
+                checkIfArrivedToZone();
+            } else {
+                //si ja esta a la zona
                 checkNeutralTreesInZone();
                 tryPlanting();
                 if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
@@ -39,27 +56,7 @@ public class Gardener {
                     ZoneG.resetMyZone();
                     System.out.println("No esta a la zona, reseteja");
                 }
-            }else{
-                //si no soc a la zona
-                newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
-                if (newTarget != null){
-                    System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
-                    if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
-                }else if (!ZoneG.hasValue(zone)) {
-                    //si esta buscant zona
-                    if (rc.getRoundNum() % ZoneG.turnsResetZone == 0) zoneIWant = ZoneG.nullZone();
-                    zoneIWant = searchZone();
-                    if (ZoneG.hasValue(zoneIWant)) {
-                        //es posa la zona triada com a objectiu
-                        newTarget = ZoneG.center(zoneIWant);
-                        System.out.println("Va a zona " + zoneIWant[0] + "," + zoneIWant[1] + "  " + rc.getLocation() + " a " + newTarget);
-                        if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), newTarget, 255, 255, 255);
-                    }
-                    //System.out.println("Soc a la zona "+ getZoneFromPos(rc.getLocation())[0] + "," + getZoneFromPos(rc.getLocation())[1] + " i vull anar a "+zoneIWant[0] + "," + zoneIWant[1]);
-                    checkIfArrivedToZone();
-                }
             }
-            readMessages();
             tryConstruct();
             Map.checkMapBounds();
             updateTarget(newTarget);
@@ -96,59 +93,6 @@ public class Gardener {
         }
     }
 
-    private static void readMessages(){
-        boolean needTroop = false;
-        boolean needLumberjack = false;
-        try {
-            int channel = Communication.NEEDTROOPCHANNEL;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;) {
-                int bitmap = rc.readBroadcast(channel + i);
-                int t = workMessageTroopNeeded(bitmap);
-                if(t == -1) continue;
-                needTroop = (t == Communication.NEEDSOLDIERTANK);
-                if(t == Communication.NEEDSOLDIERTANK) needTroop = true;
-                if(t == Communication.NEEDLUMBERJACK) needLumberjack = true;
-                ++i;
-                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }
-            initialMessageNeedTroop = lastMessage;
-        } catch (GameActionException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        if(needTroop) tryBuildTroop();
-        if(needLumberjack && !lumberjackBuilt) tryConstructUnit(Constants.LUMBERJACK);
-    }
-
-
-    private static int workMessageTroopNeeded(int a) {
-        int[] m = Communication.decode(a);
-        if(m[3] == Communication.NEEDLUMBERJACK){
-            MapLocation sender = new MapLocation(m[1], m[2]);
-            if(m[0] == Constants.GARDENER){
-                if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
-            }
-            if(rc.getLocation().distanceSquaredTo(sender) > 10.0f) return -1;
-        }
-        return m[3];
-    }
-
-    private static void tryBuildTroop(){
-        try {
-            int indexSoldier = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
-            int indexTank = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
-            //per tal que aixo funcioni, a la cua hi ha d'haver soldiers i tanks
-            if (indexSoldier > indexTank){
-                tryConstructUnit(Constants.TANK);
-            }else {
-                tryConstructUnit(Constants.SOLDIER);
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-
     //retorna una zona del voltant que estigui buida
     private static int[] searchZone() {
         if (ZoneG.hasValue(zoneIWant)) return zoneIWant;
@@ -156,8 +100,8 @@ public class Gardener {
         float minDist = Constants.INF;
         int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
         for (int i = 0; i < xHex.length; i++){
-            if (i > 25 && ZoneG.hasValue(closest_empty_zone)){
-                //nomes busquem zones abandonades fins a 25 pel bytecode
+            if (i > 10 && ZoneG.hasValue(closest_empty_zone)){
+                //nomes busquem zones abandonades fins a 10 pel bytecode
                 System.out.println("Retorna closest empty zone = " + closest_empty_zone[0] + "," + closest_empty_zone[1]);
                 return closest_empty_zone;
             }
@@ -171,7 +115,7 @@ public class Gardener {
             int thisTurn = rc.getRoundNum();
             if (zoneType != Constants.outOfMapZone) {
                 if (!ZoneG.insideLimits(newZone)){
-                    ZoneG.broadcastInfo(newZone,Constants.outOfMapZone);
+                    ZoneG.broadcastInfo(newZone, Constants.outOfMapZone);
                     zoneType = Constants.outOfMapZone;
                 }
             }
@@ -216,12 +160,12 @@ public class Gardener {
                 return;
             }
             if (!rc.onTheMap(centerIWant,rc.getType().bodyRadius)){
-                ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
+                ZoneG.broadcastInfo(zoneIWant, Constants.outOfMapZone);
                 zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
                 return;
             }
             if (Map.distToEdge(centerIWant) < 5){
-                ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
+                ZoneG.broadcastInfo(zoneIWant, Constants.outOfMapZone);
                 zoneIWant = ZoneG.nullZone(); //aixo es un parche que he ficat, nose si esta be fer-ho
                 return;
             }
@@ -258,16 +202,13 @@ public class Gardener {
 
     private static void checkNeutralTreesInZone(){
         TreeInfo[] neutralTrees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        int trees = ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
-        int treesToRequestLumberjack = 4;
-        if (trees >= treesToRequestLumberjack)
-            Communication.sendMessage(Communication.NEEDTROOPCHANNEL,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),Communication.NEEDLUMBERJACK);
+        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
     }
 
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
     private static MapLocation checkNearbyEnemies(){
         //return null;
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] enemies = rc.senseNearbyRobots(4, rc.getTeam().opponent());
         MapLocation myPos = rc.getLocation();
         MapLocation escapePos = rc.getLocation();
         //System.out.println("Numero enemics: " + enemies.length);
@@ -320,7 +261,6 @@ public class Gardener {
         //System.out.println("Entra construct");
         if (rc.getRobotCount() > Constants.MAX_ROBOTS) return;
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
-        if (!rc.isBuildReady()) return;
         int smallUnit = Build.bestSmallUnitToBuild();
         int firstUnit = -1;
         int secondUnit = -1;
@@ -368,7 +308,6 @@ public class Gardener {
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
-                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }

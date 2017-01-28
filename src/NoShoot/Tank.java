@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package NoShoot;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Soldier {
+public class Tank {
 
     static RobotController rc;
 
@@ -15,6 +15,7 @@ public class Soldier {
 
     static MapLocation base;
     static MapLocation enemyBase;
+    static MapLocation pos;
     static int xBase;
     static int yBase;
 
@@ -46,7 +47,7 @@ public class Soldier {
 
             beginRound();
 
-
+            pos = rc.getLocation();
             round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
@@ -55,22 +56,28 @@ public class Soldier {
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
 
-                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius)) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius))
+                    Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
                 else {
 
                     if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
                     else {
                         adjustTarget();
+                        try {
+                            System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
+                            rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
+                        } catch (Exception e) {
+                            System.out.println("No hi ha realTarget");
+                        }
+                        if (shouldWalkOverTrees()) rc.move(realTarget);
+                        else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
-                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
-
-                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                     }
                 }
             }catch (Exception e) {
-                System.out.println(e.getMessage());
-                e.printStackTrace();
-            }
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
 
             Clock.yield();
         }
@@ -227,6 +234,9 @@ public class Soldier {
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
         if (m[3] == 5) enemyBase = enemyPos;
+        if (m[3] == 2 || m[3] == 4){
+            if (rc.getRoundNum() < 1200) return;
+        }
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -235,20 +245,23 @@ public class Soldier {
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
         if (m[3] == 5) enemyBase = enemyPos;
+        if (m[3] == 2 || m[3] == 4){
+            if (rc.getRoundNum() < 1200) return;
+        }
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
     static void workMessageStop(int a){
         int[] m = Communication.decode(a);
-        MapLocation pos = new MapLocation(m[1], m[2]);
-        if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
+        MapLocation stopPos = new MapLocation(m[1], m[2]);
+        if (stopPos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
     }
 
     static void workMessageEmergency(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
-        updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
+        //updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
     }
 
 
@@ -303,6 +316,9 @@ public class Soldier {
                 xTank += dinv*(pos.x - enemyPos.x);
                 yTank += dinv*(pos.y - enemyPos.y);
             }
+            if (a == 2 || a == 4){
+                if (rc.getRoundNum() < 1200) continue;
+            }
             updateNewTarget(enemyPos, Constants.enemyScore(a), true);
         }
 
@@ -349,5 +365,27 @@ public class Soldier {
         }
     }
 
-
+    static boolean shouldWalkOverTrees() {
+        if (!rc.canMove(realTarget)) return false;
+        float stride = rc.getType().strideRadius;
+        MapLocation newPos = pos.add(pos.directionTo(realTarget), stride);
+        if (pos.distanceTo(realTarget) < stride) newPos = realTarget;
+        float strikeValue = 0;
+        int neutrals = 0;
+        TreeInfo[] Ti = rc.senseNearbyTrees(newPos, rc.getType().bodyRadius, null);
+        for (TreeInfo ti: Ti) {
+            if (ti.getTeam() == Team.NEUTRAL) neutrals += 1;
+            else if (ti.getTeam() == rc.getTeam()) strikeValue -= Constants.ENEMYTREESCORE;
+            else strikeValue += Constants.ENEMYTREESCORE;
+        }
+        RobotInfo[] Ri = rc.senseNearbyRobots(newPos, rc.getType().bodyRadius, null);
+        for (RobotInfo ri: Ri) {
+            float val = 0.001f;
+            if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
+            if(ri.getTeam() == rc.getTeam().opponent()) strikeValue += val*1000.0f;
+            else strikeValue -= val*1000.0f;
+        }
+        System.out.println("StrikeValue: " + strikeValue + ", arbres neutrals: " + neutrals);
+        return strikeValue > 0 || (Math.abs(strikeValue) < Constants.eps && neutrals > 0);
+    }
 }

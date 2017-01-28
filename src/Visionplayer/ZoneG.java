@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Visionplayer;
 
 import battlecode.common.*;
 
@@ -210,33 +210,33 @@ public class ZoneG {
     }
 
     //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 5
-    static int messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
+    static void messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
         int max_bytecode = 3000;
         int bytecode_init = Clock.getBytecodeNum();
         MapLocation[] outerTrees = new MapLocation[trees.length];
         boolean sendOuterTrees = true;
+
         float innerDistance = 3f;
         float outerDistance = 5f;
+
         int outerTreeCount = 0;
-        int innerTreeCount = 0;
+
         for (TreeInfo ti: trees){
             MapLocation treePos = ti.getLocation();
             if (Math.abs(treePos.x - center.x) - ti.getRadius() < innerDistance && Math.abs(treePos.y - center.y) - ti.getRadius() < innerDistance){
                 sendOuterTrees = false;
                 messageCutNeutralTree(treePos);
-                innerTreeCount++;
             }else if (sendOuterTrees && Math.abs(treePos.x - center.x) - ti.getRadius() < outerDistance &&
                     Math.abs(treePos.y - center.y) - ti.getRadius() < outerDistance){
                 outerTrees[outerTreeCount] = treePos;
                 outerTreeCount++;
             }
         }
-        if (!sendOuterTrees) return innerTreeCount+outerTreeCount;
+        if (!sendOuterTrees) return;
         for (int i = 0; i < outerTreeCount; i++) {
             messageCutNeutralTree(outerTrees[i]);
-            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return innerTreeCount+outerTreeCount;
+            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
         }
-        return innerTreeCount+outerTreeCount;
     }
 
     private static void messageCutNeutralTree(MapLocation treeLocation) {
@@ -285,7 +285,7 @@ public class ZoneG {
         for (int i = 0; i < treesPerZone; i++){
             if (Map.distToEdge(hexPos[i]) < 5f) {
                 //System.out.println("arbre " + i + " fora del mapa");
-                //continue;
+                continue;
             }
             Direction d = rc.getLocation().directionTo(hexPos[i]);
             float enemy_angle = 60;

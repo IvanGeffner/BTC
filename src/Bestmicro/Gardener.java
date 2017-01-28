@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Bestmicro;
 
 import battlecode.common.*;
 
@@ -8,8 +8,6 @@ public class Gardener {
     private static RobotController rc;
 
     private static MapLocation realTarget;
-    private static int initialMessageNeedTroop = 0;
-    static boolean lumberjackBuilt = false;
 
 
     private static int[] zone = ZoneG.nullZone();
@@ -59,7 +57,6 @@ public class Gardener {
                     checkIfArrivedToZone();
                 }
             }
-            readMessages();
             tryConstruct();
             Map.checkMapBounds();
             updateTarget(newTarget);
@@ -90,59 +87,6 @@ public class Gardener {
                 ZoneG.setOrigin(rc.getLocation().x,rc.getLocation().y);
             }else{
                 ZoneG.setOrigin(xOrigin,Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y)));
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void readMessages(){
-        boolean needTroop = false;
-        boolean needLumberjack = false;
-        try {
-            int channel = Communication.NEEDTROOPCHANNEL;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;) {
-                int bitmap = rc.readBroadcast(channel + i);
-                int t = workMessageTroopNeeded(bitmap);
-                if(t == -1) continue;
-                needTroop = (t == Communication.NEEDSOLDIERTANK);
-                if(t == Communication.NEEDSOLDIERTANK) needTroop = true;
-                if(t == Communication.NEEDLUMBERJACK) needLumberjack = true;
-                ++i;
-                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }
-            initialMessageNeedTroop = lastMessage;
-        } catch (GameActionException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
-        if(needTroop) tryBuildTroop();
-        if(needLumberjack && !lumberjackBuilt) tryConstructUnit(Constants.LUMBERJACK);
-    }
-
-
-    private static int workMessageTroopNeeded(int a) {
-        int[] m = Communication.decode(a);
-        if(m[3] == Communication.NEEDLUMBERJACK){
-            MapLocation sender = new MapLocation(m[1], m[2]);
-            if(m[0] == Constants.GARDENER){
-                if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
-            }
-            if(rc.getLocation().distanceSquaredTo(sender) > 10.0f) return -1;
-        }
-        return m[3];
-    }
-
-    private static void tryBuildTroop(){
-        try {
-            int indexSoldier = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
-            int indexTank = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
-            //per tal que aixo funcioni, a la cua hi ha d'haver soldiers i tanks
-            if (indexSoldier > indexTank){
-                tryConstructUnit(Constants.TANK);
-            }else {
-                tryConstructUnit(Constants.SOLDIER);
             }
         } catch (GameActionException e) {
             e.printStackTrace();
@@ -258,10 +202,7 @@ public class Gardener {
 
     private static void checkNeutralTreesInZone(){
         TreeInfo[] neutralTrees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        int trees = ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
-        int treesToRequestLumberjack = 4;
-        if (trees >= treesToRequestLumberjack)
-            Communication.sendMessage(Communication.NEEDTROOPCHANNEL,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),Communication.NEEDLUMBERJACK);
+        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
     }
 
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
@@ -320,7 +261,6 @@ public class Gardener {
         //System.out.println("Entra construct");
         if (rc.getRobotCount() > Constants.MAX_ROBOTS) return;
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
-        if (!rc.isBuildReady()) return;
         int smallUnit = Build.bestSmallUnitToBuild();
         int firstUnit = -1;
         int secondUnit = -1;
@@ -368,7 +308,6 @@ public class Gardener {
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
-                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }

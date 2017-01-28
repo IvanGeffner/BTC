@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Visionplayer;
 
 import battlecode.common.*;
 
@@ -277,16 +277,16 @@ public class Soldier {
             int a = Constants.getIndex(ri.type);
             if (a == 0){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
             }
             else if (a == 5){
                 Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
                 enemyBase = enemyPos;
             }
             else if (!sent){
                 Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                initialMessageEnemy = (initialMessageEnemy+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
                 sent = true;
             }
 
@@ -343,7 +343,7 @@ public class Soldier {
             RobotType r = ti.getContainedRobot();
             if (r != null) {
                 int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 400;
+                if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }

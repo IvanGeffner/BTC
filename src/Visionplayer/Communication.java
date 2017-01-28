@@ -1,4 +1,4 @@
-package Dynamicplayer;
+package Visionplayer;
 
 
 import battlecode.common.GameActionException;
@@ -21,14 +21,15 @@ public class Communication {
     static final int EMERGENCYCHANNEL = 1500;
     static final int TREEWITHGOODIES = 1600;
     static final int PLANTTREECHANNEL = 1700;
-    static final int NEEDTROOPCHANNEL = 2000;
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
 
 
     //CANALS GARDENERS
-    static final int ZONE_FIRST_POSITION = 5000;
+
+    //teoricament ocupo del 600 al 656 pero no estic segur
+    static final int ZONE_FIRST_POSITION = 600;
     static final int ROBOTS_BUILT = 695;
     static final int TREES_BUILT = 696;
 
@@ -50,11 +51,9 @@ public class Communication {
     static final int SIGHT_ZONES = 704; // bits que indiquen si cada zona de visio ha estat explorada
 
     static final int GARDENER_REPORT = 750; // ultim torn que hem tingut gardeners
+    static final int ARCHON_REPORT = 751;
 
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
-
-    static final int NEEDSOLDIERTANK = 0;
-    static final int NEEDLUMBERJACK = 1;
 
 
     static int xBase = 9999, yBase = 9999;
