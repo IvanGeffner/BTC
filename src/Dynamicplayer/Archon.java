@@ -18,8 +18,10 @@ public class Archon {
     static boolean shouldBuildGardener;
     static boolean danger;
     static int totalFreeSpots;
+    static int aliveGardeners;
 
     static int initialMessageFreeSpots = 0;
+    static int initialMessageGardCount = 0;
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
     static TreeInfo[] neutralTrees;
@@ -61,8 +63,7 @@ public class Archon {
                     }
                 }
             }
-
-            tryConstruct();
+            if ((rc.getRoundNum() > 6 && aliveGardeners <= 0) || rc.getRoundNum() > 10) tryConstruct();
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -134,6 +135,7 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
+            System.out.println("Soc lider");
             for (int i = 0; i < Communication.unitChannels.length; ++i) {
                 try {
                     rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
@@ -146,6 +148,7 @@ public class Archon {
 
         try {
             initialMessageFreeSpots = rc.readBroadcast(Communication.GARD_FREE_SPOTS + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageGardCount = rc.readBroadcast(Communication.GARD_COUNT + Communication.CYCLIC_CHANNEL_LENGTH);
         } catch (GameActionException e) {
             e.printStackTrace();
         }
@@ -161,15 +164,12 @@ public class Archon {
         enemyTrees = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         Bot.shake(rc);
         Bot.donate(rc);
-        Map.checkMapBounds();
+        readMessages();
+        broadcastLocations();
         if (rc.getRoundNum() == 2) init2();
         updateArchonCount();
         if (rc.getRoundNum() == 1) init();
-
-        readMessages();
-        int maxFreeSpotsToRequestGardener = 2;
-        if (totalFreeSpots > maxFreeSpotsToRequestGardener) shouldBuildGardener = true;
-        broadcastLocations();
+        Map.checkMapBounds(); //aixo ha d'anar al final del initturn
     }
 
     private static void readMessages(){
@@ -182,11 +182,39 @@ public class Archon {
                 ++i;
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
+            System.out.println("Hi ha " + totalFreeSpots + " free spots");
+            System.out.println("init last " + initialMessageFreeSpots + "," + lastMessage);
             initialMessageFreeSpots = lastMessage;
         } catch (GameActionException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+
+
+        try {
+            int channel = Communication.GARD_COUNT;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int count = 0;
+            for(int i = initialMessageGardCount; i != lastMessage;) {
+                count++;
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            System.out.println(aliveGardeners + " alive gardeners");
+            aliveGardeners = count;
+            initialMessageGardCount = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        if (aliveGardeners == 0) shouldBuildGardener = true;
+        else{
+            float ratio = (float) totalFreeSpots/(float) aliveGardeners;
+            float maxRatioToBuildGardener = 0.2f;
+            if (ratio < maxRatioToBuildGardener) shouldBuildGardener = true;
+        }
+
     }
 
     private static void workMessageFreeSpots(int bitmap){
@@ -262,10 +290,23 @@ public class Archon {
     }
 
     private static void tryConstruct(){
-        if (!shouldBuildGardener) return;
-        if (rc.getRoundNum() < 10) return; //per no començar amb dos pagesos
-        if (Communication.countArchons() > 1 && danger) return; //no fa gardener si esta en perill i hi ha mes archons
-        if (!myTurn()) return; //per repartir-se els pagesos entre els archons
+        System.out.println("Entra try construct");
+        if (!rc.hasRobotBuildRequirements(RobotType.GARDENER)){
+            System.out.println("- Tinc cooldown");
+            return;
+        }
+        if (!shouldBuildGardener) {
+            System.out.println("- should build gardener false");
+            return;
+        }
+        if (Communication.countArchons() > 1 && danger) {
+            System.out.println("- no construeixo pq estic en perill");
+            return; //no fa gardener si esta en perill i hi ha mes archons
+        }
+        if (!myTurn()) {
+            System.out.println("- no es el meu torn");
+            return; //per repartir-se els pagesos entre els archons
+        }
         //if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
         /*try {
@@ -281,9 +322,10 @@ public class Archon {
         }*/
         Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
         for (int i = 0; i < 24; i++){
-            Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
+            Direction d2 = enemyDir.rotateLeftDegrees(360*i/48);
             if (rc.canBuildRobot(RobotType.GARDENER,d2)){
                 try {
+                    System.out.println("- Faig pages ");
                     rc.buildRobot(RobotType.GARDENER,d2);
                 } catch (GameActionException e) {
                     e.printStackTrace();
@@ -291,16 +333,16 @@ public class Archon {
                 Build.incrementRobotsBuilt();
                 Build.updateAfterConstruct(Constants.GARDENER);
             }
-            d2 = enemyDir.rotateRightDegrees(360*i/12);
+            d2 = enemyDir.rotateRightDegrees(360*i/48);
             if (rc.canBuildRobot(RobotType.GARDENER,d2)){
                 try {
+                    System.out.println("- Faig pages ");
                     rc.buildRobot(RobotType.GARDENER,d2);
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
                 Build.incrementRobotsBuilt();
                 Build.updateAfterConstruct(Constants.GARDENER);
-
             }
         }
         try{
@@ -308,6 +350,8 @@ public class Archon {
             for (int i = 0; i < 50; ++i){
                 Direction d2 = d.rotateLeftDegrees(360*i/50);
                 if (rc.canHireGardener(d2)){
+                    rc.setIndicatorDot(rc.getLocation().add(d2,6),0,255,0);
+                    System.out.println("- Faig pages ");
                     rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);

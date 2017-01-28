@@ -86,7 +86,7 @@ public class Greedy {
         changeTarget(tar, rc);
         if (target == null) return;
 
-        System.out.println("heyaa");
+        //System.out.println("heyaa");
 
         try {
             pos = rc.getLocation();
@@ -106,7 +106,7 @@ public class Greedy {
 
             //SI BAIXAEM DISTMIN I ENS PODEM MOURE AL TARGET, RESET [I EL GREEDY HI ANIRA]
             float dist = pos.distanceTo(target);
-            System.out.println(dist);
+            //System.out.println(dist);
             if (left != 0 && dist < minDistToTarget && rc.canMove(target)) {
                 resetObstacle(rc);
             }
@@ -159,15 +159,15 @@ public class Greedy {
                 return;
             }
 
-            System.out.println(minDistToTarget);
+            //System.out.println(minDistToTarget);
             //ACTUALITZEM
             if (left != 0) {
-                System.out.println(minDistToTarget);
+                //System.out.println(minDistToTarget);
                 if (dist < minDistToTarget) minDistToTarget = dist;
                 addCollisionLocation(rc);
             }
 
-            System.out.println(minDistToTarget);
+            //System.out.println(minDistToTarget);
 
             //if (!shouldMove) System.out.println("STAYY STILLL");
 
@@ -228,7 +228,7 @@ public class Greedy {
     static void getBullets(RobotController rc){
         bullets = rc.senseNearbyBullets(Constants.BULLETSIGHT + R+r);
         BulletInfo[] bulletAux = new BulletInfo[bullets.length];
-        System.out.println(bullets.length);
+        //System.out.println(bullets.length);
         int cont = 0;
         for (BulletInfo bi : bullets){
 
@@ -687,7 +687,7 @@ public class Greedy {
 
     public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
 
-       //System.out.println("SUPER HIGH BYTECODEE!!");
+       System.out.println("SUPER HIGH BYTECODEE!!");
 
 
         if (dir == null){
@@ -1070,7 +1070,7 @@ public class Greedy {
 
     static void addIntervalsImproved (BulletInfo b){
 
-        System.out.println("Tractament bala: " + Clock.getBytecodeNum());
+        //System.out.println("Tractament bala: " + Clock.getBytecodeNum());
 
         MapLocation m1 = b.getLocation();
         MapLocation m2 = m1.add(b.getDir(),b.getSpeed());
@@ -1132,7 +1132,7 @@ public class Greedy {
             }
         }
 
-        System.out.println("Final Tractament bala: " + Clock.getBytecodeNum());
+        //System.out.println("Final Tractament bala: " + Clock.getBytecodeNum());
 
 
         if (dirv11 != null) {

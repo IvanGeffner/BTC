@@ -21,11 +21,13 @@ public class ZoneG {
     private static int zoneColumns = 44;
     private static int zonesPerChannel = 6;
 
+    static int freeSpots;
+
     private static int bitsZoneType = 3;
     private static int bitsZoneTurn = 2;
     private static int bitsPerZone = bitsZoneType + bitsZoneTurn;
 
-    private static int treesPerZone = 6; // !!!
+    private static int treesPerZone = 6;
     private static int buildPositionsPerZone = 6;
 
     static int turnsResetZone = 50;
@@ -36,6 +38,7 @@ public class ZoneG {
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
     static TreeInfo[] neutralTrees;
+    static TreeInfo[] allTrees;
 
 
     static void init(RobotController rc2){
@@ -46,12 +49,11 @@ public class ZoneG {
         allies = rc.senseNearbyRobots(-1, rc.getTeam());
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
-        try {
-            int freeSpots = rc.readBroadcast(Communication.GARD_FREE_SPOTS) + freeSpots();
-            rc.broadcast(Communication.GARD_FREE_SPOTS,freeSpots);
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
+        allTrees = rc.senseNearbyTrees();
+        if (!hasValue(zone)) freeSpots = 9999;
+        else freeSpots = freeSpots();
+        System.out.println("Envia "+ freeSpots + " free spots");
+        Communication.sendMessage(Communication.GARD_FREE_SPOTS,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),freeSpots);
     }
 
     static boolean hasValue(int[] z){
@@ -276,7 +278,7 @@ public class ZoneG {
             try {
                 if (rc.canSenseAllOfCircle(hexPos[i],RobotType.SOLDIER.bodyRadius) &&
                         !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) {
-                    //if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
+                    if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
                     count++;
                 }//else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
             } catch (GameActionException e) {
@@ -304,10 +306,8 @@ public class ZoneG {
                 //continue;
             }
             Direction d = rc.getLocation().directionTo(hexPos[i]);
-            float enemy_angle = 60;
-            int min_turn_tank = 700;
+            float enemy_angle = 30;
             int low_HP = 10;
-            if (rc.getRoundNum() < min_turn_tank) enemy_angle = 30;
             if (rc.getHealth() > low_HP && Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
             try {
                 if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
@@ -320,27 +320,41 @@ public class ZoneG {
     }
 
 
-    private static int freeSpots(){
-        int ret = 0;
+    static int freeSpots(){
+        int frees = 0;
+        int myTrees = 0;
         for (int i = 0; i < 6; i++){
-            if (isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS)) ret++;
+            int obstacle = isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS);
+            if (obstacle == 0){
+                frees++;
+            }else if (obstacle == 1) myTrees++;
         }
-        return ret;
+        if (myTrees == 5) return 0;
+        return frees;
     }
 
-    private static boolean isFree(MapLocation pos, float r){
-        if (Map.distToEdge(pos) <= r) return false;
-        for (TreeInfo tree: neutralTrees){
-            if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+    private static int isFree(MapLocation pos, float r){
+        // -1 = fora del mapa, 0 = lliure, 1 = arbre aliat, 2 = altre arbre
+        if (Map.distToEdge(pos) <= r) return -1;
+        for (TreeInfo tree: allTrees){
+            if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r) {
+                if (tree.getTeam() == rc.getTeam()) return 1;
+                return 2;
+            }
         }
-        for (RobotInfo robot: allies){
-            if (robot.getLocation().distanceTo(pos) <= robot.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+        for (RobotInfo enemy: enemies){
+            if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
+                return 2;
+            }
         }
-        for (RobotInfo robot: enemies){
-            if (robot.getLocation().distanceTo(pos) <= robot.getRadius() + r + GameConstants.GENERAL_SPAWN_OFFSET) return false;
+        for (RobotInfo enemy: allies){
+            if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
+                return 2;
+            }
         }
-        return true;
+        return 0;
     }
+
     static boolean insideLimits(int[] z){
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
     }

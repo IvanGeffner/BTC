@@ -133,7 +133,7 @@ public class Build {
             int bestUnit = -1;
             for (int i = 1; i < 5; ++i) {
                 if (i == 3) continue; //els tanks no son petits
-                //mirem nomes lumberjacks, soldiers i scouts
+                //mirem nomes lumberjacks, soldiers, scouts i arbres
                 int a = rc.readBroadcast(Communication.unitChannels[i]);
                 if (a < minQueue){
                     minQueue = a;

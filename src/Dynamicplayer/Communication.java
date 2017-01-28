@@ -23,6 +23,7 @@ public class Communication {
     static final int PLANTTREECHANNEL = 1700;
     static final int NEEDTROOPCHANNEL = 2000;
     static final int GARD_FREE_SPOTS = 2100;
+    static final int GARD_COUNT = 2200; //quants pagesos hi ha
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
@@ -121,16 +122,6 @@ public class Communication {
 
     static void sendMessage(int channel, int x, int y, int value){
         sendMessage(rc,channel,x,y,value);
-    }
-
-    //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
-    static void sendReport(int channel){
-        try {
-            System.out.println("Envia report a " + channel);
-            rc.broadcast(channel,rc.getRoundNum());
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
     }
 
     static boolean areArchonsAlive(){
