@@ -126,7 +126,7 @@ public class Constants {
 
     static float MAXVICTORYPONTS = 1000.0f;
 
-    static int getIndex(RobotType r){
+    public static int getIndex(RobotType r){
         if (r == RobotType.GARDENER) return 0;
         else if (r == RobotType.LUMBERJACK) return 1;
         else if (r == RobotType.SOLDIER) return 2;
