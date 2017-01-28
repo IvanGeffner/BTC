@@ -16,6 +16,8 @@ public class Archon {
 
     static MapLocation realTarget;
 
+    static MapLocation emergencyTarget;
+
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
 
@@ -31,11 +33,13 @@ public class Archon {
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
             MapLocation newTarget;
-            newTarget = checkNearbyEnemies();
-            boolean danger = (newTarget != null);
-            if (newTarget != null){
-                System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
+            //newTarget = checkNearbyEnemies();
+            broadcastLocations();
+            boolean danger = (emergencyTarget != null);
+            if (emergencyTarget != null){
+                System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
+                newTarget = emergencyTarget;
             }else {
                 newTarget = checkShakeTrees();
                 if (newTarget != null){
@@ -87,8 +91,6 @@ public class Archon {
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
-
-            broadcastLocations();
 
 
             Clock.yield();
@@ -330,6 +332,15 @@ public class Archon {
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean sent = false;
 
+        emergencyTarget = null;
+
+        int foundSoldier = 0;
+        int foundTank = 0;
+
+        float xSol = 0, ySol = 0, xTank = 0, yTank = 0;
+
+        MapLocation pos = rc.getLocation();
+
 
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < 1500) return;
@@ -340,7 +351,37 @@ public class Archon {
             if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
             else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
+
+            if (a == 2){
+                ++foundSoldier;
+                float dinv = 1/pos.distanceTo(enemyPos);
+                xSol += dinv*(pos.x - enemyPos.x);
+                ySol += dinv*(pos.y - enemyPos.y);
+            }
+
+            if (a == 3){
+                ++foundTank;
+                float dinv = 1/pos.distanceTo(enemyPos);
+                xTank += dinv*(pos.x - enemyPos.x);
+                yTank += dinv*(pos.y - enemyPos.y);
+            }
+
         }
+
+        float randomDev = (0.5f - (float)Math.random())/5.0f;
+
+        if (foundTank > 0){
+            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
+            if (dir != null){
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
+            }
+        } else if (foundSoldier > 0){
+            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
+            if (dir != null){
+                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
+            }
+        }
+
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
