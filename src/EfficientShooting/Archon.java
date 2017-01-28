@@ -1,4 +1,4 @@
-package Visionplayer;
+package EfficientShooting;
 
 import battlecode.common.*;
 
@@ -16,8 +16,6 @@ public class Archon {
 
     static MapLocation realTarget;
 
-    static MapLocation emergencyTarget;
-
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
 
@@ -25,7 +23,6 @@ public class Archon {
         if (rc.getRoundNum() > 5) init();
 
         while (true) {
-            System.out.println("Visible Area is approx: "+ Sight.computeSightRange(rc));
             Bot.shake(rc);
             Bot.donate(rc);
             Map.checkMapBounds();
@@ -33,19 +30,17 @@ public class Archon {
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
             MapLocation newTarget;
-            //newTarget = checkNearbyEnemies();
-            broadcastLocations();
-            boolean danger = (emergencyTarget != null);
-            if (emergencyTarget != null){
-                System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
+            newTarget = checkNearbyEnemies();
+            boolean danger = (newTarget != null);
+            if (newTarget != null){
+                System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
-                newTarget = emergencyTarget;
             }else {
                 newTarget = checkShakeTrees();
                 if (newTarget != null){
                     System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
                 }else{
-                    /*try {
+                    try {
                         int a = (int) Math.floor(Math.random() * 4.0);
                         for (int i = 0; i < 4; i++){
                             Direction dirMove = Constants.main_dirs[(a + i) % 4];
@@ -57,16 +52,7 @@ public class Archon {
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                         e.printStackTrace();
-                    }*/
-                    if (Sight.gradientX != 0 || Sight.gradientY != 0) {
-
-                        Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
-
-                        newTarget = rc.getLocation().add(optim, 3.0f);
                     }
-
-                    else newTarget = rc.getLocation();
-
                 }
             }
 
@@ -91,6 +77,8 @@ public class Archon {
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+
+            broadcastLocations();
 
 
             Clock.yield();
@@ -228,7 +216,7 @@ public class Archon {
     private static void tryConstruct(){
         if (!Build.allowedToConstruct(Constants.GARDENER)) return;
         //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
-        try {
+        /*try {
             System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
             System.out.println("Index " + 1 + " = " + rc.readBroadcast(Communication.unitChannels[1]));
             System.out.println("Index " + 2 + " = " + rc.readBroadcast(Communication.unitChannels[2]));
@@ -238,7 +226,38 @@ public class Archon {
 
         } catch (GameActionException e) {
             e.printStackTrace();
+        }*/
+        Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
+        for (int i = 0; i < 24; i++){
+            Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
+            if (rc.canBuildRobot(RobotType.GARDENER,d2)){
+                try {
+                    rc.buildRobot(RobotType.GARDENER,d2);
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+                Build.incrementRobotsBuilt();
+                Build.updateAfterConstruct(Constants.GARDENER);
+            }
+            d2 = enemyDir.rotateRightDegrees(360*i/12);
+            if (rc.canBuildRobot(RobotType.GARDENER,d2)){
+                try {
+                    rc.buildRobot(RobotType.GARDENER,d2);
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+                Build.incrementRobotsBuilt();
+                Build.updateAfterConstruct(Constants.GARDENER);
+
+            }
         }
+
+
+
+
+
+
+
         try{
             Direction d = Direction.EAST;
             for (int i = 0; i < 50; ++i){
@@ -256,9 +275,9 @@ public class Archon {
         }
     }
 
-    static boolean myTurn(){
+    private static boolean myTurn(){
         try {
-            int archonNumber = rc.readBroadcast(Communication.ARCHONS_LAST_TURN);
+            int archonNumber = Math.max(0,rc.readBroadcast(Communication.ARCHONS_LAST_TURN));
             return (rc.getRoundNum()%archonNumber == whoAmI);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -332,15 +351,6 @@ public class Archon {
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         boolean sent = false;
 
-        emergencyTarget = null;
-
-        int foundSoldier = 0;
-        int foundTank = 0;
-
-        float xSol = 0, ySol = 0, xTank = 0, yTank = 0;
-
-        MapLocation pos = rc.getLocation();
-
 
         for (RobotInfo ri : Ri) {
             if (Clock.getBytecodesLeft() < 1500) return;
@@ -351,37 +361,7 @@ public class Archon {
             if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
             else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
             Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-
-            if (a == 2){
-                ++foundSoldier;
-                float dinv = 1/pos.distanceTo(enemyPos);
-                xSol += dinv*(pos.x - enemyPos.x);
-                ySol += dinv*(pos.y - enemyPos.y);
-            }
-
-            if (a == 3){
-                ++foundTank;
-                float dinv = 1/pos.distanceTo(enemyPos);
-                xTank += dinv*(pos.x - enemyPos.x);
-                yTank += dinv*(pos.y - enemyPos.y);
-            }
-
         }
-
-        float randomDev = (0.5f - (float)Math.random())/5.0f;
-
-        if (foundTank > 0){
-            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
-            if (dir != null){
-                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
-            }
-        } else if (foundSoldier > 0){
-            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
-            if (dir != null){
-                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
-            }
-        }
-
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
