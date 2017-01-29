@@ -163,7 +163,7 @@ public class Archon {
     private static void initTurn(){
         firstArchon = false;
         shouldBuildGardener = false;
-        if(turnsSinceLastGardener > 150 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) shouldBuildGardener = true; 
+        if(turnsSinceLastGardener > 40 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) shouldBuildGardener = true;
         totalFreeSpots = 0;
         ++turnsSinceLastGardener; 
         allies = rc.senseNearbyRobots(-1, rc.getTeam());

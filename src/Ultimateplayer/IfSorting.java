@@ -33,6 +33,7 @@ public class IfSorting {
 
     public static void quickSortOnly(int[]vv){
         v = vv;
+        if (v.length <= 0) return;
         quickSortOnlyImm(0, v.length-1);
     }
 

@@ -76,7 +76,7 @@ public class Build {
 
         intervals = Arrays.copyOf(intervals, cont);
 
-        if (cont > 0) quickSort(0, intervals.length-1);
+        if (cont > 0) IfSorting.quickSortOnly(intervals);
 
         return closestDir(baseDir);
     }
@@ -165,37 +165,5 @@ public class Build {
         }
         if (minAngle < 100) return baseDir.rotateLeftRads(minAngle);
         return null;
-    }
-
-
-    static void quickSort(int lowerIndex, int higherIndex) {
-
-        int i = lowerIndex;
-        int j = higherIndex;
-        //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
-        int pivot = intervals[(higherIndex+lowerIndex)/2];
-        while (i <= j) {
-
-            while (intervals[i] < pivot) {
-                i++;
-            }
-            while (intervals[j] > pivot) {
-                j--;
-            }
-            if (i <= j) {
-                int temp = intervals[i];
-                intervals[i] = intervals[j];
-                intervals[j] = temp;
-                i++;
-                j--;
-            }
-        }
-        // call quickSort() method recursively
-        if (lowerIndex < j) {
-            quickSort(lowerIndex, j);
-        }
-        if (i < higherIndex){
-            quickSort(i, higherIndex);
-        }
     }
 }

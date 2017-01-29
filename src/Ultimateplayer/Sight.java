@@ -1,7 +1,5 @@
 package Ultimateplayer;
 
-import ArchonsVisionPlayer.Constants;
-import ArchonsVisionPlayer.Map;
 import battlecode.common.*;
 
 import java.util.Arrays;
@@ -10,6 +8,7 @@ import java.util.TreeSet;
 
 /**
  * Created by Ivan on 1/27/2017.
+ *
  */
 public class Sight {
 
@@ -91,7 +90,7 @@ public class Sight {
 
     static void addMapBounds(RobotController rc){
         MapLocation myPos = rc.getLocation();
-        float distToMax = Math.abs(ArchonsVisionPlayer.Map.maxX - myPos.x);
+        float distToMax = Math.abs(Map.maxX - myPos.x);
         if (distToMax < sightRange){
             float ang = (float)Math.acos(distToMax/sightRange);
             float right = baseDir.radiansBetween(Direction.getEast().rotateRightRads(ang));
@@ -121,7 +120,7 @@ public class Sight {
             }
         }
 
-        distToMax = Math.abs(ArchonsVisionPlayer.Map.minX - myPos.x);
+        distToMax = Math.abs(Map.minX - myPos.x);
         if (distToMax < sightRange){
             float ang = (float)Math.acos(distToMax/sightRange);
             float right = baseDir.radiansBetween(Direction.getWest().rotateRightRads(ang));
@@ -151,7 +150,7 @@ public class Sight {
             }
         }
 
-        distToMax = Math.abs(ArchonsVisionPlayer.Map.minY - myPos.y);
+        distToMax = Math.abs(Map.minY - myPos.y);
         if (distToMax < sightRange){
             float ang = (float)Math.acos(distToMax/sightRange);
             float right = baseDir.radiansBetween(Direction.getSouth().rotateRightRads(ang));
@@ -248,7 +247,7 @@ public class Sight {
         intervals = Arrays.copyOf(intervals, index);
 
 
-        if (intervals.length > 0) quickSort(0, intervals.length - 1);
+        if (intervals.length > 0) IfSorting.quickSortOnly(intervals);
 
         float Area = 0;
 
@@ -314,38 +313,6 @@ public class Sight {
 
 
         return Area;
-    }
-
-
-    static void quickSort(int lowerIndex, int higherIndex) {
-
-        int i = lowerIndex;
-        int j = higherIndex;
-        //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
-        int pivot = intervals[(higherIndex+lowerIndex)/2];
-        while (i <= j) {
-
-            while (intervals[i] < pivot) {
-                i++;
-            }
-            while (intervals[j] > pivot) {
-                j--;
-            }
-            if (i <= j) {
-                int temp = intervals[i];
-                intervals[i] = intervals[j];
-                intervals[j] = temp;
-                i++;
-                j--;
-            }
-        }
-        // call quickSort() method recursively
-        if (lowerIndex < j) {
-            quickSort(lowerIndex, j);
-        }
-        if (i < higherIndex){
-            quickSort(i, higherIndex);
-        }
     }
 
     static void updateGradient(float angle, RobotController rc){

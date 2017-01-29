@@ -645,7 +645,7 @@ public class Greedy {
         }
 
         //System.out.println("PRE-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
-        if (intervals.length > 1) quickSort(0, intervals.length-1);
+        if (intervals.length > 1) IfSorting.quickSortOnly(intervals);
         //System.out.println("POST-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
         //Arrays.sort(intervals);
 
@@ -889,7 +889,7 @@ public class Greedy {
         }
 
         //System.out.println("PRE-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
-        if (intervals.length > 1) quickSort(0, intervals.length-1);
+        if (intervals.length > 1) IfSorting.quickSortOnly(intervals);
         //System.out.println("POST-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
         //Arrays.sort(intervals);
 
@@ -1040,37 +1040,6 @@ public class Greedy {
             int aux = intervals[i];
             intervals[i] = intervals[minj];
             intervals[minj] = aux;
-        }
-    }
-
-    static void quickSort(int lowerIndex, int higherIndex) {
-
-        int i = lowerIndex;
-        int j = higherIndex;
-            //System.out.println("INDEX: "+ higherIndex + " " + lowerIndex);
-            int pivot = intervals[(higherIndex+lowerIndex)/2];
-            while (i <= j) {
-
-                while (intervals[i] < pivot) {
-                    i++;
-                }
-                while (intervals[j] > pivot) {
-                    j--;
-                }
-                if (i <= j) {
-                    int temp = intervals[i];
-                    intervals[i] = intervals[j];
-                    intervals[j] = temp;
-                    i++;
-                    j--;
-                }
-            }
-            // call quickSort() method recursively
-            if (lowerIndex < j) {
-                quickSort(lowerIndex, j);
-            }
-            if (i < higherIndex){
-                quickSort(i, higherIndex);
         }
     }
 
