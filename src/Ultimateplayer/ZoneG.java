@@ -35,7 +35,9 @@ public class ZoneG {
     static MapLocation[] hexPos = new MapLocation[6];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
-    static int[] surroundings = new int[4];
+    // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = tropa, 4 = fora mapa
+    static int[] surroundings = new int[5]; //surroundings[2] = 3 => hi ha 3 arbres no aliats al voltant
+    static int[] hexStatus = new int[6]; //hexStatus[2] = 3 => a la hexPos[2] hi ha una tropa
 
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
@@ -274,23 +276,15 @@ public class ZoneG {
             }
             return -1;
         }
-        for (int i = 0; i < treesPerZone; i++){
-            if (Map.distToEdge(hexPos[i]) < 5f) {
-                //System.out.println("arbre " + i + " fora del mapa");
-                //continue;
-            }
+        int lastIndex = -1;
+        for (int i = 0; i < 6; i++){
             Direction d = rc.getLocation().directionTo(hexPos[i]);
-            float enemy_angle = 30;
-            int low_HP = 10;
-            if (rc.getHealth() > low_HP && Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
-            try {
-                if (!rc.onTheMap(hexPos[i], GameConstants.BULLET_TREE_RADIUS)) continue;
-                if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
-                return i;
-            } catch (GameActionException e) {
-                e.printStackTrace();
+            if (hexStatus[i] == 0){
+                if (Math.abs(d.degreesBetween(enemyDir)) > 30) return i;
+                lastIndex = i;
             }
         }
+        if (lastIndex != -1) return lastIndex;
         return -1;
     }
 
@@ -299,25 +293,27 @@ public class ZoneG {
         return surroundings[2] != 0 && surroundings[0] <= 1;
     }
 
-    static int freeSpots(){
+    private static int freeSpots(){
         int frees = 0;
         int myTrees = 0;
-        surroundings = new int[]{0,0,0,0};
+        surroundings = new int[]{0,0,0,0,0};
         for (int i = 0; i < 6; i++){
             int obstacle = isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS);
             surroundings[obstacle]++;
+            hexStatus[i] = obstacle;
             if (obstacle == 0){
                 frees++;
             }else if (obstacle == 1) myTrees++;
         }
         System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3]);
+        System.out.println("Hexes: " + hexStatus[0] + "," + hexStatus[1] + "," + hexStatus[2] + "," + hexStatus[3] + "," + hexStatus[4] + "," + hexStatus[5]);
         if (myTrees == 5) return 0;
         return frees;
     }
 
     private static int isFree(MapLocation pos, float r){
-        // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = altre cosa
-        if (Map.distToEdge(pos) <= r) return 3;
+        // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = tropa, 4 = fora mapa
+        if (Map.distToEdge(pos) <= r) return 4;
         for (TreeInfo tree: allTrees){
             if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r) {
                 if (tree.getTeam() == rc.getTeam()) return 1;

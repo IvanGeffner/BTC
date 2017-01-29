@@ -183,6 +183,7 @@ public class Archon {
         if (rc.getRoundNum() == 1) init();
         broadcastLocations();
         Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
+        System.out.println("Map bounds: " + Map.minX + "/" + Map.maxX + "  " + Map.minY + "/" + Map.maxY);
     }
 
 
@@ -475,14 +476,10 @@ public class Archon {
 
         if (foundTank > 0){
             Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
-            if (dir != null){
-                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
-            }
+            emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
         } else if (foundSoldier > 0){
             Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
-            if (dir != null){
-                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
-            }
+            emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
         }
 
 
