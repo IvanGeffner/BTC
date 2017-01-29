@@ -15,6 +15,7 @@ public class Gardener {
     static boolean lumberjackBuilt = false;
     static boolean shouldBuildTroop = false;
     static boolean shouldBuildLumber = false;
+    static boolean shouldBuildScout = false;
     static boolean myFirstTurn = true;
     private static boolean firstGardener;
 
@@ -39,6 +40,7 @@ public class Gardener {
         while (true) {
             initTurn();
             MapLocation newTarget = null;
+            newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
             if (ZoneG.hasValue(zone)) {
                 //si soc a la zona
                 ZoneG.broadcastMyZone();
@@ -51,7 +53,6 @@ public class Gardener {
                 }
             }else{
                 //si no soc a la zona
-                newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
                 if (newTarget != null){
                     System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                     if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
@@ -132,6 +133,7 @@ public class Gardener {
                 if(t == -1) continue;
                 if(t == Communication.NEEDSOLDIERTANK) shouldBuildTroop = true;
                 if(t == Communication.NEEDLUMBERJACK && !lumberjackBuilt) shouldBuildLumber = true;
+                if(t == Communication.NEEDSCOUT) shouldBuildScout = true;
                 ++i;
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
@@ -317,6 +319,7 @@ public class Gardener {
         for (RobotInfo enemy: enemies){
             if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER) continue;
             Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(enemy.getLocation().x),Math.round(enemy.getLocation().y),0);
+            if (enemy.getType() == RobotType.SCOUT) continue;
             Direction enemyDir = myPos.directionTo(enemy.getLocation());
             escapePos = escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
         }
@@ -348,7 +351,7 @@ public class Gardener {
         }
         try {
             if (shouldBuildTroop) {
-                System.out.println("- He rebut request de tropa");
+                System.out.println("- He rebut request de soldat/tank");
                 //tria el que hi ha abans entre tank i soldat
                 int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
                 int soldierIndex = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
@@ -367,6 +370,10 @@ public class Gardener {
             System.out.println("- He rebut request de lumberjack");
             tryConstructUnit(Constants.LUMBERJACK);
         }
+        if (shouldBuildScout){
+            System.out.println("- He rebut request de scout");
+            tryConstructUnit(Constants.SCOUT);
+        }
         int early_game_length = 500;
         if (rc.getRoundNum() > early_game_length) {
             System.out.println("- Decideixo fer arbre");
@@ -376,7 +383,7 @@ public class Gardener {
             boolean built = tryConstructUnit(myQueue[queueIndex]);
             if (built) queueIndex++;
         }else{
-            System.out.println("- Ja he acabat la meva cua");
+            System.out.println("- No em toca construir res");
         }
     }
 
@@ -389,6 +396,18 @@ public class Gardener {
         if (unit == Constants.LUMBERJACK && lumberjackBuilt) {
             System.out.println("- Ja he fet un lumberjack");
             return false;
+        }
+        if (unit == Constants.SCOUT){
+            try {
+                int last_round_scout_alive = rc.readBroadcast(Communication.SCOUT_LAST_TURN_ALIVE);
+                int last_round_scout_built = rc.readBroadcast(Communication.SCOUT_LAST_TURN_BUILT);
+                if (rc.getRoundNum() - last_round_scout_alive < 3 ||
+                        rc.getRoundNum() - last_round_scout_built < 23){
+                    System.out.println("- Ja hi ha un scout");
+                }
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
         }
         if (unit == Constants.TREE) return tryPlanting();
         System.out.println("- Intenta construir " + Constants.getRobotTypeFromIndex(unit));
@@ -413,6 +432,7 @@ public class Gardener {
                 System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
                 rc.buildRobot(Constants.getRobotTypeFromIndex(unit),dirToBuild);
                 if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                if (unit == Constants.SCOUT) rc.broadcast(Communication.SCOUT_LAST_TURN_BUILT,rc.getRoundNum());
                 return true;
             } catch (GameActionException e) {
                 e.printStackTrace();

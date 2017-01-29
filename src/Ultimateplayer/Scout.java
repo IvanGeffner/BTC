@@ -54,6 +54,12 @@ public class Scout {
             Bot.shake(rc);
             Bot.donate(rc);
 
+            try {
+                //serveix per saber quants scouts tenim vius (per saber si n'hem de fer mes)
+                rc.broadcast(Communication.SCOUT_LAST_TURN_ALIVE, rc.getRoundNum());
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
             System.out.println("0");
             MapLocation newTarget = findBestTree();
             // si no estem escapant, o si ho estem fent pero la direccio de l'arbre es semblant a la d'escapament

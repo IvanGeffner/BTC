@@ -53,7 +53,8 @@ public class Communication {
     static final int SIGHT_ZONES = 704; // bits que indiquen si cada zona de visio ha estat explorada
 
     static final int GARDENER_REPORT = 750; // ultim torn que hem tingut gardeners
-    static final int ARCHON_REPORT = 751;
+    static final int SCOUT_LAST_TURN_ALIVE = 751;
+    static final int SCOUT_LAST_TURN_BUILT = 752;
 
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
 
