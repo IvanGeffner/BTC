@@ -18,6 +18,9 @@ public class Archon {
 
     static MapLocation emergencyTarget;
 
+    static int turnsSinceGardener;
+    static MapLocation bestZone;
+
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
 
@@ -58,14 +61,21 @@ public class Archon {
                         System.out.println(e.getMessage());
                         e.printStackTrace();
                     }*/
-                    if (Sight.gradientX != 0 || Sight.gradientY != 0) {
+                    if (turnsSinceGardener < Constants.WAIT_TURNS_SINCE_GARDENER) {
+                        if (Sight.gradientX != 0 || Sight.gradientY != 0) {
 
-                        Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
+                            Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
 
-                        newTarget = rc.getLocation().add(optim, 3.0f);
+                            newTarget = rc.getLocation().add(optim, 3.0f);
+                        } else newTarget = rc.getLocation();
                     }
-
-                    else newTarget = rc.getLocation();
+                    else {
+                        bestZone = findBestZone();
+                        Direction dirBestZone = rc.getLocation().directionTo(bestZone);
+                        newTarget = bestZone.add(dirBestZone.opposite(),
+                                RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius-Constants.eps);
+                        rc.setIndicatorDot(newTarget, 255, 255, 0);
+                    }
 
                 }
             }
@@ -92,9 +102,18 @@ public class Archon {
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
 
+            ++turnsSinceGardener;
 
             Clock.yield();
         }
+    }
+
+    static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
+    private static MapLocation findBestZone() {
+        if (bestZ.x == -Constants.INF) {
+            bestZ = rc.getLocation().add(Direction.SOUTH, 8);
+        }
+        return bestZ;
     }
 
     private static void init(){
@@ -106,6 +125,7 @@ public class Archon {
             Build.init(rc);
             Map.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
+            turnsSinceGardener = Constants.INTINF;
 
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
@@ -241,12 +261,25 @@ public class Archon {
         }
         try{
             Direction d = Direction.EAST;
-            for (int i = 0; i < 50; ++i){
+            if (bestZone != null && turnsSinceGardener >= Constants.WAIT_TURNS_SINCE_GARDENER)
+                d = rc.getLocation().directionTo(bestZone);
+            for (int i = 0; i < 25; ++i){
                 Direction d2 = d.rotateLeftDegrees(360*i/50);
                 if (rc.canHireGardener(d2)){
                     rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);
+                    turnsSinceGardener = 0;
+                    bestZ = new MapLocation(-Constants.INF, 0);
+                    return;
+                }
+                d2 = d.rotateRightDegrees(360*(i+1)/50);
+                if (rc.canHireGardener(d2)){
+                    rc.hireGardener(d2);
+                    Build.incrementRobotsBuilt();
+                    Build.updateAfterConstruct(Constants.GARDENER);
+                    turnsSinceGardener = 0;
+                    bestZ = new MapLocation(-Constants.INF, 0);
                     return;
                 }
             }
