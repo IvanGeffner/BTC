@@ -18,10 +18,11 @@ public class Archon {
 
     static MapLocation emergencyTarget;
 
-    static int turnsSinceGardener;
+    static int turnsSinceAllowed;
     static MapLocation bestZone;
 
     static boolean initializedZone = false;
+    static boolean allowedToConstruct;
 
   //coses de buscar zona per pagesos
   private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
@@ -34,11 +35,14 @@ public class Archon {
         rc = rcc;
         ZoneG.init(rc);
         initializedZone = false;
+        turnsSinceAllowed = 0;
+
 
         if (rc.getRoundNum() > 5)
         {
             init();
             initializeZone();
+            turnsSinceAllowed = 0;
         }
 
         while (true) {
@@ -46,27 +50,42 @@ public class Archon {
             Bot.donate(rc);
             Map.checkMapBounds();
             if (rc.getRoundNum() == 2) init2();
-            if(rc.getRoundNum() >= 5 && !initializedZone) //TODO arreglar
+            if(rc.getRoundNum() >= 5 && !initializedZone) //TODO arreglar perque el pages SEMPRE sigui jefazo
             {
                 initializedZone = true;
                 initializeZone();
             }
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
-            if(rc.getRoundNum() < 5) turnsSinceGardener = 0;
             MapLocation newTarget;
-            //newTarget = checkNearbyEnemies();
             broadcastLocations();
+
+            if(Build.allowedToConstruct(Constants.GARDENER)) allowedToConstruct = true;
+            else allowedToConstruct = false;
+
             boolean danger = (emergencyTarget != null);
             if (emergencyTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                newTarget = checkShakeTrees();
-                if (newTarget != null){
-                    System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
-                }else{
+                if(allowedToConstruct && initializedZone)
+                {
+                    ++turnsSinceAllowed;
+                    bestZone = findBestZone();
+                    rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
+                    drawZone();
+                    Direction dirBestZone = rc.getLocation().directionTo(bestZone);
+                    newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+Constants.eps);
+                    if(rc.getLocation().distanceTo(newTarget) < Constants.eps)tryConstruct();
+                    else if(turnsSinceAllowed > 50) tryConstruct();
+                }
+                else
+                {
+                    newTarget = checkShakeTrees();
+                    if (newTarget != null){
+                        System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
+                    }else{
                     /*try {
                         int a = (int) Math.floor(Math.random() * 4.0);
                         for (int i = 0; i < 4; i++){
@@ -80,7 +99,6 @@ public class Archon {
                         System.out.println(e.getMessage());
                         e.printStackTrace();
                     }*/
-                    if (turnsSinceGardener < Constants.WAIT_TURNS_SINCE_GARDENER) {
                         Sight.computeSightRange(rc);
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
 
@@ -90,33 +108,13 @@ public class Archon {
                         } else newTarget = rc.getLocation();
                         
                     }
-                    else {
-                        bestZone = findBestZone();
-                        rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
-                        drawZone();
-                        Direction dirBestZone = rc.getLocation().directionTo(bestZone);
-                        /*
-                        if(dirBestZone == null) //si estic sobre mateix del target vaig a l'optim (no hauria de passar mai)
-                        {
-                        	if (Sight.gradientX != 0 || Sight.gradientY != 0) {
-
-                                Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
-
-                                newTarget = rc.getLocation().add(optim, 3.0f);
-                            } else newTarget = rc.getLocation().add(Direction.NORTH, 3.0f); 
-                        }
-                        else
-                        */
-                        newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+Constants.eps);
-                        //rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 255, 0);
-                    }
 
                 }
             }
 
-            if (myTurn() && rc.getRoundNum() > 10) {
-                if (Communication.countArchons() == 1 || !danger) tryConstruct();
-            }
+            //if (myTurn() && rc.getRoundNum() > 10) {
+            //    if (Communication.countArchons() == 1 || !danger) tryConstruct();
+            //}
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
@@ -136,10 +134,6 @@ public class Archon {
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
 
-            ++turnsSinceGardener;
-
-            System.out.println("turns since last gardener was built" + turnsSinceGardener);
-
             Clock.yield();
         }
     }
@@ -156,7 +150,6 @@ public class Archon {
             Build.init(rc);
             Map.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
-            turnsSinceGardener = Constants.WAIT_TURNS_SINCE_GARDENER;
 
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
@@ -202,7 +195,7 @@ public class Archon {
                     e.printStackTrace();
                 }
             }
-            tryConstruct();
+            if(rc.getRoundNum() <= 50) tryConstruct();
 
         }
     }
@@ -293,7 +286,7 @@ public class Archon {
         }
         try{
             Direction d = Direction.EAST;
-            if (bestZone != null && turnsSinceGardener >= Constants.WAIT_TURNS_SINCE_GARDENER)
+            if (bestZone != null)
                 d = rc.getLocation().directionTo(bestZone);
             for (int i = 0; i < 25; ++i){
                 Direction d2 = d.rotateLeftDegrees(360*i/50);
@@ -301,7 +294,7 @@ public class Archon {
                     rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);
-                    turnsSinceGardener = 0;
+                    turnsSinceAllowed = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;
                 }
@@ -310,7 +303,7 @@ public class Archon {
                     rc.hireGardener(d2);
                     Build.incrementRobotsBuilt();
                     Build.updateAfterConstruct(Constants.GARDENER);
-                    turnsSinceGardener = 0;
+                    turnsSinceAllowed = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;
                 }
