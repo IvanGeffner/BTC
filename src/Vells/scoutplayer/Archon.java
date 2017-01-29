@@ -1,6 +1,8 @@
-package scoutplayer;
+package Vells.scoutplayer;
 
 import battlecode.common.*;
+
+import java.util.Arrays;
 
 
 /**
@@ -25,6 +27,17 @@ public class Archon {
 
         while (true) {
             //code executed continually, don't let it end
+
+            int[] v1 = {13,5,23,20,19,3,4,22,9,2,1,12,17,11,7,15,16,10,18,21,14,8,24,6};
+            int[] v2 = {13,5,23,20,19,3,4,22,9,2,1,12,17,11,7,15,16,10,18,21,14,8,24,6};
+
+            System.out.println("bc:" + Clock.getBytecodeNum());
+            IfSorting.sort(v1);
+            System.out.println("bc:" + Clock.getBytecodeNum());
+            Arrays.sort(v2);
+            System.out.println("bc:" + Clock.getBytecodeNum());
+            for (int i:v1) System.out.print(" "+i);
+            System.out.println("");
 
             treeSpending = 0;
 

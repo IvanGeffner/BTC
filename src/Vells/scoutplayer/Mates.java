@@ -1,4 +1,4 @@
-package scoutplayer;
+package Vells.scoutplayer;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

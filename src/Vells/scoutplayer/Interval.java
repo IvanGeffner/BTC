@@ -1,4 +1,4 @@
-package scoutplayer;
+package Vells.scoutplayer;
 
 /**
  * Created by Ivan on 1/17/2017.

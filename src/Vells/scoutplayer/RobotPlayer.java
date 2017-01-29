@@ -1,4 +1,4 @@
-package scoutplayer;
+package Vells.scoutplayer;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
