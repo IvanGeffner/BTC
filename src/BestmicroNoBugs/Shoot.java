@@ -42,10 +42,10 @@ public class Shoot {
                 float R2 = R + r.strideRadius;
                 R2 = Math.min(d - rc.getType().bodyRadius, R2);
                 a = (float) Math.asin(R2 / d);
-                if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
+                //if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
 
-                Direction dirRight = dir.rotateRightDegrees(a);
-                Direction dirLeft = dir.rotateLeftDegrees(a);
+                Direction dirRight = dir.rotateRightRads(a);
+                Direction dirLeft = dir.rotateLeftRads(a);
 
                 for (RobotInfo ally : allies) {
 

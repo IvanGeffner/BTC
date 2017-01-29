@@ -10,7 +10,7 @@ public class Constants {
     public static int DEBUG = 0; // posar-ho a 0 quan es pugi el player a la web
     //controla si es fan els indicator dots i lines
 
-    public static float eps = 0.00003f;
+    public static float eps = 0.0001f;
     public static float INF = 9999f;
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
@@ -59,7 +59,7 @@ public class Constants {
     public static int CHANGETARGET = 30;
     public static float NEWTARGET = 2.01f;
     public static float BULLETSIGHT = 4;
-    public static int ANGLEFACTOR = (1 << 17);
+    public static int ANGLEFACTOR = (1 << 16);
     public static int INTINF = (1 << 27);
 
     public static float COLLISIONDIST = 0.75f;
