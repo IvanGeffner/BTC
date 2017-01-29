@@ -45,6 +45,7 @@ public class Archon {
 
     static int turnsSinceLastGardener = 0; 
 
+    static MapLocation[] enemyArchons; 
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -54,7 +55,7 @@ public class Archon {
         initializedZone = false;
         turnsSinceAllowed = 0;
         turnsSinceLastGardener = 0; 
-        
+        enemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent()); 
 
 
         if (rc.getRoundNum() > 5) init();
@@ -528,49 +529,51 @@ public class Archon {
         return bestCenter;
     }
 
-    static float zoneScore(MapLocation center) {
+   static float zoneScore(MapLocation center) {
         // score = -1: fora del mapa/ ja ocupada / whatever
         // score = 0: un dels llocs a construir esta ocupat
         // score = 0.5: pot veure nomes un tros de la zona
         // score = 2: zona lliure
         // retorna el score menys una quantitat en funcio de la distancia
-        float score = 2f;
+        float score = 0;
+        float R = RobotType.GARDENER.bodyRadius;
         try {
-            if(!rc.onTheMap(center)) return -1.0f;
+        	if (!rc.canSenseAllOfCircle(center, R)) return -1.0f;
+            if(!rc.onTheMap(center, R)) return -1.0f;
+            
             RobotInfo gardener = rc.senseRobotAtLocation(center);
             if(gardener != null && gardener.getType().equals(RobotType.GARDENER)) return -1.0f;
+            
+            float r = GameConstants.BULLET_TREE_RADIUS;
 
-
-            Direction dBase = new Direction((float)Math.PI/6);
-            for (int i = 0; i < 6; i++){
-                MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
-                if(!rc.canSenseAllOfCircle(toBuild,1.0f)) {
-                    score = Math.min(score,0.5f);
-                    continue;
-                }
-                if(!rc.onTheMap(toBuild)) {
-                    score = Math.min(score,0);
-                }
-            }
-
-            TreeInfo[] trees = rc.senseNearbyTrees(center, 3.0f, null);
-            for (TreeInfo tree: trees) {
-                if (center.distanceTo(tree.getLocation()) < 2) return -1; //si l'arbre talla el centre
-                for (int i = 0; i < 6; i++) {
-                    MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
-
-                    if (toBuild.distanceTo(tree.getLocation()) < 2){
-                        score = Math.min(score,0);
-                    }
-                }
-            }
+            float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
+	        Direction dBase = new Direction(a);
+            
+            TreeInfo[] trees = rc.senseNearbyTrees(center, R + r, null);
+            for (int i = 0; i < 6; i++) {
+            	float score_i = 2;
+            	MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),R+r+GameConstants.GENERAL_SPAWN_OFFSET);
+            	if (!rc.canSenseAllOfCircle(toBuild, r)) score_i = 1;
+		        for (TreeInfo tree: trees) {
+		            if (i == 0 && center.distanceTo(tree.getLocation()) <= R + tree.getRadius()) return -1; //si l'arbre talla el centre
+		
+	                if (toBuild.distanceTo(tree.getLocation()) <= r + tree.getRadius()){
+	                    score_i = Math.min(score_i,0);
+	                }
+	            }
+		        score += score_i;
+		        
+	        }
         }catch (GameActionException e) {
             e.printStackTrace();
         }
-        return score - Math.abs((rc.getLocation().distanceTo(center)-3.0f)/100.0f);
+        
+        
+        float score2 = 9999.0f;
+        for (MapLocation m : enemyArchons) score2 = Math.min(score2, center.distanceTo(m));
+        
+        return score + score2/10000;
     }
-
-
     private static void drawZone() {
         float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
         Direction dBase = new Direction(a);
