@@ -56,8 +56,7 @@ public class Archon {
         turnsSinceAllowed = 0;
 
 
-        if (rc.getRoundNum() > 5)
-        {
+        if (rc.getRoundNum() > 5) {
             init();
             initializeZone();
             turnsSinceAllowed = 0;
@@ -75,8 +74,7 @@ public class Archon {
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                if(allowedToConstruct && initializedZone)
-                {
+                if(allowedToConstruct && initializedZone) {
                     ++turnsSinceAllowed;
                     bestZone = findBestZone();
                     rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
@@ -86,8 +84,7 @@ public class Archon {
                     if(rc.getLocation().distanceTo(newTarget) < Constants.eps)tryConstruct();
                     else if(turnsSinceAllowed > 50) tryConstruct();
                 }
-                else
-                {
+                else {
                     newTarget = checkShakeTrees();
                     if (newTarget != null){
                         System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);

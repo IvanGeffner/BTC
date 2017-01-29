@@ -26,7 +26,6 @@ public class Bot {
         }
         try {
             if (maxBullets > 0) rc.shake(id);
-            else return;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -45,4 +44,7 @@ public class Bot {
             e.printStackTrace();
         }
     }
+
+
+
 }
