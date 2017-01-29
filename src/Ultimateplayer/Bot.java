@@ -35,7 +35,7 @@ public class Bot {
 
     static void donate(RobotController rc) {
         try {
-            if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT-20);
+            if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(Math.max(0,rc.getTeamBullets() - Constants.BULLET_LIMIT-20));
             if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
                 float donation = Math.max(0, rc.getTeamBullets() - 20);
                 if (donation > 20) ;

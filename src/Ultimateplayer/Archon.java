@@ -184,6 +184,7 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
+
             if(rc.getRoundNum() <= 50) tryConstruct();
         }
     }
@@ -200,6 +201,7 @@ public class Archon {
         Bot.donate(rc);
         readMessages();
 
+        if (rc.getRoundNum() == 2) init2();
         if(rc.getRoundNum() >= 5 && !initializedZone) //TODO arreglar perque el pages SEMPRE sigui jefazo
         {
             initializedZone = true;
@@ -350,7 +352,7 @@ public class Archon {
         return false;
     }
 
-    static void updateArchonCount(){
+    private static void updateArchonCount(){
         try {
             int archonTurn = rc.readBroadcast(Communication.ARCHON_TURN);
             int archonCount = rc.readBroadcast(Communication.ARCHON_COUNT);
@@ -459,10 +461,7 @@ public class Archon {
 
 
     static void broadcastLocations() {
-
         RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-        boolean sent = false;
-
         emergencyTarget = null;
 
         int foundSoldier = 0;
