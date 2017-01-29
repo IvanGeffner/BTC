@@ -64,27 +64,3 @@ Balanced: Boxed, Bullseye, Chess, Crossfire, Default, Magicwoods, Maniple
 
 
 
-
-
-
-
-
-
-
-
-Idees random:
-- que els tanks matin arbres neutrals/enemics
-- que els gardeners puguin enviar un missatge "marxeu de la posicio X"
-- si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
-- si obtenim una tropa d'un arbre, actualitzar el build order 
-- fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
-- lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
-- que un pagès no es posi en una zona mes propera a l'enemic que a nosaltres
-- scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny
-- els soldats que fem al principi que es quedin a defensar, que si no malgasten bales
-- soldats ataquen al que tingui menys vida
-- que els soldats disparin arbres a partir del torn X
--arreglar els victory points
-- si estem encallats al torn x matem l'archon
-- si no hem vist cap soldat fins al torn X anem a fer turtle
-- utilitzar els missatges enemics per saber la seva posicio

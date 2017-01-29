@@ -1,0 +1,22 @@
+Idees random:
+- que els gardeners puguin enviar un missatge "marxeu de la posicio X"
+- si hi ha uns quants soldats junts al costat d'un jardiner tancat en arbres i no tenen res per fer, li disparen als arbres
+- fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
+- lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
+- que un pagès no es posi en una zona mes propera a l'enemic que a nosaltres
+- scouts al lategame diuen on estan els enemics i els tanks disparen des de lluny
+- els soldats que fem al principi que es quedin a defensar, que si no malgasten bales
+- soldats ataquen al que tingui menys vida
+- que els soldats disparin arbres a partir del torn X
+- si estem encallats al torn x matem l'archon
+- si no hem vist cap soldat fins al torn X anem a fer turtle
+- utilitzar els missatges enemics per saber la seva posicio
+- ignorar lumbers que estiguin prou lluny (no disparar) els primers X torns
+- no malgastar single shots
+- canviar lo de init/init2
+- que els archons nomes facin un pages a torn1
+- si em toca fer un soldier i ja veig un soldier, me'l salto de la cua
+- si l'archon veu que esta tancat, envia senyal de lumberjack
+- improve gradient
+- no malgastar bales
+- fer greedy amb el path de les bales
