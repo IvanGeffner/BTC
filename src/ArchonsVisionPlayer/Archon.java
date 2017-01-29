@@ -42,12 +42,11 @@ public class Archon {
         }
 
         while (true) {
-            System.out.println("Visible Area is approx: "+ Sight.computeSightRange(rc));
             Bot.shake(rc);
             Bot.donate(rc);
             Map.checkMapBounds();
             if (rc.getRoundNum() == 2) init2();
-            if(rc.getRoundNum() >= 5 && !initializedZone)
+            if(rc.getRoundNum() >= 5 && !initializedZone) //TODO arreglar
             {
                 initializedZone = true;
                 initializeZone();
@@ -82,6 +81,7 @@ public class Archon {
                         e.printStackTrace();
                     }*/
                     if (turnsSinceGardener < Constants.WAIT_TURNS_SINCE_GARDENER) {
+                        Sight.computeSightRange(rc);
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
 
                             Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
