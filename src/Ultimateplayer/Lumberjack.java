@@ -338,36 +338,61 @@ public class Lumberjack {
         }
 
         sent = false;
-        RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        RobotInfo[] Ri = rc.senseNearbyRobots(); //di
+        
+        float needSoldier = 0.0f; //di
+        boolean foundEnemy = false; //di
+        
         for(RobotInfo ri : Ri){
-            MapLocation enemyPos = ri.getLocation();
-            if(ri.getType().equals(RobotType.ARCHON)) enemyBase = enemyPos;
-            calculateNewTarget(enemyPos, enemyScore(Constants.getIndex(ri.getType())) + Constants.eps, false);
-            if(!sent)
-            {
-                sent = true;
-                int x = Math.round(enemyPos.x);
-                int y = Math.round(enemyPos.y);
-                int a = Constants.getIndex(ri.type);
-                if (a == 0)
-                {
-                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-
-                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-                }
-                else if (a == 5)
-                {
-                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-                }
-                else
-                {
-                    Communication.sendMessage(Communication.ENEMYCHANNEL, x, y, a);
-                    initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-                }
-            }
+        	if(rc.getTeam().equals(ri.getTeam().opponent()))
+        	{
+        		foundEnemy = true; //di
+	            MapLocation enemyPos = ri.getLocation();
+	            if(ri.getType().equals(RobotType.ARCHON)) enemyBase = enemyPos;
+	            calculateNewTarget(enemyPos, enemyScore(Constants.getIndex(ri.getType())) + Constants.eps, false);
+	            if(!sent)
+	            {
+	                sent = true;
+	                int x = Math.round(enemyPos.x);
+	                int y = Math.round(enemyPos.y);
+	                int a = Constants.getIndex(ri.type);
+	                if (a == 0)
+	                {
+	                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+	
+	                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+	                }
+	                else if (a == 5)
+	                {
+	                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+	                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+	                }
+	                else
+	                {
+	                    Communication.sendMessage(Communication.ENEMYCHANNEL, x, y, a);
+	                    initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+	                }
+	            }
+	            needSoldier += Bot.dangerScore(Constants.getIndex(ri.type)); //di
+	        } else
+	        {
+	        	needSoldier -= Bot.dangerScore(Constants.getIndex(ri.type)); //di
+	        }
         }
+        needSoldier -= Bot.dangerScore(Constants.SOLDIER); //di
+
+        //di:
+        if(foundEnemy && needSoldier >= 0)
+        {
+        	int x = Math.round(rc.getLocation().x);
+            int y = Math.round(rc.getLocation().y);
+            Communication.sendMessage(rc, Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSOLDIERTANK);
+        }
+        
+        //fi di
     }
+    
+    
 
     //check if it's a better target than what I haves
     static void calculateNewTarget(MapLocation target, float score, boolean greedy)

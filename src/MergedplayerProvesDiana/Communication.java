@@ -187,7 +187,7 @@ public class Communication {
       	if(soldiertank >= 0.0f && found)
       	{
       		int x = Math.round(me.x);
-              int y = Math.round(me.y);
+            int y = Math.round(me.y);
           	sendMessage(rc, NEEDTROOPCHANNEL, x, y, NEEDSOLDIERTANK);
       	}
 
