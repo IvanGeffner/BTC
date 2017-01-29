@@ -29,13 +29,19 @@ public class Archon {
             //code executed continually, don't let it end
 
             int[] v1 = {13,5,23,20,19,3,4,22,9,2,1,12,17,11,7,15,16,10,18,21,14,8,24,6};
-            int[] v2 = {13,5,23,20,19,3,4,22,9,2,1,12,17,11,7,15,16,10,18,21,14,8,24,6};
+            int[] v2 = {13,5,23,20,19,3,4,22,9,2,1,17,12,11,7,15,16,10,18,21,14,8,24,6};
+            int[] v3 = {13,5,23,20,19,3,4,22,9,2,1,12,17,11,7,15,16,10,18,21,14,8,24,6};
 
-            System.out.println("bc:" + Clock.getBytecodeNum());
-            IfSorting.sort(v1);
-            System.out.println("bc:" + Clock.getBytecodeNum());
-            Arrays.sort(v2);
-            System.out.println("bc:" + Clock.getBytecodeNum());
+            int t1 = Clock.getBytecodeNum();
+            Arrays.sort(v1);
+            int t2 = Clock.getBytecodeNum();
+            IfSorting.quickSortOnly(v2);
+            int t3 = Clock.getBytecodeNum();
+            IfSorting.sort(v3);
+            int t4 = Clock.getBytecodeNum();
+            System.out.println("Arrays.sort: " + (t2-t1) + " bytecode");
+            System.out.println("quickSort: " + (t3-t2) + " bytecode");
+            System.out.println("quickIfSort: " + (t4-t3) + " bytecode");
             for (int i:v1) System.out.print(" "+i);
             System.out.println("");
 

@@ -1,4 +1,4 @@
-package Vells.scoutplayer;
+package Dynamicplayer;
 
 /**
  * Created by David on 20/01/2017.
