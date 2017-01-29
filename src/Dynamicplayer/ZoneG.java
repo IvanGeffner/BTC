@@ -35,6 +35,8 @@ public class ZoneG {
     static MapLocation[] hexPos = new MapLocation[6];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
+    static int[] surroundings = new int[4];
+
     static RobotInfo[] allies;
     static RobotInfo[] enemies;
     static TreeInfo[] neutralTrees;
@@ -228,7 +230,7 @@ public class ZoneG {
     }
 
     //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 5
-    static int messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
+    static void messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
         int max_bytecode = 3000;
         int bytecode_init = Clock.getBytecodeNum();
         MapLocation[] outerTrees = new MapLocation[trees.length];
@@ -249,44 +251,17 @@ public class ZoneG {
                 outerTreeCount++;
             }
         }
-        if (!sendOuterTrees) return innerTreeCount+outerTreeCount;
+        if (!sendOuterTrees) return;
         for (int i = 0; i < outerTreeCount; i++) {
             messageCutNeutralTree(outerTrees[i]);
-            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return innerTreeCount+outerTreeCount;
+            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
         }
-        return innerTreeCount+outerTreeCount;
+        return;
     }
 
     private static void messageCutNeutralTree(MapLocation treeLocation) {
         if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
         Communication.sendMessage(Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
-    }
-
-    //conta a quants dels 6 forats pot construir un robot
-    static int countAvailableRobotBuildPositions(){
-        //no ho fa be si la zona esta abandonada
-        if (!hasValue(zone)){
-            try {
-                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de countAvailableRobotBuildPositions() sense tenir zona assignada");
-            } catch (GameActionException e) {
-                e.printStackTrace();
-            }
-            return -1;
-        }
-        int count = 0;
-        for (int i = 0; i < buildPositionsPerZone; i++){
-            try {
-                if (rc.canSenseAllOfCircle(hexPos[i],RobotType.SOLDIER.bodyRadius) &&
-                        !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) {
-                    if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
-                    count++;
-                }//else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
-            } catch (GameActionException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Te " + count + " posicions per construir");
-        return count;
     }
 
     //retorna el millor index per plantar un arbre
@@ -319,23 +294,30 @@ public class ZoneG {
         return -1;
     }
 
+    static boolean shouldRequestLumberjack(){
+        //si no te cap lloc lliure i hi ha algun arbre neutral/enemic
+        return surroundings[2] != 0 && surroundings[0] == 0;
+    }
 
     static int freeSpots(){
         int frees = 0;
         int myTrees = 0;
+        surroundings = new int[]{0,0,0,0};
         for (int i = 0; i < 6; i++){
             int obstacle = isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS);
+            surroundings[obstacle]++;
             if (obstacle == 0){
                 frees++;
             }else if (obstacle == 1) myTrees++;
         }
+        System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3]);
         if (myTrees == 5) return 0;
         return frees;
     }
 
     private static int isFree(MapLocation pos, float r){
-        // -1 = fora del mapa, 0 = lliure, 1 = arbre aliat, 2 = altre arbre
-        if (Map.distToEdge(pos) <= r) return -1;
+        // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = altre cosa
+        if (Map.distToEdge(pos) <= r) return 3;
         for (TreeInfo tree: allTrees){
             if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r) {
                 if (tree.getTeam() == rc.getTeam()) return 1;
@@ -344,12 +326,12 @@ public class ZoneG {
         }
         for (RobotInfo enemy: enemies){
             if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
-                return 2;
+                return 3;
             }
         }
         for (RobotInfo enemy: allies){
             if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
-                return 2;
+                return 3;
             }
         }
         return 0;

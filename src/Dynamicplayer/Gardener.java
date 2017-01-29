@@ -235,6 +235,14 @@ public class Gardener {
             System.out.println("- Estic massa lluny del centre de la zona");
             return;
         }
+        try {
+            TreeInfo tree = rc.senseTreeAtLocation(centerIWant);
+            if (tree != null && !lumberjackBuilt)
+                Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+
         int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
             if (zoneType == Constants.busyZone) {
@@ -285,13 +293,10 @@ public class Gardener {
     }
 
     private static void checkNeutralTreesInZone(){
-        TreeInfo[] neutralTrees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        int trees = ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
-        int treesToRequestLumberjack = 4;
-        if (trees >= treesToRequestLumberjack) {
-            if (!lumberjackBuilt) shouldBuildLumber = true;
+        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),ZoneG.neutralTrees);
+        // trees = arbres del inner circle
+        if (!lumberjackBuilt && ZoneG.shouldRequestLumberjack())
             Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
-        }
     }
 
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
@@ -484,6 +489,8 @@ public class Gardener {
         }
         return false;
     }
+
+
 
 
 /*

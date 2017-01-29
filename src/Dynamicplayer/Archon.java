@@ -63,7 +63,7 @@ public class Archon {
                     }
                 }
             }
-            if ((rc.getRoundNum() > 6 && aliveGardeners <= 0) || rc.getRoundNum() > 10) tryConstruct();
+            if ((rc.getRoundNum() > 6 && aliveGardeners <= 0) || rc.getRoundNum() > 30) tryConstruct();
             try {
                 if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
                 if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
