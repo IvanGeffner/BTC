@@ -21,6 +21,8 @@ public class Archon {
     static int turnsSinceGardener;
     static MapLocation bestZone;
 
+    static boolean initializedZone = false;
+
   //coses de buscar zona per pagesos
   private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
   private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14};
@@ -31,19 +33,13 @@ public class Archon {
 
         rc = rcc;
         ZoneG.init(rc);
-        try {
-            float xOrigin = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_X));
-            if (xOrigin == 0){
-                rc.broadcast(Communication.ZONE_ORIGIN_X, Float.floatToIntBits(rc.getLocation().x));
-                rc.broadcast(Communication.ZONE_ORIGIN_Y, Float.floatToIntBits(rc.getLocation().y));
-                ZoneG.setOrigin(rc.getLocation().x,rc.getLocation().y);
-            }else{
-                ZoneG.setOrigin(xOrigin,Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y)));
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
+        initializedZone = false;
+
+        if (rc.getRoundNum() > 5)
+        {
+            init();
+            initializeZone();
         }
-        if (rc.getRoundNum() > 5) init();
 
         while (true) {
             System.out.println("Visible Area is approx: "+ Sight.computeSightRange(rc));
@@ -51,10 +47,15 @@ public class Archon {
             Bot.donate(rc);
             Map.checkMapBounds();
             if (rc.getRoundNum() == 2) init2();
+            if(rc.getRoundNum() >= 5 && !initializedZone)
+            {
+                initializedZone = true;
+                initializeZone();
+            }
             updateArchonCount();
             if (rc.getRoundNum() == 1) init();
+            if(rc.getRoundNum() < 5) turnsSinceGardener = 0;
             MapLocation newTarget;
-            findBestZone(); 
             //newTarget = checkNearbyEnemies();
             broadcastLocations();
             boolean danger = (emergencyTarget != null);
@@ -92,8 +93,10 @@ public class Archon {
                     else {
                         bestZone = findBestZone();
                         rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
+                        drawZone();
                         Direction dirBestZone = rc.getLocation().directionTo(bestZone);
-                        if(dirBestZone == null) //si estic sobre mateix del target vaig a l'optim
+                        /*
+                        if(dirBestZone == null) //si estic sobre mateix del target vaig a l'optim (no hauria de passar mai)
                         {
                         	if (Sight.gradientX != 0 || Sight.gradientY != 0) {
 
@@ -102,7 +105,9 @@ public class Archon {
                                 newTarget = rc.getLocation().add(optim, 3.0f);
                             } else newTarget = rc.getLocation().add(Direction.NORTH, 3.0f); 
                         }
-                        else newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius-Constants.eps);
+                        else
+                        */
+                        newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+Constants.eps);
                         //rc.setIndicatorLine(rc.getLocation(),newTarget, 255, 255, 0);
                     }
 
@@ -133,6 +138,8 @@ public class Archon {
 
             ++turnsSinceGardener;
 
+            System.out.println("turns since last gardener was built" + turnsSinceGardener);
+
             Clock.yield();
         }
     }
@@ -149,13 +156,14 @@ public class Archon {
             Build.init(rc);
             Map.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
-            turnsSinceGardener = Constants.INTINF;
+            turnsSinceGardener = Constants.WAIT_TURNS_SINCE_GARDENER;
 
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
 
             if (whoAmI == 0) { // first to execute
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archons.length);
+
 
                 // inicialitzem el limits del mapa
                 rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(Constants.INF));
@@ -481,28 +489,31 @@ public class Archon {
     			if(score > bestScore)
     			{
     				bestScore = score;
-    				if(score == 2.0f) 
-    				{
-    					System.out.println("score de la zona: " + score); 
-    					drawZone(center); 
-    					return center;
-    				}
+    				if(score == 2.0f) return center;
     				zone = center;
     			}
+
+    			if(Clock.getBytecodeNum() >= Constants.BYTECODEMAXARCHONZONE)
+                {
+                    if(score != -1.0f) return zone;
+                    else return center;
+                }
     	}
-    	System.out.println("score de la zona: " + bestScore); 
-    	drawZone(zone); 
     	return zone; 
     }
     static float zoneScore(MapLocation realZone)
     {
     	float score = 2.0f;
     	try {
-    		if(!rc.onTheMap(realZone)) return -1.0f; 
-    		TreeInfo[] Ti = rc.senseNearbyTrees(realZone, 1.0f, null); 
+    		if(!rc.onTheMap(realZone)) return -1.0f;
+            RobotInfo gardener = rc.senseRobotAtLocation(realZone);
+            if(gardener != null && gardener.getType().equals(RobotType.GARDENER)) return -1.0f;
+
+            TreeInfo[] Ti = rc.senseNearbyTrees(realZone, 1.0f, null);
 	    	if(Ti.length > 0) return -1.0f; 
-	    	RobotInfo[] Ri = rc.senseNearbyRobots(realZone,1.0f, null); 
-	    	if(Ri.length > 0) score = 1.0f; 
+	    	//RobotInfo[] Ri = rc.senseNearbyRobots(realZone,1.0f, null);
+	    	//if(Ri.length > 0) score = 1.0f;
+
 	    	
 	    	float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
 	        Direction dBase = new Direction(a);
@@ -520,29 +531,46 @@ public class Archon {
             	Ti = rc.senseNearbyTrees(toBuild, 1.0f, null); 
     	    	if(Ti.length > 0) return 0; 
 
-            	Ri = rc.senseNearbyRobots(toBuild,1.0f,null); 
-            	if(Ri.length > 0) if(score > 1.0f) score = 1.0f;
+            	//Ri = rc.senseNearbyRobots(toBuild,1.0f,null);
+            	//if(Ri.length > 0) if(score > 1.0f) score = 1.0f;
             } 
         }catch (GameActionException e) {
             e.printStackTrace();
          }
+         score = score -Math.abs((rc.getLocation().distanceTo(realZone)-3.0f)/100.0f);
     	return score;
     }
 
     
-    static void drawZone(MapLocation realZone)
+    static void drawZone()
     {
-    	
-    	
-    		float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
-	        Direction dBase = new Direction(a);
-	        for (int i = 0; i < ZoneG.buildPositionsPerZone; i++){
+
+        float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
+        Direction dBase = new Direction(a);
+        for (int i = 0; i < ZoneG.buildPositionsPerZone; i++){
             
-	        	MapLocation toBuild = realZone.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
-            	rc.setIndicatorDot(toBuild, 200, 0, 200);
-            } 
+            MapLocation toBuild = bestZone.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
+            rc.setIndicatorDot(toBuild, 200, 0, 200);
+        }
 
 
+    }
+
+    static void initializeZone()
+    {
+
+        try {
+            float xOrigin = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_X));
+            if (xOrigin == 0){
+                rc.broadcast(Communication.ZONE_ORIGIN_X, Float.floatToIntBits(rc.getLocation().x));
+                rc.broadcast(Communication.ZONE_ORIGIN_Y, Float.floatToIntBits(rc.getLocation().y));
+                ZoneG.setOrigin(rc.getLocation().x,rc.getLocation().y);
+            }else{
+                ZoneG.setOrigin(xOrigin,Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y)));
+            }
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
 }

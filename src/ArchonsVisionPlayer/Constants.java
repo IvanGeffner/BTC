@@ -41,6 +41,9 @@ public class Constants {
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
     public static int BROADCASTMAXSOLDIER = 600;
 
+    //archon
+    public static int BYTECODEMAXARCHONZONE = 24000;
+
     public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows
     public static int DR = 5; //Distance Row-Row
@@ -91,7 +94,7 @@ public class Constants {
     public static float PRECISION_MAP_BOUNDS = 0.1f;
     public static float SCOUT_RISK_DISTANCE = 6;
     public static int SCOUT_ESCAPE_TURNS = 6;
-    public static int WAIT_TURNS_SINCE_GARDENER = 20;
+    public static int WAIT_TURNS_SINCE_GARDENER = 100;
 
     public static float PI2 = 2*(float)Math.PI;
 

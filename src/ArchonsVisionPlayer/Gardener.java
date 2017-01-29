@@ -57,7 +57,7 @@ public class Gardener {
                     System.out.println("No esta a la zona, reseteja");
                 }
             }
-            tryConstruct();
+
             Map.checkMapBounds();
             updateTarget(newTarget);
             waterNearbyTree();
@@ -66,6 +66,8 @@ public class Gardener {
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+
+            tryConstruct();
             Clock.yield();
         }
     }
