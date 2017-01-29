@@ -366,14 +366,14 @@ public class Gardener {
             System.out.println("- Decideixo fer arbre");
             tryPlanting();
         }else if (queueIndex < myQueue.length){
-            System.out.println("- Construeixo de la cua " + queueIndex);
+            System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + myQueue[queueIndex]);
             boolean built = tryConstructUnit(myQueue[queueIndex]);
             if (built) queueIndex++;
         }
     }
 
     private static boolean tryConstructUnit(int unit){
-        if (!rc.isBuildReady()) return false;
+
         if (unit == -1) {
             System.out.println("- unit = -1");
             return false;
@@ -384,6 +384,10 @@ public class Gardener {
         }
         if (unit == Constants.TREE) return tryPlanting();
         System.out.println("- Intenta construir " + Constants.getRobotTypeFromIndex(unit));
+        if (!rc.hasRobotBuildRequirements(Constants.getRobotTypeFromIndex(unit))) {
+            System.out.println("- No te els requisits per construir");
+            return false;
+        }
         //if (!Build.allowedToConstruct(unit)) {
         //System.out.println("No tinc prou bales per construir " + unit);
         //System.out.println("Tinc " + rc.getTeamBullets() + " i calen " + totalBulletCost(unit));
@@ -392,7 +396,8 @@ public class Gardener {
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit);
         Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
         for (int i = 0; i < 24; i++){
-            Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
+            Direction d2 = enemyDir.rotateLeftDegrees(360*i/48);
+            //rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(d2,100),0,0,0);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
@@ -403,7 +408,8 @@ public class Gardener {
                     e.printStackTrace();
                 }
             }
-            d2 = enemyDir.rotateRightDegrees(360*i/12);
+            d2 = enemyDir.rotateRightDegrees(360*i/48);
+            //rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(d2,100),0,0,0);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
                     System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
@@ -412,6 +418,22 @@ public class Gardener {
                     return true;
                 } catch (GameActionException e) {
                     e.printStackTrace();
+                }
+            }
+        }
+        if (ZoneG.hasValue(zone)){
+            for (int i = 0; i < 6; i++){
+                //aixo serveix perque si te molts arbres fets, a vegades amb lo altre no troba cap lloc
+                Direction d2 = rc.getLocation().directionTo(ZoneG.hexPos[i]);
+                if (rc.canBuildRobot(newRobotType,d2)){
+                    try {
+                        System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
+                        rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
+                        if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                        return true;
+                    } catch (GameActionException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

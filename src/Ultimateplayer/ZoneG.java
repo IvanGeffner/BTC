@@ -223,7 +223,7 @@ public class ZoneG {
         broadcastInfo(assignedZone, Constants.busyZone);
 
         for (int i = 0; i < treesPerZone; i++){
-            hexPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
+            hexPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.02f);
             newTankPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI/6).rotateLeftRads((float)Math.PI*i/3),3.02f);
         }
 
