@@ -103,7 +103,7 @@ public class Archon {
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
 
-            if(turnsSinceLastGardener > 200 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) tryConstruct(); 
+            
             
             Clock.yield();
         }
@@ -163,6 +163,7 @@ public class Archon {
     private static void initTurn(){
         firstArchon = false;
         shouldBuildGardener = false;
+        if(turnsSinceLastGardener > 150 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) shouldBuildGardener = true; 
         totalFreeSpots = 0;
         ++turnsSinceLastGardener; 
         allies = rc.senseNearbyRobots(-1, rc.getTeam());
