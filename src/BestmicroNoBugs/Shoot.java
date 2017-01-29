@@ -39,13 +39,16 @@ public class Shoot {
                 Direction dirRightExact = dir.rotateRightRads(a);
                 Direction dirLeftExact = dir.rotateLeftRads(a);
 
-                float R2 = R + r.strideRadius;
+                float R2 = R + 2*r.strideRadius;
                 R2 = Math.min(d - rc.getType().bodyRadius, R2);
                 a = (float) Math.asin(R2 / d);
                 //if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
 
                 Direction dirRight = dir.rotateRightRads(a);
                 Direction dirLeft = dir.rotateLeftRads(a);
+
+                Direction dirRightA = dir.rotateRightDegrees(31);
+                Direction dirLeftA = dir.rotateLeftDegrees(31);
 
                 for (RobotInfo ally : allies) {
 
@@ -71,10 +74,18 @@ public class Shoot {
                             dirLeft = dirRight2;
                         }
                     }
-                }
 
-                Direction dirRightA = dirRight;
-                Direction dirLeftA = dirLeft;
+                    if (dirRightA.radiansBetween(dirRight2) >= 0 && dirLeftA.radiansBetween(dirRight2) <= 0)
+                        dirLeft = dirRight2;
+                    else if (dirRightA.radiansBetween(dirLeft2) >= 0 && dirLeftA.radiansBetween(dirLeft2) <= 0)
+                        dirRight = dirLeft2;
+                    if (dirRight2.radiansBetween(dirRightA) >= 0 && dirRight2.radiansBetween(dirLeftA) >= 0) {
+                        if (dirLeft2.radiansBetween(dirRightA) <= 0 && dirLeft2.radiansBetween(dirLeftA) <= 0) {
+                            dirRightA = dirLeft2;
+                            dirLeftA = dirRight2;
+                        }
+                    }
+                }
 
                 for (TreeInfo tree : trees) {
                     if (Clock.getBytecodesLeft() < 400) break;
