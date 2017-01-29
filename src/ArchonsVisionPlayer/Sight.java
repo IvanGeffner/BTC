@@ -251,7 +251,7 @@ public class Sight {
 
         for (int i = 0; i < intervals.length; ++i){
             int a = intervals[i];
-            rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
+            //rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
 
             if ((a&1) == 0) { //RIGHT
                 int encoded = (a&0xFFFFF);
@@ -264,7 +264,7 @@ public class Sight {
                     updateGradient(angle, rc);
                 }
 
-                rc.setIndicatorLine(loc.add(baseDir.rotateLeftRads(angle), distMin), prevPoint, 0, 0, 255);
+                //rc.setIndicatorLine(loc.add(baseDir.rotateLeftRads(angle), distMin), prevPoint, 0, 0, 255);
                 currentAngle = angle;
                 if (newDist < distMin){
                     distMin = newDist;
@@ -283,7 +283,7 @@ public class Sight {
                     Area += distMin*distMin*(float)Math.sin((angle - currentAngle));
                     updateGradient(angle, rc);
                 }
-                rc.setIndicatorLine(loc.add(baseDir.rotateLeftRads(angle), distMin), prevPoint, 0, 0, 255);
+                //rc.setIndicatorLine(loc.add(baseDir.rotateLeftRads(angle), distMin), prevPoint, 0, 0, 255);
                 currentAngle = angle;
                 if (Math.abs(newDist - distMin) < Constants.eps) {
                     distMin = sightRange;
@@ -295,7 +295,7 @@ public class Sight {
                 }
                 prevPoint = loc.add(baseDir.rotateLeftRads(currentAngle), distMin);
             }
-            rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
+            //rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
         }
 
         float angle = 2.0f*(float)Math.PI;
@@ -350,7 +350,7 @@ public class Sight {
         Direction dirGradient = baseDir.rotateLeftRads((currentAngle + angle)/2).opposite();
         gradientX += dirGradient.getDeltaX(dist);
         gradientY += dirGradient.getDeltaY(dist);
-        rc.setIndicatorLine(loc, loc.add(dirGradient, dist), 255, 0, 0);
+        //rc.setIndicatorLine(loc, loc.add(dirGradient, dist), 255, 0, 0);
     }
 
 
