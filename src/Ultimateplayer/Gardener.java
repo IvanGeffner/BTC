@@ -5,9 +5,23 @@ import battlecode.common.*;
 
 public class Gardener {
 
+
+
     private static RobotController rc;
 
     private static MapLocation realTarget;
+    private static int initialMessageNeedTroop = 0;
+    static boolean lumberjackBuilt = false;
+    static boolean shouldBuildTroop = false;
+    static boolean shouldBuildLumber = false;
+    static boolean myFirstTurn = true;
+    private static boolean firstGardener;
+
+    private static int[] firstQueue = {2,5,5,2,5,5,2,5};
+    private static int[] normalQueue = {5,2,5,5,2,5,5};
+    private static int[] myQueue;
+    private static int queueIndex = 0;
+
 
 
     private static int[] zone = ZoneG.nullZone();
@@ -22,15 +36,12 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
-            Bot.shake(rc);
-            Bot.donate(rc);
-            Communication.sendReport(Communication.GARDENER_REPORT);
+            initTurn();
             MapLocation newTarget = null;
             if (ZoneG.hasValue(zone)) {
                 //si soc a la zona
                 ZoneG.broadcastMyZone();
                 checkNeutralTreesInZone();
-                tryPlanting();
                 if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
                     ZoneG.broadcastInfo(zone, Constants.abandonedZone);
                     zone = ZoneG.nullZone();
@@ -58,7 +69,6 @@ public class Gardener {
                 }
             }
             tryConstruct();
-            Map.checkMapBounds();
             updateTarget(newTarget);
             waterNearbyTree();
             if (realTarget == null) {
@@ -66,12 +76,18 @@ public class Gardener {
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+
+            myFirstTurn = false;
             Clock.yield();
         }
     }
 
     //nomes es fa la primera ronda
     private static void Initialize(){
+        if (rc.getRoundNum() < 5) {
+            myQueue = firstQueue;
+            firstGardener = true;
+        }else myQueue = normalQueue;
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
@@ -93,6 +109,70 @@ public class Gardener {
         }
     }
 
+    private static void initTurn(){
+        Bot.shake(rc);
+        Bot.donate(rc);
+        Map.checkMapBounds();
+        Communication.sendMessage(Communication.GARD_COUNT,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
+        shouldBuildLumber = false;
+        shouldBuildTroop = false;
+        readMessages();
+        ZoneG.initTurn();
+        broadcastLocations();
+    }
+
+    private static void readMessages(){
+        try {
+            int channel = Communication.NEEDTROOPCHANNEL;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;) {
+                int bitmap = rc.readBroadcast(channel + i);
+                int t = workMessageTroopNeeded(bitmap);
+                if(t == -1) continue;
+                if(t == Communication.NEEDSOLDIERTANK) shouldBuildTroop = true;
+                if(t == Communication.NEEDLUMBERJACK && !lumberjackBuilt) shouldBuildLumber = true;
+                ++i;
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+            }
+            initialMessageNeedTroop = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    private static int workMessageTroopNeeded(int a) {
+        int[] m = Communication.decode(a);
+        if(m[3] == Communication.NEEDLUMBERJACK){
+            MapLocation sender = new MapLocation(m[1], m[2]);
+            if(m[0] == Constants.GARDENER){
+                if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
+            }
+            if(rc.getLocation().distanceSquaredTo(sender) > 10.0f) return -1;
+        }
+        return m[3];
+    }
+
+    static void broadcastLocations() {
+        for (RobotInfo ri : ZoneG.enemies) {
+            MapLocation enemyPos = ri.getLocation();
+            int x = Math.round(enemyPos.x);
+            int y = Math.round(enemyPos.y);
+            int a = Constants.getIndex(ri.type);
+            if (a == 0) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+            else if (a == 5) Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+        }
+        TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
+        if (Ti.length > 0) {
+            TreeInfo ti = Ti[0];
+            MapLocation treePos = ti.getLocation();
+            int x = Math.round(treePos.x);
+            int y = Math.round(treePos.y);
+            Communication.sendMessage(Communication.ENEMYTREECHANNEL, x, y, 0);
+        }
+    }
+
     //retorna una zona del voltant que estigui buida
     private static int[] searchZone() {
         if (ZoneG.hasValue(zoneIWant)) return zoneIWant;
@@ -102,7 +182,7 @@ public class Gardener {
         for (int i = 0; i < xHex.length; i++){
             if (i > 25 && ZoneG.hasValue(closest_empty_zone)){
                 //nomes busquem zones abandonades fins a 25 pel bytecode
-                System.out.println("Retorna closest empty zone = " + closest_empty_zone[0] + "," + closest_empty_zone[1]);
+                //System.out.println("Retorna closest empty zone = " + closest_empty_zone[0] + "," + closest_empty_zone[1]);
                 return closest_empty_zone;
             }
             int[] newZone = ZoneG.newZone(myZone[0] + xHex[i], myZone[1] + yHex[i]);
@@ -129,7 +209,7 @@ public class Gardener {
                 return newZone;
             }
             MapLocation newCenter = ZoneG.center(newZone);
-            if (Map.distToEdge(newCenter) < 5f) continue;
+            if (Map.distToEdge(newCenter) < 1f) continue;
             float distToZone = rc.getLocation().distanceTo(newCenter);
             if (Constants.DEBUG == 1) rc.setIndicatorDot(newCenter,(int)Math.min(255,distToZone*15),0,0);
             if (zoneType == Constants.emptyZone && distToZone < minDist){
@@ -145,6 +225,7 @@ public class Gardener {
         MapLocation centerIWant = ZoneG.center(zoneIWant);
         //System.out.println("El centre esta dintre? " + onCurrentMap(centerIWant));
         if (!Map.onCurrentMap(centerIWant)){
+            System.out.println("- La zona que volia esta fora del mapa");
             zoneIWant = ZoneG.nullZone();
             return;
         }
@@ -152,23 +233,36 @@ public class Gardener {
             TreeInfo[] treesNearCenter = rc.senseNearbyTrees(centerIWant,-1,Team.NEUTRAL);
             ZoneG.messageNeutralTreesInCircle(centerIWant,treesNearCenter);
         }
-        if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) return;
+        if (!rc.canSenseAllOfCircle(centerIWant,rc.getType().bodyRadius)) {
+            System.out.println("- Estic massa lluny del centre de la zona");
+            return;
+        }
+        try {
+            TreeInfo tree = rc.senseTreeAtLocation(centerIWant);
+            if (tree != null && !lumberjackBuilt)
+                Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+
         int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
             if (zoneType == Constants.busyZone) {
                 zoneIWant = ZoneG.nullZone(); //si la zona esta ocupada, resetejo
+                System.out.println("- La zona ja esta ocupada");
                 return;
             }
             if (!rc.onTheMap(centerIWant,rc.getType().bodyRadius)){
                 ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
                 zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
+                System.out.println("- La zona que volia esta fora del mapa 2");
                 return;
-            }
+            }/*
             if (Map.distToEdge(centerIWant) < 5){
                 ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
                 zoneIWant = ZoneG.nullZone(); //aixo es un parche que he ficat, nose si esta be fer-ho
                 return;
-            }
+            }*/
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
             if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) {
@@ -201,8 +295,10 @@ public class Gardener {
     }
 
     private static void checkNeutralTreesInZone(){
-        TreeInfo[] neutralTrees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),neutralTrees);
+        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),ZoneG.neutralTrees);
+        // trees = arbres del inner circle
+        if (!lumberjackBuilt && ZoneG.shouldRequestLumberjack())
+            Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
     }
 
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
@@ -227,40 +323,55 @@ public class Gardener {
         return escapePos;
     }
 
-    private static void tryPlanting(){
-        //System.out.println("Entra plantar");
-        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
-        if (ZoneG.countAvailableRobotBuildPositions() < 2) return; //Si nomes hi ha una posicio, la reservem per robots
-        if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps){
-            System.out.println("No planto perque no soc al centre");
+    private static void tryConstruct(){
+        System.out.println("Entra construct");
+        if (myFirstTurn){
+            System.out.println("- No construeixo el meu primer torn");
             return;
         }
-        if (!Build.allowedToConstruct(Constants.TREE)) {
-            //System.out.println("No tinc prou bullets per plantar");
-            return; //comprova bullets
+        if (rc.getRobotCount() > Constants.MAX_ROBOTS) {
+            System.out.println("- Ja tinc massa robots");
+            return;
         }
-        int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        //System.out.println("Planta l'arbre " + index);
-        if (index == -1) return;
-        MapLocation myPos = rc.getLocation();
-        Direction plantingDirection = myPos.directionTo(ZoneG.hexPos[index]);
-        if (rc.getLocation().distanceTo(myPos) < Constants.eps && rc.canPlantTree(plantingDirection)){
-            try {
-                //Planta l'arbre
-                rc.plantTree(plantingDirection);
-                Build.incrementTreesBuilt();
-                Build.updateAfterConstruct(Constants.TREE);
-            } catch (GameActionException e) {
-                e.printStackTrace();
+        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
+            System.out.println("- Ja es massa tard");return;
+        }
+        if (!rc.isBuildReady()) {
+            System.out.println("- Tinc cooldown");
+            return;
+        }
+        try {
+            if (shouldBuildTroop) {
+                System.out.println("- He rebut request de tropa");
+                //tria el que hi ha abans entre tank i soldat
+                int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
+                int soldierIndex = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
+                if (tankIndex < soldierIndex){
+                    tryConstructUnit(Constants.TANK);
+                    tryConstructUnit(Constants.SOLDIER);
+                }else{
+                    tryConstructUnit(Constants.SOLDIER);
+                    tryConstructUnit(Constants.TANK);
+                }
             }
+        } catch (GameActionException e) {
+            e.printStackTrace();
         }
-    }
-
-
-    private static void tryConstruct(){
-        //System.out.println("Entra construct");
-        if (rc.getRobotCount() > Constants.MAX_ROBOTS) return;
-        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) return;
+        if (shouldBuildLumber) {
+            System.out.println("- He rebut request de lumberjack");
+            tryConstructUnit(Constants.LUMBERJACK);
+        }
+        int early_game_length = 500;
+        if (rc.getRoundNum() > early_game_length) {
+            System.out.println("- Decideixo fer arbre");
+            tryPlanting();
+        }else if (queueIndex < myQueue.length){
+            System.out.println("- Construeixo de la cua " + queueIndex);
+            boolean built = tryConstructUnit(myQueue[queueIndex]);
+            if (built) queueIndex++;
+        }
+/*
+        //si no te ordres de constuir res, fa el que hi hagi a la cua
         int smallUnit = Build.bestSmallUnitToBuild();
         int firstUnit = -1;
         int secondUnit = -1;
@@ -279,25 +390,39 @@ public class Gardener {
             e.printStackTrace();
         }
         //System.out.println("Tria les units " + firstUnit + ", " + secondUnit);
-        tryConstructUnit(firstUnit);
-        tryConstructUnit(secondUnit);
+        tryConstructUnit(smallUnit);
+        //tryConstructUnit(secondUnit);
+
+*/
     }
 
-    private static void tryConstructUnit(int unit){
-        if (!rc.isBuildReady()) return;
-        if (unit == -1) return;
-        if (!Build.allowedToConstruct(unit)) {
-            //System.out.println("No tinc prou bales per construir " + unit);
-            //System.out.println("Tinc " + rc.getTeamBullets() + " i calen " + totalBulletCost(unit));
-            return;
+    private static boolean tryConstructUnit(int unit){
+        if (!rc.isBuildReady()) return false;
+        if (unit == -1) {
+            System.out.println("- unit = -1");
+            return false;
         }
+        if (unit == Constants.LUMBERJACK && lumberjackBuilt) {
+            System.out.println("- Ja he fet un lumberjack");
+            return false;
+        }
+        if (unit == Constants.TREE) return tryPlanting();
+        System.out.println("- Intenta construir " + Constants.getRobotTypeFromIndex(unit));
+        //if (!Build.allowedToConstruct(unit)) {
+        //System.out.println("No tinc prou bales per construir " + unit);
+        //System.out.println("Tinc " + rc.getTeamBullets() + " i calen " + totalBulletCost(unit));
+        //return;
+        //}
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit);
         Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
         for (int i = 0; i < 24; i++){
             Direction d2 = enemyDir.rotateLeftDegrees(360*i/12);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
+                    System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
+                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                    return true;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
@@ -307,7 +432,10 @@ public class Gardener {
             d2 = enemyDir.rotateRightDegrees(360*i/12);
             if (rc.canBuildRobot(newRobotType,d2)){
                 try {
+                    System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
                     rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
+                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                    return true;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
@@ -315,24 +443,99 @@ public class Gardener {
                 Build.updateAfterConstruct(unit);
             }
         }
+        return false;
     }
-/*
-    private static MapLocation getBuildPositionWithoutZone(int unit){
-        Direction back = rc.getLocation().directionTo(ZoneG.center(zoneIWant)).opposite();
-        RobotType type = Constants.getRobotTypeFromIndex(unit);
-        for (int i = 0; i < 10; i++){
-            Direction dirBuild = back.rotateRightRads(i*(float)Math.PI/20);
-            if (rc.canBuildRobot(type,dirBuild)) return rc.getLocation().add(dirBuild,rc.getType().bodyRadius + type.bodyRadius);
-            Direction dirBuildInv = back.rotateLeftRads(i*(float)Math.PI/20);
-            if (rc.canBuildRobot(type,dirBuildInv)) return rc.getLocation().add(dirBuildInv,rc.getType().bodyRadius + type.bodyRadius);
+
+    private static boolean tryPlanting(){
+        System.out.println("Entra tryplant");
+        if (!ZoneG.hasValue(zone)){
+            System.out.println("- No te zona");
+            return false;
         }
-        return null;
+        if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
+            System.out.println("- Massa tard per construir");
+            return false;
+        }
+        if (ZoneG.freeSpots < 2) {
+            System.out.println("- Nomes tinc una posicio oberta");
+            return false; //Si nomes hi ha una posicio, la reservem per robots
+        }
+        if (shouldBuildLumber || shouldBuildTroop) {
+            System.out.println("- He rebut ordres de construir tropa");
+            return false; //no planta si te alguna cosa mes prioritaria
+        }
+        if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps){
+            System.out.println("No planto perque no soc al centre");
+            return false;
+        }
+        /*if (!Build.allowedToConstruct(Constants.TREE)) {
+            //System.out.println("No tinc prou bullets per plantar");
+            return; //comprova bullets
+        }*/
+        int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
+        //System.out.println("Planta l'arbre " + index);
+        if (index == -1) return false;
+        MapLocation myPos = rc.getLocation();
+        Direction plantingDirection = myPos.directionTo(ZoneG.hexPos[index]);
+        if (rc.getLocation().distanceTo(myPos) < Constants.eps && rc.canPlantTree(plantingDirection)){
+            try {
+                //Planta l'arbre
+                rc.plantTree(plantingDirection);
+                Build.incrementTreesBuilt();
+                Build.updateAfterConstruct(Constants.TREE);
+                return true;
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
-   */
 
     private static void updateTarget(MapLocation newTarget){
         if (realTarget != null && newTarget != null && newTarget.distanceTo(realTarget) < Constants.eps) return;
         realTarget = newTarget;
         //Greedy.resetObstacle(rc);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

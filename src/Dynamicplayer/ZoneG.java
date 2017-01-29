@@ -340,4 +340,5 @@ public class ZoneG {
     static boolean insideLimits(int[] z){
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
     }
+
 }

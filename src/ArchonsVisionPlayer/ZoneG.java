@@ -307,8 +307,7 @@ public class ZoneG {
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
     }
     
-    static MapLocation centerArchon(int[] z)
-    {
+    static MapLocation centerArchon(int[] z) {
     	//float d = 5.5f; //arrel de 28 + epsilon
         float d = 3.5f; //2sqrt3
         Direction v1 = Direction.EAST;

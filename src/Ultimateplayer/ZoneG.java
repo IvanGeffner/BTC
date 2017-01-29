@@ -21,21 +21,41 @@ public class ZoneG {
     private static int zoneColumns = 44;
     private static int zonesPerChannel = 6;
 
+    static int freeSpots;
+
     private static int bitsZoneType = 3;
     private static int bitsZoneTurn = 2;
     private static int bitsPerZone = bitsZoneType + bitsZoneTurn;
 
-    private static int treesPerZone = 6; // !!!
-    private static int buildPositionsPerZone = 6;
+    private static int treesPerZone = 6;
+    static int buildPositionsPerZone = 6;
 
     static int turnsResetZone = 50;
 
     static MapLocation[] hexPos = new MapLocation[6];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
+    static int[] surroundings = new int[4];
+
+    static RobotInfo[] allies;
+    static RobotInfo[] enemies;
+    static TreeInfo[] neutralTrees;
+    static TreeInfo[] allTrees;
+
 
     static void init(RobotController rc2){
         rc = rc2;
+    }
+
+    static void initTurn() {
+        allies = rc.senseNearbyRobots(-1, rc.getTeam());
+        enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+        allTrees = rc.senseNearbyTrees();
+        if (!hasValue(zone)) freeSpots = 9999;
+        else freeSpots = freeSpots();
+        System.out.println("Envia "+ freeSpots + " free spots");
+        Communication.sendMessage(Communication.GARD_FREE_SPOTS,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),freeSpots);
     }
 
     static boolean hasValue(int[] z){
@@ -215,17 +235,16 @@ public class ZoneG {
         int bytecode_init = Clock.getBytecodeNum();
         MapLocation[] outerTrees = new MapLocation[trees.length];
         boolean sendOuterTrees = true;
-
         float innerDistance = 3f;
         float outerDistance = 5f;
-
         int outerTreeCount = 0;
-
+        int innerTreeCount = 0;
         for (TreeInfo ti: trees){
             MapLocation treePos = ti.getLocation();
             if (Math.abs(treePos.x - center.x) - ti.getRadius() < innerDistance && Math.abs(treePos.y - center.y) - ti.getRadius() < innerDistance){
                 sendOuterTrees = false;
                 messageCutNeutralTree(treePos);
+                innerTreeCount++;
             }else if (sendOuterTrees && Math.abs(treePos.x - center.x) - ti.getRadius() < outerDistance &&
                     Math.abs(treePos.y - center.y) - ti.getRadius() < outerDistance){
                 outerTrees[outerTreeCount] = treePos;
@@ -237,38 +256,12 @@ public class ZoneG {
             messageCutNeutralTree(outerTrees[i]);
             if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
         }
+        return;
     }
 
     private static void messageCutNeutralTree(MapLocation treeLocation) {
         if (Constants.DEBUG == 1) rc.setIndicatorDot(treeLocation,255,120,0);
         Communication.sendMessage(Communication.CHOPCHANNEL,Math.round(treeLocation.x),Math.round(treeLocation.y),0);
-    }
-
-    //conta a quants dels 6 forats pot construir un robot
-    static int countAvailableRobotBuildPositions(){
-        //no ho fa be si la zona esta abandonada
-        if (!hasValue(zone)){
-            try {
-                throw new GameActionException(GameActionExceptionType.CANT_DO_THAT,"ERROR: crida de countAvailableRobotBuildPositions() sense tenir zona assignada");
-            } catch (GameActionException e) {
-                e.printStackTrace();
-            }
-            return -1;
-        }
-        int count = 0;
-        for (int i = 0; i < buildPositionsPerZone; i++){
-            try {
-                if (rc.canSenseAllOfCircle(hexPos[i],RobotType.SOLDIER.bodyRadius) &&
-                        !rc.isCircleOccupiedExceptByThisRobot(hexPos[i],RobotType.SOLDIER.bodyRadius)) {
-                    //if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],0,255,0);
-                    count++;
-                }//else if (Constants.DEBUG == 1) rc.setIndicatorDot(hexPos[i],255,0,0);
-            } catch (GameActionException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Te " + count + " posicions per construir");
-        return count;
     }
 
     //retorna el millor index per plantar un arbre
@@ -288,10 +281,8 @@ public class ZoneG {
                 //continue;
             }
             Direction d = rc.getLocation().directionTo(hexPos[i]);
-            float enemy_angle = 60;
-            int min_turn_tank = 700;
+            float enemy_angle = 30;
             int low_HP = 10;
-            if (rc.getRoundNum() < min_turn_tank) enemy_angle = 30;
             if (rc.getHealth() > low_HP && Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
             try {
                 if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
@@ -303,7 +294,60 @@ public class ZoneG {
         return -1;
     }
 
+    static boolean shouldRequestLumberjack(){
+        //si no te cap lloc lliure i hi ha algun arbre neutral/enemic
+        return surroundings[2] != 0 && surroundings[0] == 0;
+    }
+
+    static int freeSpots(){
+        int frees = 0;
+        int myTrees = 0;
+        surroundings = new int[]{0,0,0,0};
+        for (int i = 0; i < 6; i++){
+            int obstacle = isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS);
+            surroundings[obstacle]++;
+            if (obstacle == 0){
+                frees++;
+            }else if (obstacle == 1) myTrees++;
+        }
+        System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3]);
+        if (myTrees == 5) return 0;
+        return frees;
+    }
+
+    private static int isFree(MapLocation pos, float r){
+        // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = altre cosa
+        if (Map.distToEdge(pos) <= r) return 3;
+        for (TreeInfo tree: allTrees){
+            if (tree.getLocation().distanceTo(pos) <= tree.getRadius() + r) {
+                if (tree.getTeam() == rc.getTeam()) return 1;
+                return 2;
+            }
+        }
+        for (RobotInfo enemy: enemies){
+            if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
+                return 3;
+            }
+        }
+        for (RobotInfo enemy: allies){
+            if (enemy.getLocation().distanceTo(pos) <= enemy.getRadius() + r) {
+                return 3;
+            }
+        }
+        return 0;
+    }
+
     static boolean insideLimits(int[] z){
         return Map.onCurrentMap(center(z), rc.getType().bodyRadius);
+    }
+
+
+
+    static MapLocation centerArchon(int[] z) {
+        //float d = 5.5f; //arrel de 28 + epsilon
+        float d = 3.5f; //2sqrt3
+        Direction v1 = Direction.EAST;
+        Direction v2 = v1.rotateLeftRads((float)Math.PI/3); //Aquests dos vectors son la base de coordenades de les zones
+        return rc.getLocation().add(v1,d * z[0]).add(v2,d*z[1]);
     }
 }

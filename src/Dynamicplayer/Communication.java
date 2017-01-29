@@ -51,7 +51,6 @@ public class Communication {
 
     static final int NEEDSOLDIERTANK = 0;
     static final int NEEDLUMBERJACK = 1;
-    static final int NEEDGARDENER = 2;
 
 
 

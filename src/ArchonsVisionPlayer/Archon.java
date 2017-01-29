@@ -76,7 +76,7 @@ public class Archon {
                     rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
                     drawZone();
                     Direction dirBestZone = rc.getLocation().directionTo(bestZone);
-                    newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+Constants.eps);
+                    newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+ GameConstants.GENERAL_SPAWN_OFFSET);
                     if(rc.getLocation().distanceTo(newTarget) < Constants.eps)tryConstruct();
                     else if(turnsSinceAllowed > 50) tryConstruct();
                 }

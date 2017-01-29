@@ -21,6 +21,9 @@ public class Communication {
     static final int EMERGENCYCHANNEL = 1500;
     static final int TREEWITHGOODIES = 1600;
     static final int PLANTTREECHANNEL = 1700;
+    static final int NEEDTROOPCHANNEL = 2000;
+    static final int GARD_FREE_SPOTS = 2100;
+    static final int GARD_COUNT = 2200; //quants pagesos hi ha
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 
@@ -54,6 +57,10 @@ public class Communication {
     static final int ARCHON_REPORT = 751;
 
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
+
+
+    static final int NEEDSOLDIERTANK = 0;
+    static final int NEEDLUMBERJACK = 1;
 
 
     static int xBase = 9999, yBase = 9999;

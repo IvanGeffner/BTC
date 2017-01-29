@@ -41,6 +41,10 @@ public class Constants {
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
     public static int BROADCASTMAXSOLDIER = 600;
 
+
+    //archon
+    public static int BYTECODEMAXARCHONZONE = 24000;
+
     public static int TC = 4; //TreeColumns
     public static int TR = 2; //TRows
     public static int DR = 5; //Distance Row-Row
