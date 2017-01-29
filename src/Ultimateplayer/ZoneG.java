@@ -305,7 +305,7 @@ public class ZoneG {
                 frees++;
             }else if (obstacle == 1) myTrees++;
         }
-        System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3]);
+        System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3] + "," + surroundings[4]);
         System.out.println("Hexes: " + hexStatus[0] + "," + hexStatus[1] + "," + hexStatus[2] + "," + hexStatus[3] + "," + hexStatus[4] + "," + hexStatus[5]);
         if (myTrees == 5) return 0;
         return frees;

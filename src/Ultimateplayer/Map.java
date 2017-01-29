@@ -96,7 +96,7 @@ public class Map {
                     if (rc.onTheMap(pos.add(dir, c))) a = c;
                     else b = c;
                 }
-                return pos.add(dir, (a+b)/2);
+                return pos.add(dir, a);
             }
         } catch (GameActionException e) {
             e.printStackTrace();

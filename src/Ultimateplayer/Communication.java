@@ -55,6 +55,7 @@ public class Communication {
     static final int GARDENER_REPORT = 750; // ultim torn que hem tingut gardeners
     static final int SCOUT_LAST_TURN_ALIVE = 751;
     static final int SCOUT_LAST_TURN_BUILT = 752;
+    static final int HAS_BUILT_GARDENER = 753; //0 si no ha fet mai cap pages, 1 si n'ha fet algun
 
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
 
