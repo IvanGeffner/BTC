@@ -11,6 +11,7 @@ public class Gardener {
 
     private static MapLocation realTarget;
     private static int initialMessageNeedTroop = 0;
+    private static int initialMessageEmergency = 0;
     static boolean lumberjackBuilt = false;
     static boolean shouldBuildTroop = false;
     static boolean shouldBuildLumber = false;
@@ -135,12 +136,17 @@ public class Gardener {
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
             initialMessageNeedTroop = lastMessage;
+
+
+            channel = Communication.EMERGENCYCHANNEL;
+            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            if (initialMessageEmergency != lastMessage) shouldBuildTroop = true;
+            initialMessageEmergency = lastMessage;
         } catch (GameActionException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
     }
-
 
     private static int workMessageTroopNeeded(int a) {
         int[] m = Communication.decode(a);
@@ -397,46 +403,19 @@ public class Gardener {
         //}
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit);
         Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
-        for (int i = 0; i < 24; i++){
-            Direction d2 = enemyDir.rotateLeftDegrees(360*i/48);
-            //rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(d2,100),0,0,0);
-            if (rc.canBuildRobot(newRobotType,d2)){
-                try {
-                    System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
-                    rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
-                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
-                    return true;
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-            }
-            d2 = enemyDir.rotateRightDegrees(360*i/48);
-            //rc.setIndicatorLine(rc.getLocation(),rc.getLocation().add(d2,100),0,0,0);
-            if (rc.canBuildRobot(newRobotType,d2)){
-                try {
-                    System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
-                    rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
-                    if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
-                    return true;
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        if (ZoneG.hasValue(zone)){
-            for (int i = 0; i < 6; i++){
-                //aixo serveix perque si te molts arbres fets, a vegades amb lo altre no troba cap lloc
-                Direction d2 = rc.getLocation().directionTo(ZoneG.hexPos[i]);
-                if (rc.canBuildRobot(newRobotType,d2)){
-                    try {
-                        System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
-                        rc.buildRobot(Constants.getRobotTypeFromIndex(unit),d2);
-                        if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
-                        return true;
-                    } catch (GameActionException e) {
-                        e.printStackTrace();
-                    }
-                }
+        float r;
+        if (unit == Constants.TANK) r = 2;
+        else r = 1;
+        Direction dirToBuild = Build.findDirectionToBuild(enemyDir,r);
+        if (dirToBuild == null) return false;
+        if (rc.canBuildRobot(newRobotType,dirToBuild)){
+            try {
+                System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
+                rc.buildRobot(Constants.getRobotTypeFromIndex(unit),dirToBuild);
+                if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                return true;
+            } catch (GameActionException e) {
+                e.printStackTrace();
             }
         }
         return false;

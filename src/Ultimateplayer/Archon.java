@@ -97,7 +97,6 @@ public class Archon {
                     if (shouldBuildGardener) tryConstruct(); //poso aixo aqui perque si no, quan no pot fer un pages al primer torn no en fa mai
                 }
             }
-
             updateTarget(newTarget);
             if (realTarget == null) {
                 //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
