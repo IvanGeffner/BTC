@@ -1,4 +1,4 @@
-package EfficientShooting;
+package BestmicroNoBugs;
 
 import battlecode.common.*;
 
@@ -124,8 +124,6 @@ public class Greedy {
             }
             getBullets(rc);
 
-            Shoot.setCramped(false);
-
             Direction dirGreedy;
             float expectedByteCode = Clock.getBytecodeNum();
             expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
@@ -177,7 +175,10 @@ public class Greedy {
             if (!shouldMove && rc.canMove(target)){
                 resetObstacle(rc);
                 rc.move(target);
-                if (!shoot) shoot = Shoot.tryShoot(rc, 2);
+                if (!shoot){
+                    sortEnemies(rc);
+                    shoot = Shoot.tryShoot(rc, 2);
+                }
                 return;
             }
             //ELSE ANEM EN LA DIRECCIO
@@ -190,7 +191,10 @@ public class Greedy {
                         Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
                     }
                 }
-                if (!shoot) shoot = Shoot.tryShoot(rc, 2);
+                if (!shoot){
+                    sortEnemies(rc);
+                    shoot = Shoot.tryShoot(rc, 2);
+                }
                 return;
             }
         } catch (Exception e) {
@@ -308,7 +312,7 @@ public class Greedy {
             float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
                 Direction newDirL = dir2.rotateLeftRads(angle);
                 Direction newDirR = dir2.rotateRightRads(angle);
                 if (dirL.radiansBetween(newDirL) > 0){
@@ -333,7 +337,7 @@ public class Greedy {
                 float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
                 if (t <= 1 && t >= -1) {
 
-                    float angle = (float) Math.acos(t) + 0.001f;
+                    float angle = (float) Math.acos(t) + Constants.eps;
                     Direction newDirL = dir2.rotateLeftRads(angle);
                     Direction newDirR = dir2.rotateRightRads(angle);
                     if (dirL.radiansBetween(newDirL) > 0){
@@ -367,7 +371,7 @@ public class Greedy {
             float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
 
                 Direction newDirL = dir2.rotateLeftRads(angle);
@@ -515,7 +519,7 @@ public class Greedy {
 
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -550,7 +554,7 @@ public class Greedy {
 
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -573,7 +577,7 @@ public class Greedy {
 
                 if (t <= 1 && t >= -1) {
 
-                    float angle = (float) Math.acos(t) + 0.001f;
+                    float angle = (float) Math.acos(t) + Constants.eps;
 
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -609,7 +613,7 @@ public class Greedy {
 
                 if (t <= 1 && t >= -1) {
 
-                    float angle = (float) Math.acos(t) + 0.001f;
+                    float angle = (float) Math.acos(t) + Constants.eps;
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                     if (x < 0) x += Constants.PI2;
@@ -734,7 +738,7 @@ public class Greedy {
 
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -770,7 +774,7 @@ public class Greedy {
 
             if (t <= 1 && t >= -1) {
 
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -793,7 +797,7 @@ public class Greedy {
 
                 if (t <= 1 && t >= -1) {
 
-                    float angle = (float) Math.acos(t) + 0.001f;
+                    float angle = (float) Math.acos(t) + Constants.eps;
 
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
@@ -829,7 +833,7 @@ public class Greedy {
 
                 if (t <= 1 && t >= -1) {
 
-                    float angle = (float) Math.acos(t) + 0.001f;
+                    float angle = (float) Math.acos(t) + Constants.eps;
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                     if (x < 0) x += Constants.PI2;
@@ -862,7 +866,7 @@ public class Greedy {
 
             float t = (pos.distanceSquaredTo(m2) + rr - l * l) / (2.0f * d * r);
             if (-1 <= t && t <= 1) {
-                float angle = (float) Math.acos(t) + 0.001f;
+                float angle = (float) Math.acos(t) + Constants.eps;
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                 if (x < 0) x += Constants.PI2;
@@ -945,11 +949,6 @@ public class Greedy {
             minBulletcont = contBullets;
         }
 
-        boolean open = true;
-        float covered = 0;
-        if (cont > 0) open = false;
-        float lastAngle = 0;
-
         if (l) {
 
             //cont keeps open (
@@ -959,24 +958,15 @@ public class Greedy {
                 int a = intervals[i];
 
                 if ((a&2) != 0){
-                    if ((a&1) == 0){
-                        ++cont;
-                        if (open){
-                            open = false;
-                            float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
-                            covered += x - lastAngle;
-                        }
-                    }
+                    if ((a&1) == 0) ++cont;
                     else ++contBullets;
                 } else{
                     if ((a&1) == 0) --cont;
                     else --contBullets;
                     if (cont == 0) {
-                        open = true;
-                        float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
-                        lastAngle = x;
                         if (contBullets < minBulletcont) {
                             minBulletcont = contBullets;
+                            float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
                             k = a;
 
                             ans = dir.rotateLeftRads(x);
@@ -985,11 +975,6 @@ public class Greedy {
                 }
                 //System.out.println("bucle 4 " + Clock.getBytecodeNum());
             }
-            if(open) {
-                covered += 2*(float)Math.PI - lastAngle;
-            }
-
-            if (covered >= (float)Math.PI) Shoot.setCramped(true);
 
 
             if (ans != null) {
@@ -1006,31 +991,20 @@ public class Greedy {
                 }
             } else return null;
         }
-
-        lastAngle = 2*(float)Math.PI;
         //cont keeps open (
 
         for (int i = intervals.length - 1; i >= 0; --i) {
             int a = intervals[i];
             if ((a&2) == 0){
-                if ((a&1) == 0) {
-                    ++cont;
-                    if (open){
-                        open = false;
-                        float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
-                        covered += lastAngle - x;
-                    }
-                }
+                if ((a&1) == 0) ++cont;
                 else ++contBullets;
             } else{
                 if ((a&1) == 0) --cont;
                 else --contBullets;
                 if (cont == 0) {
-                    float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
-                    open = true;
-                    lastAngle = x;
                     if (contBullets < minBulletcont) {
                         minBulletcont = contBullets;
+                        float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
                         k = a;
                         ans = dir.rotateLeftRads(x);
                     }
@@ -1038,9 +1012,6 @@ public class Greedy {
             }
 
         }
-
-        if (open) covered += lastAngle;
-        if (covered >= (float)Math.PI) Shoot.setCramped(true);
 
 
         if (ans != null) {

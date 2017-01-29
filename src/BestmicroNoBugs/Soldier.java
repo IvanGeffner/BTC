@@ -1,4 +1,4 @@
-package EfficientShooting;
+package BestmicroNoBugs;
 
 import battlecode.common.*;
 
@@ -6,7 +6,7 @@ import battlecode.common.*;
 /**
  * Created by Ivan on 1/9/2017.
  */
-public class Tank {
+public class Soldier {
 
     static RobotController rc;
 
@@ -22,7 +22,6 @@ public class Tank {
     static int initialMessageEnemy = 0;
     static int initialMessageEnemyGardener = 0;
     static int initialMessageStop = 0;
-    static int initialMessageShoot = 0;
 
     static float maxUtil;
     static float maxScore;
@@ -34,6 +33,8 @@ public class Tank {
     static boolean shouldStop = false;
 
     static MapLocation emergencyTarget;
+
+    static float sign;
 
 
     @SuppressWarnings("unused")
@@ -63,7 +64,7 @@ public class Tank {
                     else {
                         adjustTarget();
 
-                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
+                        rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
 
                         Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                     }
@@ -95,13 +96,11 @@ public class Tank {
         initialMessageEnemy = 0;
         initialMessageEnemyGardener = 0;
         initialMessageStop = 0;
-        initialMessageShoot = 0;
         try{
             initialMessageEnemy = rc.readBroadcast(Communication.ENEMYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
             initialMessageEnemyGardener = rc.readBroadcast(Communication.ENEMYGARDENERCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
             initialMessageStop = rc.readBroadcast(Communication.STOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
             initialMessageEmergency = rc.readBroadcast(Communication.EMERGENCYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
-            initialMessageShoot = rc.readBroadcast(Communication.SHOOTCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -110,13 +109,8 @@ public class Tank {
 
     static void beginRound(){
 
-        Shoot.setShooting(false);
-
-        if (rc.getRoundNum() - Greedy.bulletDodge > 1) {
-
-            Bot.shake(rc);
-            Bot.donate(rc);
-        }
+        Bot.shake(rc);
+        Bot.donate(rc);
 
         shouldStop = false;
         targetUpdated = false;
@@ -161,7 +155,7 @@ public class Tank {
 
     static void updateNewTarget(MapLocation target, float score, boolean update){
         System.out.println("Possible target: " + target.x + " " + target.y + " " + score + " " + rc.getLocation().distanceTo(target));
-        float dist1 = rc.getLocation().distanceTo(target) + 5.0f;
+        float dist1 = rc.getLocation().distanceTo(target) + 1.0f;
         float val = score/(dist1*dist1);
         if (val > maxUtil){
             maxUtil = val;
@@ -224,18 +218,6 @@ public class Tank {
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
             initialMessageEnemyGardener = lastMessage;
-
-            channel = Communication.SHOOTCHANNEL;
-            lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            int byteCode = Clock.getBytecodeNum();
-            //System.out.println("Last and Initial: " + lastMessage + " " + initialMessageEnemyGardener);
-            for (int i = initialMessageShoot; i != lastMessage && Clock.getBytecodesLeft()-byteCode < Constants.BYTECODESHOOTMESSAGES; ) {
-                int a = rc.readBroadcast(channel + i);
-                workMessageShoot(a);
-                ++i;
-                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }
-            initialMessageShoot = lastMessage;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
@@ -267,20 +249,19 @@ public class Tank {
     static void workMessageEmergency(int a){
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (rc.getLocation().distanceTo(enemyPos) < 9.0f) Shoot.setShooting(true);
         if (rc.canSenseLocation(enemyPos)) return;
         updateNewTarget(enemyPos, Constants.EMERGENCYSCORE, true);
-    }
-
-    static void workMessageShoot(int a){
-        int[] m = Communication.decode(a);
-        MapLocation enemyPos = new MapLocation(m[1], m[2]);
-        if (rc.getLocation().distanceTo(enemyPos) < 9.0f) Shoot.setShooting(true);
     }
 
 
     static void broadcastLocations() {
         int byte1 = Clock.getBytecodeNum();
+
+        if (emergencyTarget == null){
+            sign = (float)Math.random();
+            if (sign > 0.5f) sign = 1;
+            else sign = -1;
+        }
 
         emergencyTarget = null;
 
@@ -334,7 +315,7 @@ public class Tank {
         }
 
 
-        float randomDev = (0.5f - (float)Math.random())/5.0f;
+        float randomDev = sign*Constants.pentadAngle2;
 
         if (foundTank > 0){
             Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
@@ -370,7 +351,7 @@ public class Tank {
             RobotType r = ti.getContainedRobot();
             if (r != null) {
                 int a = r.bulletCost;
-                if (r == RobotType.ARCHON) a = 400;
+                if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }

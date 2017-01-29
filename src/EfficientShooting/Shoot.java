@@ -12,8 +12,6 @@ public class Shoot {
         static boolean shouldShoot;
         static boolean cramped;
 
-        static RobotInfo[] sortedEnemies;
-
 
         static void setShooting(boolean b){
             shouldShoot = b;
@@ -26,14 +24,7 @@ public class Shoot {
 
         static boolean tryShoot(RobotController rc, int tries){
 
-            float maxUtilSingle = 0;
-            float maxUtilTriad = 0;
-            float maxUtilPentad = 0;
-            Direction dirSingle = null;
-            Direction dirTriad = null;
-            Direction dirPentad = null;
-
-            if (sortedEnemies.length > 1) shouldShoot = true;
+            if (Greedy.sortedEnemies.length > 1) shouldShoot = true;
 
             MapLocation pos = rc.getLocation();
 
@@ -95,7 +86,7 @@ public class Shoot {
 
                 for (TreeInfo tree : trees) {
                     if (Clock.getBytecodesLeft() < 400) break;
-                    if (tree.getTeam() == rc.getTeam().opponent()) continue;
+                    if (r == RobotType.GARDENER && tree.getTeam() == rc.getTeam().opponent()) continue;
                     if (dirLeft.radiansBetween(dirRight) > 0) continue;
                     MapLocation m2 = tree.getLocation();
                     Direction dir2 = pos.directionTo(m2);
@@ -133,6 +124,15 @@ public class Shoot {
 
                     computeExpectedHits(oberture, maxOberture, d, r, rc);
 
+                    if (Constants.triadAngle >= oberture - Constants.eps) {
+                        Communication.sendMessage(rc, Communication.SHOOTCHANNEL, Math.round(ri.getLocation().x), Math.round(ri.getLocation().y), Constants.getIndex(r));
+                        if (rc.getType() == RobotType.SOLDIER){
+                            Soldier.initialMessageShoot = (Soldier.initialMessageShoot+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                        } else if (rc.getType() == RobotType.TANK){
+                            Tank.initialMessageShoot = (Tank.initialMessageShoot+1)%Communication.CYCLIC_CHANNEL_LENGTH;
+                        }
+                    }
+
                     try {
 
                         if (expectedHits[2] > expectedHits[1] && expectedHits[2] > expectedHits[0]) {
@@ -168,7 +168,228 @@ public class Shoot {
         }
 
 
-        static void computeExpectedHits(float ob, float maxob, float d, RobotType r, RobotController rc){
+        static void computeExpectedHits(float ob, float maxob, float d, RobotType r, RobotController rc) {
+            expectedHits = new int[3];
+            //SINGLESHOT
+
+            if (rc.getType() == RobotType.SOLDIER) {
+                if (r == RobotType.SOLDIER) {
+                    if (d < 3.24f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.TANK) {
+                    if (d < 9.03999f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.GARDENER) {
+                    if (d < 5.04f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.LUMBERJACK) {
+                    if (d < 3.29f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.SCOUT) {
+                    if (d < 2.04f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.ARCHON) {
+                    if (d < 9.03999f) expectedHits[0] = 1;
+                }
+            }
+            if (rc.getType() == RobotType.TANK) {
+                if (r == RobotType.SOLDIER) {
+                    if (d < 6.24f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.TANK) {
+                    if (d < 22.04f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.GARDENER) {
+                    if (d < 10.04f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.LUMBERJACK) {
+                    if (d < 6.29f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.SCOUT) {
+                    if (d < 3.04f) expectedHits[0] = 1;
+                }
+                if (r == RobotType.ARCHON) {
+                    if (d < 22.04f) expectedHits[0] = 1;
+                }
+            }
+
+            //TRIADSHOT
+
+            if (Constants.triadAngle >= maxob - Constants.eps) {
+                expectedHits[0] = 1;
+                return;
+            }
+
+            if (shouldShoot || cramped){
+                expectedHits[1] = 1;
+                expectedHits[2] = 1;
+            }
+
+            if (rc.getType() == RobotType.SOLDIER) {
+                if (r == RobotType.SOLDIER) {
+                    if (d < 4.46228f) expectedHits[1] = 1;
+                    if (d < 2.1638f) expectedHits[1] = 2;
+                    if (d < 2.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.TANK) {
+                    if (d < 9.88256f) expectedHits[1] = 1;
+                    if (d < 5.05637f) expectedHits[1] = 2;
+                    if (d < 3.95324f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.GARDENER) {
+                    if (d < 5.04f) expectedHits[1] = 1;
+                    if (d < 2.4638f) expectedHits[1] = 2;
+                    if (d < 2.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.LUMBERJACK) {
+                    if (d < 4.59325f) expectedHits[1] = 1;
+                    if (d < 2.2138f) expectedHits[1] = 2;
+                    if (d < 2.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.SCOUT) {
+                    if (d < 3.41999f) expectedHits[1] = 1;
+                    if (d < 2.04f) expectedHits[1] = 2;
+                    if (d < 2.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.ARCHON) {
+                    if (d < 9.88256f) expectedHits[1] = 1;
+                    if (d < 5.05637f) expectedHits[1] = 2;
+                    if (d < 3.95324f) expectedHits[1] = 3;
+                }
+            }
+            if (rc.getType() == RobotType.TANK) {
+                if (r == RobotType.SOLDIER) {
+                    if (d < 6.24f) expectedHits[1] = 1;
+                    if (d < 3.04f) expectedHits[1] = 2;
+                    if (d < 3.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.TANK) {
+                    if (d < 22.04f) expectedHits[1] = 1;
+                    if (d < 5.3876f) expectedHits[1] = 2;
+                    if (d < 4.42571f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.GARDENER) {
+                    if (d < 10.04f) expectedHits[1] = 1;
+                    if (d < 3.04f) expectedHits[1] = 2;
+                    if (d < 3.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.LUMBERJACK) {
+                    if (d < 6.29f) expectedHits[1] = 1;
+                    if (d < 3.04f) expectedHits[1] = 2;
+                    if (d < 3.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.SCOUT) {
+                    if (d < 4.96128f) expectedHits[1] = 1;
+                    if (d < 3.04f) expectedHits[1] = 2;
+                    if (d < 3.04f) expectedHits[1] = 3;
+                }
+                if (r == RobotType.ARCHON) {
+                    if (d < 22.04f) expectedHits[1] = 1;
+                    if (d < 5.3876f) expectedHits[1] = 2;
+                    if (d < 4.42571f) expectedHits[1] = 3;
+                }
+            }
+
+
+            //PENTADSHOT1
+
+            if (Constants.pentadAngle >= ob - Constants.eps) return;
+
+            if (Constants.pentadAngle2 >= maxob - Constants.eps)return;
+
+            if (rc.getType() == RobotType.SOLDIER){
+                if (r == RobotType.SOLDIER){
+                    if (d < 5.45401f) expectedHits[2] = 1;
+                    if (d < 3.1037f) expectedHits[2] = 2;
+                    if (d < 2.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.TANK){
+                    if (d < 12.9954f) expectedHits[2] = 1;
+                    if (d < 6.2674f) expectedHits[2] = 2;
+                    if (d < 4.49034f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.5041f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.GARDENER){
+                    if (d < 6.51772f) expectedHits[2] = 1;
+                    if (d < 3.14583f) expectedHits[2] = 2;
+                    if (d < 2.26517f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.LUMBERJACK){
+                    if (d < 5.62019f) expectedHits[2] = 1;
+                    if (d < 3.14583f) expectedHits[2] = 2;
+                    if (d < 2.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.SCOUT){
+                    if (d < 5.04f) expectedHits[2] = 1;
+                    if (d < 2.6537f) expectedHits[2] = 2;
+                    if (d < 2.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 2.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.ARCHON){
+                    if (d < 12.9954f) expectedHits[2] = 1;
+                    if (d < 6.2674f) expectedHits[2] = 2;
+                    if (d < 4.49034f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.5041f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+            }
+
+            if (rc.getType() == RobotType.TANK){
+                if (r == RobotType.SOLDIER){
+                    if (d < 6.38675f) expectedHits[2] = 1;
+                    if (d < 3.1037f) expectedHits[2] = 2;
+                    if (d < 3.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.TANK){
+                    if (d < 22.04f) expectedHits[2] = 1;
+                    if (d < 6.7674f) expectedHits[2] = 2;
+                    if (d < 5.83556f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 4.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 4.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.GARDENER){
+                    if (d < 10.04f) expectedHits[2] = 1;
+                    if (d < 3.4037f) expectedHits[2] = 2;
+                    if (d < 3.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.LUMBERJACK){
+                    if (d < 6.51771f) expectedHits[2] = 1;
+                    if (d < 3.1537f) expectedHits[2] = 2;
+                    if (d < 3.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.SCOUT){
+                    if (d < 6.03999f) expectedHits[2] = 1;
+                    if (d < 3.04f) expectedHits[2] = 2;
+                    if (d < 3.04f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 3.04f) expectedHits[2] = 5;
+                }
+                if (r == RobotType.ARCHON){
+                    if (d < 22.04f) expectedHits[2] = 1;
+                    if (d < 6.7674f) expectedHits[2] = 2;
+                    if (d < 5.83556f) expectedHits[2] = 3;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 4.04f) expectedHits[2] = 4;
+                    if (Constants.pentadAngle2 >= ob - Constants.eps &&d < 4.04f) expectedHits[2] = 5;
+                }
+            }
+
+            if (Constants.pentadAngle2 >= ob - Constants.eps && Greedy.sortedEnemies.length >= 3) expectedHits[2] = Math.max(expectedHits[2], 2);
+            //PENTADSHOT2
+
         }
 
 }

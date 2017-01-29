@@ -1,4 +1,4 @@
-package Bestmicro;
+package BestmicroNoBugs;
 
 import battlecode.common.*;
 
@@ -19,51 +19,54 @@ public class Shoot {
 
             MapLocation pos = rc.getLocation();
 
-            System.out.println("he entrat lel");
-
             for (int i = 0; i < tries && i < Greedy.sortedEnemies.length; ++i){
                 RobotInfo ri = Greedy.sortedEnemies[i];
                 RobotType r = ri.getType();
-                System.out.println("Trying " + Constants.getIndex(r));
                 MapLocation m = ri.getLocation();
                 float R = r.bodyRadius;
                 float d = m.distanceTo(pos);
 
-                R += r.strideRadius;
-                R = Math.min(d, R);
-
                 Direction dir = pos.directionTo(m);
 
-                float a = (float)Math.asin(R/d);
+                float a = (float) Math.asin(R / d);
 
-                float l = (float)Math.sqrt(R*R*(1.0f + (float)Math.cos(2*a)));
-                float rad = l/(2.0f*(float)Math.sin(2*a));
+                float l = (float) Math.sqrt(R * R * (1.0f + (float) Math.cos(2 * a)));
+                float rad = l / (2.0f * (float) Math.sin(2 * a));
 
                 RobotInfo[] allies = rc.senseNearbyRobots(pos.add(dir, rad), rad, rc.getTeam());
-
                 TreeInfo[] trees = rc.senseNearbyTrees(pos.add(dir, rad), rad, null);
 
-                Direction dirRight = dir.rotateRightRads(a);
-                Direction dirLeft = dir.rotateLeftRads(a);
+                Direction dirRightExact = dir.rotateRightRads(a);
+                Direction dirLeftExact = dir.rotateLeftRads(a);
 
-                for (RobotInfo ally : allies){
+                float R2 = R + r.strideRadius;
+                R2 = Math.min(d - rc.getType().bodyRadius, R2);
+                a = (float) Math.asin(R2 / d);
+                if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
 
-                    if (Clock.getBytecodesLeft() < 400)  break;
+                Direction dirRight = dir.rotateRightDegrees(a);
+                Direction dirLeft = dir.rotateLeftDegrees(a);
+
+                for (RobotInfo ally : allies) {
+
+                    if (Clock.getBytecodesLeft() < 400) break;
                     if (ally.getID() == rc.getID()) continue;
                     if (dirLeft.radiansBetween(dirRight) > 0) continue;
                     MapLocation m2 = ally.getLocation();
                     Direction dir2 = pos.directionTo(m2);
 
                     float d2 = pos.distanceTo(m2);
-                    float ang = (float)Math.asin(ally.getType().bodyRadius/d2);
+                    float ang = (float) Math.asin(ally.getType().bodyRadius / d2);
 
                     Direction dirRight2 = dir2.rotateRightRads(ang);
                     Direction dirLeft2 = dir2.rotateLeftRads(ang);
 
-                    if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
-                    if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
-                    if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0){
-                        if (dirLeft2.radiansBetween(dirRight)<= 0 && dirLeft2.radiansBetween(dirLeft) <= 0){
+                    if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0)
+                        dirLeft = dirRight2;
+                    else if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirLeft2) <= 0)
+                        dirRight = dirLeft2;
+                    if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0) {
+                        if (dirLeft2.radiansBetween(dirRight) <= 0 && dirLeft2.radiansBetween(dirLeft) <= 0) {
                             dirRight = dirLeft2;
                             dirLeft = dirRight2;
                         }
@@ -73,41 +76,44 @@ public class Shoot {
                 Direction dirRightA = dirRight;
                 Direction dirLeftA = dirLeft;
 
-                for (TreeInfo tree : trees){
-
-                    System.out.println(dirLeft.radians + " " +dirRight.radians);
-
-                    if (Clock.getBytecodesLeft() < 400)  break;
-                    if (tree.getID() == rc.getID()) continue;
+                for (TreeInfo tree : trees) {
+                    if (Clock.getBytecodesLeft() < 400) break;
+                    if (r == RobotType.GARDENER && tree.getTeam() == rc.getTeam().opponent()) continue;
                     if (dirLeft.radiansBetween(dirRight) > 0) continue;
                     MapLocation m2 = tree.getLocation();
                     Direction dir2 = pos.directionTo(m2);
 
                     float d2 = pos.distanceTo(m2);
-                    float ang = (float)Math.asin(tree.getRadius()/d2);
+                    float ang = (float) Math.asin(tree.getRadius() / d2);
 
                     Direction dirRight2 = dir2.rotateRightRads(ang);
                     Direction dirLeft2 = dir2.rotateLeftRads(ang);
 
-                    System.out.println(dirLeft2.radians + " " +dirRight2.radians);
-
-                    if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirLeft = dirRight2;
-                    if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0) dirRight = dirLeft2;
-                    if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0){
-                        if (dirLeft2.radiansBetween(dirRight)<= 0 && dirLeft2.radiansBetween(dirLeft) <= 0){
+                    if (dirRight.radiansBetween(dirRight2) >= 0 && dirLeft.radiansBetween(dirRight2) <= 0)
+                        dirLeft = dirRight2;
+                    else if (dirRight.radiansBetween(dirLeft2) >= 0 && dirLeft.radiansBetween(dirLeft2) <= 0)
+                        dirRight = dirLeft2;
+                    if (dirRight2.radiansBetween(dirRight) >= 0 && dirRight2.radiansBetween(dirLeft) >= 0) {
+                        if (dirLeft2.radiansBetween(dirRight) <= 0 && dirLeft2.radiansBetween(dirLeft) <= 0) {
                             dirRight = dirLeft2;
                             dirLeft = dirRight2;
                         }
                     }
-                    rc.setIndicatorDot(m2, 120, 120, 0);
                 }
-                System.out.println(dirLeft.radians + " " +dirRight.radians);
 
-                if (Clock.getBytecodesLeft() < 400)  break;
+                if (dirRightExact.radiansBetween(dirRight) >= 0) dirRightExact = dirRight;
+                if (dirLeftExact.radiansBetween(dirLeft) <= 0) dirLeftExact = dirLeft;
 
-                if (dirRight.radiansBetween(dirLeft) > Constants.eps){
+                if (Clock.getBytecodesLeft() < 400) break;
 
-                    float realAngle = dirRight.radiansBetween(dirLeft)/2;
+                if (dirRightExact.radiansBetween(dirLeftExact) > Constants.eps){
+
+                    float realAngle = dirRightExact.radiansBetween(dirLeftExact) / 2;
+
+                    Direction shootingDir = dirRightExact.rotateLeftRads(realAngle);
+                    float oberture = Math.min(shootingDir.radiansBetween(dirLeft), dirRight.radiansBetween(shootingDir));
+                    float maxOberture = Math.min(shootingDir.radiansBetween(dirLeftA), dirRightA.radiansBetween(shootingDir));
+
 
                     System.out.println("Shooting Angle: " + realAngle);
                     float multiplier = 1;
@@ -126,9 +132,9 @@ public class Shoot {
                     boolean shootPentad = false;
 
                     ut = x*multiplier - 1;
-                    if (realAngle > Constants.triadAngle) utTriad = multiplier*x*3.0f - 4;
-                    if (realAngle > Constants.pentadAngle && dirRightA.radiansBetween(dirLeftA) > Constants.pentadAngle2 ) utPentad = multiplier*x*3.0f - 6;
-                    if (realAngle > Constants.pentadAngle2){
+                    if (oberture > Constants.triadAngle) utTriad = multiplier*x*3.0f - 4;
+                    if (oberture > Constants.pentadAngle && maxOberture > Constants.pentadAngle2) utPentad = multiplier*x*3.0f - 6;
+                    if (oberture > Constants.pentadAngle2){
                         utPentad = multiplier*x*5.0f - 6;
                         shootPentad = true;
                     }
