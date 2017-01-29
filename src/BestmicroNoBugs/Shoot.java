@@ -116,6 +116,8 @@ public class Shoot {
 
 
                     System.out.println("Shooting Angle: " + realAngle);
+                    System.out.println("oberture: " + oberture);
+                    System.out.println("max oberture: " + maxOberture);
                     float multiplier = 1;
 
 
