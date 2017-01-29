@@ -525,7 +525,6 @@ public class Archon {
                 if(score == 2.0f) return newCenter;
                 bestCenter = newCenter;
             }
-
             if(Clock.getBytecodeNum() >= Constants.BYTECODEMAXARCHONZONE) return bestCenter;
         }
         return bestCenter;
@@ -548,7 +547,7 @@ public class Archon {
             
             float r = GameConstants.BULLET_TREE_RADIUS;
 
-            float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
+            float a = (float)Math.PI/6; //ara l'angle es 30
 	        Direction dBase = new Direction(a);
             
             TreeInfo[] trees = rc.senseNearbyTrees(center, R + r, null);
@@ -564,7 +563,6 @@ public class Archon {
 	                }
 	            }
 		        score += score_i;
-		        
 	        }
         }catch (GameActionException e) {
             e.printStackTrace();
