@@ -43,7 +43,7 @@ public class Archon {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] enemyTrees;
 
-
+    static int turnsSinceLastGardener = 0; 
 
 
     @SuppressWarnings("unused")
@@ -53,12 +53,11 @@ public class Archon {
         ZoneG.init(rc);
         initializedZone = false;
         turnsSinceAllowed = 0;
+        turnsSinceLastGardener = 0; 
+        
 
 
-        if (rc.getRoundNum() > 5) {
-            init();
-            turnsSinceAllowed = 0;
-        }
+        if (rc.getRoundNum() > 5) init();
 
         while (true) {
             initTurn();
@@ -104,6 +103,8 @@ public class Archon {
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
 
+            if(turnsSinceLastGardener > 200 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) tryConstruct(); 
+            
             Clock.yield();
         }
     }
@@ -155,7 +156,7 @@ public class Archon {
         if (bestArchon == whoAmI){
             leader = true;
 
-            if(rc.getRoundNum() <= 50) tryConstruct();
+            tryConstruct();
         }
     }
 
@@ -163,6 +164,7 @@ public class Archon {
         firstArchon = false;
         shouldBuildGardener = false;
         totalFreeSpots = 0;
+        ++turnsSinceLastGardener; 
         allies = rc.senseNearbyRobots(-1, rc.getTeam());
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -292,6 +294,7 @@ public class Archon {
                     rc.hireGardener(d2);
                     System.out.println("- Faig pages ");
                     turnsSinceAllowed = 0;
+                    turnsSinceLastGardener = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;
                 }
@@ -300,6 +303,7 @@ public class Archon {
                     rc.hireGardener(d2);
                     System.out.println("- Faig pages ");
                     turnsSinceAllowed = 0;
+                    turnsSinceLastGardener = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;
                 }
