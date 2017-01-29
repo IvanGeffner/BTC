@@ -553,6 +553,7 @@ public class Archon {
             	float score_i = 2;
             	MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),R+r+GameConstants.GENERAL_SPAWN_OFFSET);
             	if (!rc.canSenseAllOfCircle(toBuild, r)) score_i = 1;
+                else if (!rc.onTheMap(toBuild, r)) score_i = -0.5f;
 		        for (TreeInfo tree: trees) {
 		            if (i == 0 && center.distanceTo(tree.getLocation()) <= R + tree.getRadius()) return -1; //si l'arbre talla el centre
 		
