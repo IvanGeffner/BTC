@@ -15,9 +15,6 @@ public class Constants {
     public static Direction[] main_dirs = {Direction.getEast(), Direction.getNorth(), Direction.getSouth(), Direction.getWest()};
 
     public static RobotType[] ProductionUnits = {RobotType.GARDENER, RobotType.LUMBERJACK, RobotType.SOLDIER, RobotType.TANK, RobotType.SCOUT};
-    public static int[] initialBuild = {0, 2, 2, 5, 5, 5, 5, 4, 5, 1, 0, 4, 2, 1, 5, 5,  5, 5, 0, 5, 2, 1, 0,5, 5, 2, 1, 5,0}; //28
-    public static int[] initialPositions = {0, 9, 1, 39, 7, 3};
-    public static int[] sequenceBuild = {2, 5, 5, 2, 5, 0, 2, 5, 1, 5, 3 ,5};
 
     //public static int[] initialBuild = {0,4,1,2,4,2,0};
     //public static int[] initialPositions = {0,2,3,14,1,9999};
@@ -26,9 +23,6 @@ public class Constants {
     public static int MAX_ROBOTS = 250;
     public static int LAST_ROUND_BUILD = 2900;
     public static float BULLET_LIMIT = 2500;
-
-    public static int IBL = initialBuild.length;
-    public static int SBL = sequenceBuild.length;
 
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;

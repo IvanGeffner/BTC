@@ -370,30 +370,6 @@ public class Gardener {
             boolean built = tryConstructUnit(myQueue[queueIndex]);
             if (built) queueIndex++;
         }
-/*
-        //si no te ordres de constuir res, fa el que hi hagi a la cua
-        int smallUnit = Build.bestSmallUnitToBuild();
-        int firstUnit = -1;
-        int secondUnit = -1;
-        try {
-            int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
-            int smallUnitIndex = rc.readBroadcast(Communication.unitChannels[smallUnit]);
-            //System.out.println("tankindex "+ tankIndex + " unitindex " + smallUnitIndex);
-            if (tankIndex < smallUnitIndex) { //decideix si es mes prioritari fer tank o fer una altra cosa
-                firstUnit = Constants.TANK;
-                secondUnit = smallUnit;
-            }else{
-                firstUnit = smallUnit;
-                secondUnit = Constants.TANK;
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-        //System.out.println("Tria les units " + firstUnit + ", " + secondUnit);
-        tryConstructUnit(smallUnit);
-        //tryConstructUnit(secondUnit);
-
-*/
     }
 
     private static boolean tryConstructUnit(int unit){
@@ -426,8 +402,6 @@ public class Gardener {
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
-                Build.incrementRobotsBuilt();
-                Build.updateAfterConstruct(unit);
             }
             d2 = enemyDir.rotateRightDegrees(360*i/12);
             if (rc.canBuildRobot(newRobotType,d2)){
@@ -439,8 +413,6 @@ public class Gardener {
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
-                Build.incrementRobotsBuilt();
-                Build.updateAfterConstruct(unit);
             }
         }
         return false;
@@ -481,8 +453,6 @@ public class Gardener {
             try {
                 //Planta l'arbre
                 rc.plantTree(plantingDirection);
-                Build.incrementTreesBuilt();
-                Build.updateAfterConstruct(Constants.TREE);
                 return true;
             } catch (GameActionException e) {
                 e.printStackTrace();

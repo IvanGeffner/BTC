@@ -65,16 +65,13 @@ public class Archon {
         while (true) {
             initTurn();
             MapLocation newTarget;
-            if(Build.allowedToConstruct(Constants.GARDENER)) allowedToConstruct = true; //AIXO ESTA ANTIQUAT I S'HA DE TREURE
-            else allowedToConstruct = false;
-
             boolean danger = (emergencyTarget != null);
             if (emergencyTarget != null){
                 System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                if(allowedToConstruct && initializedZone) {
+                if(initializedZone) {
                     ++turnsSinceAllowed;
                     bestZone = findBestZone();
                     rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
@@ -187,15 +184,7 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
-            for (int i = 0; i < Communication.unitChannels.length; ++i) {
-                try {
-                    rc.broadcast(Communication.unitChannels[i], Constants.initialPositions[i]);
-                } catch (GameActionException e) {
-                    e.printStackTrace();
-                }
-            }
             if(rc.getRoundNum() <= 50) tryConstruct();
-
         }
     }
 
@@ -331,8 +320,6 @@ public class Archon {
                 if (rc.canHireGardener(d2)){
                     rc.hireGardener(d2);
                     System.out.println("- Faig pages ");
-                    Build.incrementRobotsBuilt();
-                    Build.updateAfterConstruct(Constants.GARDENER);
                     turnsSinceAllowed = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;
@@ -341,8 +328,6 @@ public class Archon {
                 if (rc.canHireGardener(d2)){
                     rc.hireGardener(d2);
                     System.out.println("- Faig pages ");
-                    Build.incrementRobotsBuilt();
-                    Build.updateAfterConstruct(Constants.GARDENER);
                     turnsSinceAllowed = 0;
                     bestZ = new MapLocation(-Constants.INF, 0);
                     return;

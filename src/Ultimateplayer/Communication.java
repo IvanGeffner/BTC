@@ -34,7 +34,6 @@ public class Communication {
     //teoricament ocupo del 600 al 656 pero no estic segur
     static final int ZONE_FIRST_POSITION = 600;
     static final int ROBOTS_BUILT = 695;
-    static final int TREES_BUILT = 696;
 
     static int ZONE_ORIGIN_X = 697;//coordenades del centre de la zona (0,0)
     static int ZONE_ORIGIN_Y = 698;//son les coordenades on spawneja el primer gardener
