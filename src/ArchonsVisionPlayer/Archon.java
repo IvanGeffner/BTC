@@ -469,8 +469,7 @@ public class Archon {
     private static MapLocation findBestZone() {
     	float bestScore = -1f;
     	MapLocation zone = rc.getLocation().add(Direction.NORTH);
-    	for(int i = 0; i < 19; ++i)
-    	{
+    	for(int i = 0; i < 19; ++i) {
     			MapLocation zonePos = ZoneG.centerArchon(new int[] {xHex[i],yHex[i]});
     			
     			

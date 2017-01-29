@@ -22,7 +22,6 @@ public class Archon {
     static MapLocation bestZone;
 
     static boolean initializedZone = false;
-    static boolean allowedToConstruct;
     static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
 
     //coses de buscar zona per pagesos
@@ -58,7 +57,6 @@ public class Archon {
 
         if (rc.getRoundNum() > 5) {
             init();
-            initializeZone();
             turnsSinceAllowed = 0;
         }
 
@@ -67,64 +65,36 @@ public class Archon {
             MapLocation newTarget;
             boolean danger = (emergencyTarget != null);
             if (emergencyTarget != null){
+                //Si esta en perill
                 System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                if(initializedZone) {
+                //busca la millor zona per deixar un pages
+                if(shouldBuildGardener && initializedZone) {
+                    System.out.println("Vaig a buscar zona");
                     ++turnsSinceAllowed;
                     bestZone = findBestZone();
+                    System.out.println("La millor zona es " + bestZone);
                     rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
                     drawZone();
                     Direction dirBestZone = rc.getLocation().directionTo(bestZone);
                     newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET);
                     if(rc.getLocation().distanceTo(newTarget) < Constants.eps)tryConstruct();
                     else if(turnsSinceAllowed > 50) tryConstruct();
-                }
-                else {
+                }else {
                     newTarget = checkShakeTrees();
                     if (newTarget != null){
                         System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
                     }else{
-                    /*try {
-                        int a = (int) Math.floor(Math.random() * 4.0);
-                        for (int i = 0; i < 4; i++){
-                            Direction dirMove = Constants.main_dirs[(a + i) % 4];
-                            if (rc.canMove(dirMove)) {
-                                newTarget = rc.getLocation().add(dirMove);
-                            }
-                        }
-                        if (newTarget == null) newTarget = rc.getLocation();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                        e.printStackTrace();
-                    }*/
+                        System.out.println("Va a buscar la zona mes buida");
                         Sight.computeSightRange(rc);
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
-
                             Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
-
                             newTarget = rc.getLocation().add(optim, 3.0f);
                         } else newTarget = rc.getLocation();
-
                     }
-
                 }
-            }
-
-            //if (myTurn() && rc.getRoundNum() > 10) {
-            //    if (Communication.countArchons() == 1 || !danger) tryConstruct();
-            //}
-            try {
-                if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/(Constants.costOfVictoryPoints(rc.getRoundNum())) >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
-                if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(rc.getTeamBullets() - Constants.BULLET_LIMIT);
-                if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
-                    float donation = Math.max(0, rc.getTeamBullets() - 20);
-                    if (donation > 20)
-                        rc.donate(donation);
-                }
-            } catch (GameActionException e) {
-                e.printStackTrace();
             }
 
             updateTarget(newTarget);
@@ -199,18 +169,17 @@ public class Archon {
         enemyTrees = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         Bot.shake(rc);
         Bot.donate(rc);
-        readMessages();
-
+        readMessages(); //aqui sap si cal que construeixi un pages
         if (rc.getRoundNum() == 2) init2();
-        if(rc.getRoundNum() >= 5 && !initializedZone) //TODO arreglar perque el pages SEMPRE sigui jefazo
-        {
-            initializedZone = true;
-            initializeZone();
+        if(!initializedZone){
+            //intenta inicialitzar la zona (aixo nomes es fa quan un pages ja ha fixat l'origen de coordenades)
+            // si encara no esta fixat l'origen doncs no fa res i s'espera que el pages ho faci
+            initializedZone = initializeZone();
         }
         updateArchonCount();
         if (rc.getRoundNum() == 1) init();
         broadcastLocations();
-        Map.checkMapBounds(); //aixo ha d'anar al final del initturn
+        Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
     }
 
 
@@ -382,7 +351,6 @@ public class Archon {
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
             }
             System.out.println("Hi ha " + totalFreeSpots + " free spots");
-            System.out.println("init last " + initialMessageFreeSpots + "," + lastMessage);
             initialMessageFreeSpots = lastMessage;
         } catch (GameActionException e) {
             System.out.println(e.getMessage());
@@ -538,104 +506,93 @@ public class Archon {
         }
     }
 
+    //Agafa les zones mes properes, calcula el score i retorna la millor
     private static MapLocation findBestZone() {
         float bestScore = -1f;
-        MapLocation zone = rc.getLocation().add(Direction.NORTH);
-        for(int i = 0; i < 19; ++i)
-        {
-            MapLocation zonePos = ZoneG.centerArchon(new int[] {xHex[i],yHex[i]});
+        int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
+        MapLocation bestCenter = ZoneG.center(myZone);
+        for(int i = 0; i < 19; ++i) { //busca les 19 zones mes properes
+            int[] newZone = new int[]{myZone[0] + xHex[i], myZone[1] + yHex[i]};
+            MapLocation newCenter = ZoneG.center(newZone);
 
-
-            int[] realZone = ZoneG.getZoneFromPos(zonePos);
-
-            MapLocation center = ZoneG.center(realZone);
-            if(!rc.canSenseLocation(center)) continue;
-            float score = zoneScore(center);
-            if(score > bestScore)
-            {
+            if(!rc.canSenseLocation(newCenter)) continue;
+            float score = zoneScore(newCenter);
+            if(score > bestScore) {
                 bestScore = score;
-                if(score == 2.0f) return center;
-                zone = center;
+                if(score == 2.0f) return newCenter;
+                bestCenter = newCenter;
             }
 
-            if(Clock.getBytecodeNum() >= Constants.BYTECODEMAXARCHONZONE)
-            {
-                if(score != -1.0f) return zone;
-                else return center;
-            }
+            if(Clock.getBytecodeNum() >= Constants.BYTECODEMAXARCHONZONE) return bestCenter;
         }
-        return zone;
+        return bestCenter;
     }
-    static float zoneScore(MapLocation realZone)
-    {
-        float score = 2.0f;
+
+    static float zoneScore(MapLocation center) {
+        // score = -1: fora del mapa/ ja ocupada / whatever
+        // score = 0: un dels llocs a construir esta ocupat
+        // score = 0.5: pot veure nomes un tros de la zona
+        // score = 2: zona lliure
+        // retorna el score menys una quantitat en funcio de la distancia
+        float score = 2f;
         try {
-            if(!rc.onTheMap(realZone)) return -1.0f;
-            RobotInfo gardener = rc.senseRobotAtLocation(realZone);
+            if(!rc.onTheMap(center)) return -1.0f;
+            RobotInfo gardener = rc.senseRobotAtLocation(center);
             if(gardener != null && gardener.getType().equals(RobotType.GARDENER)) return -1.0f;
 
-            TreeInfo[] Ti = rc.senseNearbyTrees(realZone, 1.0f, null);
-            if(Ti.length > 0) return -1.0f;
-            //RobotInfo[] Ri = rc.senseNearbyRobots(realZone,1.0f, null);
-            //if(Ri.length > 0) score = 1.0f;
 
-
-            float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
-            Direction dBase = new Direction(a);
-            for (int i = 0; i < ZoneG.buildPositionsPerZone; i++){
-
-                MapLocation toBuild = realZone.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
-                if(!rc.canSenseAllOfCircle(toBuild,1.0f))
-                {
-                    if(score > 0.5f) score = 0.5f;
+            Direction dBase = new Direction((float)Math.PI/6);
+            for (int i = 0; i < 6; i++){
+                MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
+                if(!rc.canSenseAllOfCircle(toBuild,1.0f)) {
+                    score = Math.min(score,0.5f);
                     continue;
                 }
+                if(!rc.onTheMap(toBuild)) {
+                    score = Math.min(score,0);
+                }
+            }
 
-                if(!rc.onTheMap(toBuild)) return 0;
+            TreeInfo[] trees = rc.senseNearbyTrees(center, 3.0f, null);
+            for (TreeInfo tree: trees) {
+                if (center.distanceTo(tree.getLocation()) < 2) return -1; //si l'arbre talla el centre
+                for (int i = 0; i < 6; i++) {
+                    MapLocation toBuild = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
 
-                Ti = rc.senseNearbyTrees(toBuild, 1.0f, null);
-                if(Ti.length > 0) return 0;
-
-                //Ri = rc.senseNearbyRobots(toBuild,1.0f,null);
-                //if(Ri.length > 0) if(score > 1.0f) score = 1.0f;
+                    if (toBuild.distanceTo(tree.getLocation()) < 2){
+                        score = Math.min(score,0);
+                    }
+                }
             }
         }catch (GameActionException e) {
             e.printStackTrace();
         }
-        score = score -Math.abs((rc.getLocation().distanceTo(realZone)-3.0f)/100.0f);
-        return score;
+        return score - Math.abs((rc.getLocation().distanceTo(center)-3.0f)/100.0f);
     }
 
 
-    static void drawZone()
-    {
-
+    private static void drawZone() {
         float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
         Direction dBase = new Direction(a);
         for (int i = 0; i < ZoneG.buildPositionsPerZone; i++){
-
             MapLocation toBuild = bestZone.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
-            rc.setIndicatorDot(toBuild, 200, 0, 200);
+            if (Constants.DEBUG == 1) rc.setIndicatorDot(toBuild, 200, 0, 200);
         }
-
-
     }
 
-    static void initializeZone()
-    {
-
+    private static boolean initializeZone() {
         try {
             float xOrigin = Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_X));
             if (xOrigin == 0){
-                rc.broadcast(Communication.ZONE_ORIGIN_X, Float.floatToIntBits(rc.getLocation().x));
-                rc.broadcast(Communication.ZONE_ORIGIN_Y, Float.floatToIntBits(rc.getLocation().y));
-                ZoneG.setOrigin(rc.getLocation().x,rc.getLocation().y);
+                return false;
             }else{
                 ZoneG.setOrigin(xOrigin,Float.intBitsToFloat(rc.readBroadcast(Communication.ZONE_ORIGIN_Y)));
+                return true;
             }
         } catch (GameActionException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
 }
