@@ -93,6 +93,7 @@ public class Archon {
                             newTarget = rc.getLocation().add(optim, 3.0f);
                         } else newTarget = rc.getLocation();
                     }
+                    if (shouldBuildGardener) tryConstruct(); //poso aixo aqui perque si no, quan no pot fer un pages al primer torn no en fa mai
                 }
             }
 
@@ -102,9 +103,6 @@ public class Archon {
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
             } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
-
-            
-            
             Clock.yield();
         }
     }
