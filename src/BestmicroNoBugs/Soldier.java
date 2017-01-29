@@ -64,7 +64,7 @@ public class Soldier {
                     else {
                         adjustTarget();
 
-                        rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
+                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
 
                         Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                     }
