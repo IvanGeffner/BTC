@@ -72,11 +72,11 @@ public class Archon {
             }
 
             updateTarget(newTarget);
-            if (realTarget == null) {
+            /*if (realTarget == null) {
                 //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
                 Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
-            } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+            } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);*/
 
             broadcastLocations();
 
@@ -229,8 +229,17 @@ public class Archon {
         }*/
         try{
             Direction d = Direction.EAST;
-            for (int i = 0; i < 500; ++i){
-                Direction d2 = d.rotateLeftDegrees((360.0f*i)/500);
+
+            d = Build.findDirectionToBuild(d, RobotType.GARDENER.bodyRadius);
+            if (rc.canHireGardener(d)){
+                rc.hireGardener(d);
+                Build.incrementRobotsBuilt();
+                Build.updateAfterConstruct(Constants.GARDENER);
+                return;
+            }
+
+            for (int i = 0; i < 50; ++i){
+                Direction d2 = d.rotateLeftDegrees((360.0f*i)/50);
                 rc.setIndicatorDot(rc.getLocation().add(d2, 3.0f), 255, 0, 0);
                 if (rc.canHireGardener(d2)){
                     rc.hireGardener(d2);
