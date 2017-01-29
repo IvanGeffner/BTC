@@ -369,6 +369,8 @@ public class Gardener {
             System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + myQueue[queueIndex]);
             boolean built = tryConstructUnit(myQueue[queueIndex]);
             if (built) queueIndex++;
+        }else{
+            System.out.println("- Ja he acabat la meva cua");
         }
     }
 
@@ -462,10 +464,6 @@ public class Gardener {
             System.out.println("- No planto perque no soc al centre");
             return false;
         }
-        /*if (!Build.allowedToConstruct(Constants.TREE)) {
-            //System.out.println("No tinc prou bullets per plantar");
-            return; //comprova bullets
-        }*/
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
         System.out.println("- Planta l'arbre " + index);
         if (index == -1) {
@@ -488,8 +486,12 @@ public class Gardener {
 
     private static boolean shouldBuildSixTrees(){
         float minHP = 10;
+        if (rc.getHealth() < minHP) return true;
+        MapLocation myPos = rc.getLocation();
+        for (RobotInfo enemy: ZoneG.enemies){
+            if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
+        }
         return false;
-        //if (rc.getHealth() < minHP) return true;
     }
 
     private static void updateTarget(MapLocation newTarget){
