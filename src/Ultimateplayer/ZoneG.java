@@ -256,7 +256,6 @@ public class ZoneG {
             messageCutNeutralTree(outerTrees[i]);
             if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
         }
-        return;
     }
 
     private static void messageCutNeutralTree(MapLocation treeLocation) {
@@ -285,6 +284,7 @@ public class ZoneG {
             int low_HP = 10;
             if (rc.getHealth() > low_HP && Math.abs(d.degreesBetween(enemyDir)) < enemy_angle) continue;
             try {
+                if (!rc.onTheMap(hexPos[i], GameConstants.BULLET_TREE_RADIUS)) continue;
                 if (rc.isCircleOccupiedExceptByThisRobot(hexPos[i],GameConstants.BULLET_TREE_RADIUS)) continue;
                 return i;
             } catch (GameActionException e) {
@@ -296,7 +296,7 @@ public class ZoneG {
 
     static boolean shouldRequestLumberjack(){
         //si no te cap lloc lliure i hi ha algun arbre neutral/enemic
-        return surroundings[2] != 0 && surroundings[0] == 0;
+        return surroundings[2] != 0 && surroundings[0] <= 1;
     }
 
     static int freeSpots(){

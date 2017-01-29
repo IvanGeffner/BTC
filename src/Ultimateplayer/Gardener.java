@@ -450,7 +450,7 @@ public class Gardener {
             System.out.println("- Massa tard per construir");
             return false;
         }
-        if (ZoneG.freeSpots < 2) {
+        if (ZoneG.freeSpots < 2 && !shouldBuildSixTrees()) {
             System.out.println("- Nomes tinc una posicio oberta");
             return false; //Si nomes hi ha una posicio, la reservem per robots
         }
@@ -459,7 +459,7 @@ public class Gardener {
             return false; //no planta si te alguna cosa mes prioritaria
         }
         if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps){
-            System.out.println("No planto perque no soc al centre");
+            System.out.println("- No planto perque no soc al centre");
             return false;
         }
         /*if (!Build.allowedToConstruct(Constants.TREE)) {
@@ -467,8 +467,11 @@ public class Gardener {
             return; //comprova bullets
         }*/
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        //System.out.println("Planta l'arbre " + index);
-        if (index == -1) return false;
+        System.out.println("- Planta l'arbre " + index);
+        if (index == -1) {
+            System.out.println("- Index = -1");
+            return false;
+        }
         MapLocation myPos = rc.getLocation();
         Direction plantingDirection = myPos.directionTo(ZoneG.hexPos[index]);
         if (rc.getLocation().distanceTo(myPos) < Constants.eps && rc.canPlantTree(plantingDirection)){
@@ -481,6 +484,12 @@ public class Gardener {
             }
         }
         return false;
+    }
+
+    private static boolean shouldBuildSixTrees(){
+        float minHP = 10;
+        return false;
+        //if (rc.getHealth() < minHP) return true;
     }
 
     private static void updateTarget(MapLocation newTarget){
