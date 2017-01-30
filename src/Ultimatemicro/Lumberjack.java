@@ -65,9 +65,9 @@ public class Lumberjack {
             System.out.println("stopGreedyMove: " + shouldStop + " "+ shouldGreedy + " " + shouldMove);
             if(shouldMove)
             {
-                if(shouldStop) Greedy.stop(rc, 9200);
-                else Greedy.moveGreedy(rc, realTarget, 9200);
-            } else Greedy.moveToSelf(rc, 9200);
+                if(shouldStop) Greedy.stop(rc, 14000);
+                else Greedy.moveGreedy(rc, realTarget, 14000);
+            } else Greedy.moveToSelf(rc, 14000);
 
             Clock.yield();
         }

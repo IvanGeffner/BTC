@@ -147,7 +147,7 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (sortedEnemies.length > 0){
                     MapLocation enemyLoc = sortedEnemies[0].getLocation();
-                    if (moveSafely(rc, rc.getLocation.directionTo(enemyLoc), dirGreedy)) shoot = Shoot.tryShoot(rc, 1);
+                    if (moveSafely(rc, rc.getLocation().directionTo(enemyLoc), dirGreedy)) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 

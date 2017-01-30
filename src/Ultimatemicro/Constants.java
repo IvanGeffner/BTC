@@ -82,7 +82,7 @@ public class Constants {
 
     public static float interaction_dist_from_edge = 1f;
 
-    public static final int BYTECODEATSHOOTING = 7500;
+    public static final int BYTECODEATSHOOTING = 12500;
 
     public static int NUMELEMENTS = 5;
 
