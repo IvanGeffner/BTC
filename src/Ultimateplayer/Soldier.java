@@ -34,8 +34,6 @@ public class Soldier {
 
     static MapLocation emergencyTarget;
 
-    static float sign;
-
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -257,18 +255,12 @@ public class Soldier {
     static void broadcastLocations() {
         int byte1 = Clock.getBytecodeNum();
 
-        if (emergencyTarget == null){
-            sign = (float)Math.random();
-            if (sign > 0.5f) sign = 1;
-            else sign = -1;
-        }
-
         emergencyTarget = null;
 
         if (round != rc.getRoundNum()) return;
-        
+
         //coses que ha canviat la DIANA estan marcades amb di.
-        
+
         RobotInfo[] Ri = rc.senseNearbyRobots(); //di
         boolean sent = false;
 
@@ -283,61 +275,58 @@ public class Soldier {
         MapLocation pos = rc.getLocation();
 
         for (RobotInfo ri : Ri) {
-        	if(ri.getTeam().equals(rc.getTeam().opponent()))
-        	{
-        		foundEnemy = true; //di
-	            MapLocation enemyPos = ri.getLocation();
-	            int x = Math.round(enemyPos.x);
-	            int y = Math.round(enemyPos.y);
-	            int a = Constants.getIndex(ri.type);
-	            if (a == 0){
-	                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-	                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-	            }
-	            else if (a == 5){
-	                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-	                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-	                enemyBase = enemyPos;
-	            }
-	            else if (!sent){
-	                Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-	                initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-	                sent = true;
-	            }
-	
-	            if (a == 2){
-	                ++foundSoldier;
-	                float dinv = 1/pos.distanceTo(enemyPos);
-	                xSol += dinv*(pos.x - enemyPos.x);
-	                ySol += dinv*(pos.y - enemyPos.y);
-	            }
-	
-	            if (a == 3){
-	                ++foundTank;
-	                float dinv = 1/pos.distanceTo(enemyPos);
-	                xTank += dinv*(pos.x - enemyPos.x);
-	                yTank += dinv*(pos.y - enemyPos.y);
-	            }
-	            updateNewTarget(enemyPos, Constants.enemyScore(a), true);
-	            needSoldier += Bot.dangerScore(Constants.getIndex(ri.type)); //di
-	        } else
-	        {
-	        	needSoldier -= Bot.dangerScore(Constants.getIndex(ri.type)); //di
-	        }
+            if(ri.getTeam().equals(rc.getTeam().opponent()))
+            {
+                foundEnemy = true; //di
+                MapLocation enemyPos = ri.getLocation();
+                int x = Math.round(enemyPos.x);
+                int y = Math.round(enemyPos.y);
+                int a = Constants.getIndex(ri.type);
+                if (a == 0){
+                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                }
+                else if (a == 5){
+                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                    enemyBase = enemyPos;
+                }
+                else if (!sent){
+                    Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
+                    initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                    sent = true;
+                }
+
+                if (a == 2){
+                    ++foundSoldier;
+                    float dinv = 1/pos.distanceTo(enemyPos);
+                    xSol += dinv*(pos.x - enemyPos.x);
+                    ySol += dinv*(pos.y - enemyPos.y);
+                }
+
+                if (a == 3){
+                    ++foundTank;
+                    float dinv = 1/pos.distanceTo(enemyPos);
+                    xTank += dinv*(pos.x - enemyPos.x);
+                    yTank += dinv*(pos.y - enemyPos.y);
+                }
+                updateNewTarget(enemyPos, Constants.enemyScore(a), true);
+                needSoldier += Bot.dangerScore(Constants.getIndex(ri.type)); //di
+            } else
+            {
+                needSoldier -= Bot.dangerScore(Constants.getIndex(ri.type)); //di
+            }
         }
-        
+
         needSoldier -= Bot.dangerScore(Constants.SOLDIER); //di
 
-
-        float randomDev = sign* Constants.pentadAngle2;
-
         if (foundTank > 0){
-            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xTank, yTank);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         } else if (foundSoldier > 0){
-            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xSol, ySol);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
@@ -348,15 +337,15 @@ public class Soldier {
         //di:
         if(foundEnemy && needSoldier >= 0)
         {
-        	rc.setIndicatorDot(rc.getLocation(), 200, 0, 200);
-        	int x = Math.round(rc.getLocation().x);
+            rc.setIndicatorDot(rc.getLocation(), 200, 0, 200);
+            int x = Math.round(rc.getLocation().x);
             int y = Math.round(rc.getLocation().y);
             Communication.sendMessage(rc, Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSOLDIERTANK);
         }
-        
+
         if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
         //fi di
-        
+
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
             TreeInfo ti = Ti[0];

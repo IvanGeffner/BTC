@@ -339,10 +339,10 @@ public class Lumberjack {
 
         sent = false;
         RobotInfo[] Ri = rc.senseNearbyRobots(); //di
-        
+
         float needSoldier = 0.0f; //di
         boolean foundEnemy = false; //di
-        
+
         for(RobotInfo ri : Ri){
         	if(rc.getTeam().equals(ri.getTeam().opponent()))
         	{
@@ -359,7 +359,7 @@ public class Lumberjack {
 	                if (a == 0)
 	                {
 	                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-	
+
 	                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
 	                }
 	                else if (a == 5)
@@ -388,11 +388,11 @@ public class Lumberjack {
             int y = Math.round(rc.getLocation().y);
             Communication.sendMessage(rc, Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSOLDIERTANK);
         }
-        
+
         //fi di
     }
-    
-    
+
+
 
     //check if it's a better target than what I haves
     static void calculateNewTarget(MapLocation target, float score, boolean greedy)

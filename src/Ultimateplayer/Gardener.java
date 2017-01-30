@@ -212,7 +212,7 @@ public class Gardener {
             int thisTurn = rc.getRoundNum();
             if (zoneType != Constants.outOfMapZone) {
                 if (!ZoneG.insideLimits(newZone)){
-                    ZoneG.broadcastInfo(newZone,Constants.outOfMapZone);
+                    ZoneG.broadcastInfo(newZone, Constants.outOfMapZone);
                     zoneType = Constants.outOfMapZone;
                 }
             }
@@ -270,7 +270,7 @@ public class Gardener {
                 return;
             }
             if (!rc.onTheMap(centerIWant,rc.getType().bodyRadius)){
-                ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
+                ZoneG.broadcastInfo(zoneIWant, Constants.outOfMapZone);
                 zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
                 System.out.println("- La zona que volia esta fora del mapa 2");
                 return;
@@ -312,7 +312,7 @@ public class Gardener {
     }
 
     private static void checkNeutralTreesInZone(){
-        ZoneG.messageNeutralTreesInCircle(ZoneG.center(),ZoneG.neutralTrees);
+        ZoneG.messageNeutralTreesInCircle(ZoneG.center(), ZoneG.neutralTrees);
         // trees = arbres del inner circle
         if (!lumberjackBuilt && ZoneG.shouldRequestLumberjack())
             Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
