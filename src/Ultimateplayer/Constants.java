@@ -108,12 +108,12 @@ public class Constants {
 
 
     //LUMBIS
-    static float CONVERSIONBULLETCOST = 25f;
+    static float CONVERSIONBULLETCOST = 25.0f;
     static float BASESCORELUMBERJACK = 0.003f;
     static float ENEMYTREESCORE = 7.5f;
-    static float NEUTRALTREESCORE = 5.0f;
-    static float CHOPTREESCORE = 3.0f;
-    static float RANDOMTREESCORE = 0.005f;
+    static float NEUTRALTREESCORE = 5.0f;//per pegar
+    static float CHOPTREESCORE = 8.0f;
+    static float RANDOMTREESCORE = 0.005f;//per posar un neutral com a objectiu
     static float GARDENERSCORELUMBERJACK = 10.0f;
     static float ARCHONSCORELUMBERJACK = 1.0f;
     static int ARCHONVALUE = 1;
