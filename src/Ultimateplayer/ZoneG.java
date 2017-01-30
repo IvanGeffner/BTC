@@ -332,7 +332,7 @@ public class ZoneG {
             }
         }
 
-        if (surroundings[1] == 5 && !shouldBuildSixTrees()) return -1;
+        if (surroundings[0] == 1 && !shouldBuildSixTrees()) return -1;
 
         float maxAngle = 0;
         int bestIndex = -1;
