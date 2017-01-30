@@ -26,6 +26,7 @@ public class Gardener {
     private static int[] firstQueue = {2,5,5,2,5,5,2,5};
     private static int[] normalQueue = {5,2,5,5,5,5,5};
     private static int[] myQueue;
+    private static int soldiersSkipped = 0;
     private static int queueIndex = 0;
 
     private static int[] zone = ZoneG.nullZone();
@@ -184,6 +185,9 @@ public class Gardener {
                 if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
             }
             if(rc.getLocation().distanceTo(sender) > 10.0f) return -1;
+
+            //Els 200 primers torns no fa lumbs excepte per pagesos o archons
+            if (rc.getRoundNum() < 200 && m[0] != Constants.GARDENER  && m[0] != 5) return -1;
         }
         return m[3];
     }
@@ -382,11 +386,13 @@ public class Gardener {
             return;
         }
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
-            System.out.println("- Ja es massa tard");return;
+            System.out.println("- Ja es massa tard");
+            return;
         }
-        /*if (rc.getTeamVictoryPoints() > 800 && rc.getOpponentVictoryPoints() > 700){
+        if (rc.getTeamVictoryPoints() > 500 && rc.getOpponentVictoryPoints() > 500){
             System.out.println("- No construeix, cursa de victory points!");
-        }*/
+            return;
+        }
         if (!rc.isBuildReady()) {
             System.out.println("- Tinc cooldown");
             return;
@@ -420,12 +426,32 @@ public class Gardener {
         if (rc.getRoundNum() > early_game_length) {
             System.out.println("- Decideixo fer arbre");
             tryPlanting();
-        }else if (queueIndex < myQueue.length){
-            System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + myQueue[queueIndex]);
-            boolean built = tryConstructUnit(myQueue[queueIndex]);
-            if (built) queueIndex++;
-        }else{
-            System.out.println("- No em toca construir res");
+        }else {
+            if (soldiersSkipped > 0){
+                //si s'ha saltat algun soldat de la cua i no en veu cap, intenta fer-ne un
+                boolean soldierInSight = false;
+                for (RobotInfo ally: ZoneG.allies){
+                    if (ally.getType() == RobotType.SOLDIER) soldierInSight = true;
+                }
+                if (!soldierInSight) {
+                    System.out.println("- Intento fer un soldat que m'he saltat");
+                    boolean built = tryConstructUnit(Constants.SOLDIER);
+                    if (built) soldiersSkipped--;
+                }
+            }
+            if (queueIndex < myQueue.length) {
+                System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + myQueue[queueIndex]);
+                boolean built = tryConstructUnit(myQueue[queueIndex]);
+                if (built) queueIndex++;
+                else if (myQueue[queueIndex] == Constants.SOLDIER){
+                    queueIndex++;
+                    soldiersSkipped++;
+                    System.out.println("- No puc fer soldat, intento arbre");
+                    tryPlanting();
+                }
+            } else {
+                System.out.println("- No em toca construir res");
+            }
         }
     }
 

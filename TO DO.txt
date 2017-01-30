@@ -7,3 +7,5 @@ Idees random:
 - improve gradient
 - arreglar el posicionament del primer pages
 - que les tropes enviin senyal de construir lumberjack quan veuen tree amb goodies
+- fer lumbers per trees amb goodies nomes a partir del torn X
+- si els dos equips tenen mes de X victory points, no construir res

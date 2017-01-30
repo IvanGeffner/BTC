@@ -214,9 +214,6 @@ public class ZoneG {
         //float a = (float)Math.PI/6; //ara l'angle es 30
         float a = 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
         Direction dBase = new Direction(a);
-
-
-
         zone = assignedZone;
         MapLocation myPos = rc.getLocation();
         MapLocation[] enemies = rc.getInitialArchonLocations(rc.getTeam().opponent());
@@ -227,9 +224,6 @@ public class ZoneG {
             enemyPos = enemyPos.add(enemyDir, 1/(1 + myPos.distanceTo(enemy)));
         }
         enemyDir = myPos.directionTo(enemyPos);
-
-
-
         center = center(zone);
         broadcastInfo(assignedZone, Constants.busyZone);
 
@@ -243,20 +237,19 @@ public class ZoneG {
 
     //envia missatge de tallar els arbres en el cercle de radi 3 i si no n'hi ha cap en el de radi 5
     static void messageNeutralTreesInCircle(MapLocation center, TreeInfo[] trees){
-        int max_bytecode = 3000;
+        int max_bytecode = 4000;
         int bytecode_init = Clock.getBytecodeNum();
         MapLocation[] outerTrees = new MapLocation[trees.length];
         boolean sendOuterTrees = true;
         float innerDistance = 3f;
         float outerDistance = 5f;
         int outerTreeCount = 0;
-        int innerTreeCount = 0;
         for (TreeInfo ti: trees){
+            if (Clock.getBytecodeNum() - bytecode_init > max_bytecode) return;
             MapLocation treePos = ti.getLocation();
             if (Math.abs(treePos.x - center.x) - ti.getRadius() < innerDistance && Math.abs(treePos.y - center.y) - ti.getRadius() < innerDistance){
                 sendOuterTrees = false;
                 messageCutNeutralTree(treePos);
-                innerTreeCount++;
             }else if (sendOuterTrees && Math.abs(treePos.x - center.x) - ti.getRadius() < outerDistance &&
                     Math.abs(treePos.y - center.y) - ti.getRadius() < outerDistance){
                 outerTrees[outerTreeCount] = treePos;
