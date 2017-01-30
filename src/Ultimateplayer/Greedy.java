@@ -187,7 +187,7 @@ public class Greedy {
                 //Ivan, aixo em peta quan no puc fer el rc.senserobot
                 if (obstacle != null && rc.canSenseLocation(obstacle)) {
                     RobotInfo r = rc.senseRobotAtLocation(obstacle);
-                    if (r != null && r.getTeam() == rc.getTeam()) {
+                    if (rc.getType() != RobotType.ARCHON && r != null && r.getTeam() == rc.getTeam()) {
                         Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
                     }
                 }
