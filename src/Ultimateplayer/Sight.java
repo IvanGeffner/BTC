@@ -45,7 +45,19 @@ public class Sight {
         if (left < 0) left += 2*Math.PI;
 
         float realDist = myPos.distanceTo(obstacleLoc)*(float)Math.cos(angle);
-        if (realDist > sightRange - 2.0f/distFactor) realDist = sightRange - 2.0f/distFactor;
+        if (realDist > sightRange - 2.0f/distFactor){
+            float a = myPos.distanceTo(obstacleLoc);
+            realDist = sightRange - 2.0f/distFactor;
+            float x = (a*a + realDist*realDist - radius*radius)/(2.0f *a *realDist);
+            if (-1 <= x && x <= 1){
+                angle = (float)Math.acos(x);
+                right = baseDir.radiansBetween(myPos.directionTo(obstacleLoc).rotateRightRads(angle));
+                left = baseDir.radiansBetween(myPos.directionTo(obstacleLoc).rotateLeftRads(angle));
+
+                if (right < 0) right += 2*Math.PI;
+                if (left < 0) left += 2*Math.PI;
+            } else return;
+        }
 
         int dist = Math.round(distFactor*realDist); // <= 1000
         int intRight = Math.round(angleFactor*right); // <= 1000
@@ -332,12 +344,11 @@ public class Sight {
     }
 
     static void updateGradient(float angle, RobotController rc){
-        MapLocation loc = rc.getLocation();
-        MapLocation point1 = loc.add(baseDir.rotateLeftRads(currentAngle), distMin), point2 = loc.add(baseDir.rotateLeftRads(angle), distMin);
-        float dist = point1.distanceTo(point2);
+        float sine = (float)Math.sin((angle - currentAngle)/2);
+        sine = sine/(float)Math.sqrt(sine*sine + 1.0f);
         Direction dirGradient = baseDir.rotateLeftRads((currentAngle + angle)/2).opposite();
-        gradientX += dirGradient.getDeltaX(dist);
-        gradientY += dirGradient.getDeltaY(dist);
+        gradientX += dirGradient.getDeltaX(sine);
+        gradientY += dirGradient.getDeltaY(sine);
         //rc.setIndicatorLine(loc, loc.add(dirGradient, dist), 255, 0, 0);
     }
 
