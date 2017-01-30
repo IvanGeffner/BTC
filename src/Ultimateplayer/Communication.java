@@ -24,6 +24,7 @@ public class Communication {
     static final int NEEDTROOPCHANNEL = 2000;
     static final int GARD_FREE_SPOTS = 2100;
     static final int GARD_COUNT = 2200; //quants pagesos hi ha
+    static final int CLOSED_GARDENERS = 2300;
 
     static final int CYCLIC_CHANNEL_LENGTH = 99;
 

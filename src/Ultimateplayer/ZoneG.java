@@ -45,7 +45,6 @@ public class ZoneG {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] allTrees;
 
-
     static void init(RobotController rc2){
         rc = rc2;
     }
@@ -55,10 +54,14 @@ public class ZoneG {
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         allTrees = rc.senseNearbyTrees();
-        if (!hasValue(zone)) freeSpots = 9999;
+        if (!hasValue(zone)) freeSpots = 6;
         else freeSpots = freeSpots();
         System.out.println("Envia "+ freeSpots + " free spots");
         Communication.sendMessage(Communication.GARD_FREE_SPOTS,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),freeSpots);
+        if (surroundings[1] + surroundings[4] == 6){
+            System.out.println("Envia pages tancat");
+            Communication.sendMessage(Communication.CLOSED_GARDENERS,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
+        }
     }
 
     static boolean hasValue(int[] z){
@@ -317,7 +320,7 @@ public class ZoneG {
 
     private static int freeSpots(){
         int frees = 0;
-        int myTrees = 0;
+        //int myTrees = 0;
         surroundings = new int[]{0,0,0,0,0};
         for (int i = 0; i < 6; i++){
             int obstacle = isFree(ZoneG.hexPos[i], GameConstants.BULLET_TREE_RADIUS);
@@ -325,11 +328,11 @@ public class ZoneG {
             hexStatus[i] = obstacle;
             if (obstacle == 0){
                 frees++;
-            }else if (obstacle == 1) myTrees++;
+            }//else if (obstacle == 1) myTrees++;
         }
         System.out.println("Surroundings: " + surroundings[0] + "," + surroundings[1] + "," + surroundings[2] + "," + surroundings[3] + "," + surroundings[4]);
         System.out.println("Hexes: " + hexStatus[0] + "," + hexStatus[1] + "," + hexStatus[2] + "," + hexStatus[3] + "," + hexStatus[4] + "," + hexStatus[5]);
-        if (myTrees == 5) return 0;
+        //if (myTrees == 5) return 0;
         return frees;
     }
 

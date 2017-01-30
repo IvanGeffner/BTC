@@ -12,11 +12,15 @@ public class Gardener {
     private static MapLocation realTarget;
     private static int initialMessageNeedTroop = 0;
     private static int initialMessageEmergency = 0;
+    private static int initialMessageGardCount = 0;
+    private static int initialMessageClosedGard = 0;
     static boolean lumberjackBuilt = false;
     static boolean shouldBuildTroop = false;
     static boolean shouldBuildLumber = false;
     static boolean shouldBuildScout = false;
     static boolean myFirstTurn = true;
+    static int aliveGardeners;
+    static int closedGardeners;
     private static boolean firstGardener;
 
     private static int[] firstQueue = {2,5,5,2,5,5,2,5};
@@ -144,6 +148,32 @@ public class Gardener {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+
+        try {
+            int channel = Communication.GARD_COUNT;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int count = lastMessage - initialMessageGardCount;
+            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
+            System.out.println(aliveGardeners + " alive gardeners");
+            aliveGardeners = count;
+            initialMessageGardCount = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
+            int channel = Communication.CLOSED_GARDENERS;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int count = lastMessage - initialMessageClosedGard;
+            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
+            System.out.println(closedGardeners + " closed gardeners");
+            closedGardeners = count;
+            initialMessageClosedGard = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static int workMessageTroopNeeded(int a) {
@@ -153,6 +183,7 @@ public class Gardener {
             if(m[0] == Constants.GARDENER){
                 if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
             }
+            if(rc.getLocation().distanceTo(sender) > 10.0f) return -1;
         }
         return m[3];
     }
@@ -353,6 +384,9 @@ public class Gardener {
         if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
             System.out.println("- Ja es massa tard");return;
         }
+        /*if (rc.getTeamVictoryPoints() > 800 && rc.getOpponentVictoryPoints() > 700){
+            System.out.println("- No construeix, cursa de victory points!");
+        }*/
         if (!rc.isBuildReady()) {
             System.out.println("- Tinc cooldown");
             return;
@@ -396,7 +430,6 @@ public class Gardener {
     }
 
     private static boolean tryConstructUnit(int unit){
-
         if (unit == -1) {
             System.out.println("- unit = -1");
             return false;
@@ -497,14 +530,15 @@ public class Gardener {
     }
 
     private static boolean shouldBuildSixTrees(){
-        return true;/*
         float minHP = 10;
         if (rc.getHealth() < minHP) return true;
+        float ratio = (float)closedGardeners / (float)aliveGardeners;
+        if (ratio < 0.6 && aliveGardeners - closedGardeners > 1) return true;
         MapLocation myPos = rc.getLocation();
         for (RobotInfo enemy: ZoneG.enemies){
             if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
         }
-        return false;*/
+        return false;
     }
 
     private static boolean shouldBuildUnit(){

@@ -376,11 +376,6 @@ public class Archon {
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             int count = lastMessage - initialMessageGardCount;
             if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
-            /*for(int i = initialMessageGardCount; i != lastMessage;) {
-                count++;
-                ++i;
-                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }*/
             System.out.println(aliveGardeners + " alive gardeners");
             aliveGardeners = count;
             initialMessageGardCount = lastMessage;
@@ -392,7 +387,7 @@ public class Archon {
         if (aliveGardeners == 0) shouldBuildGardener = true;
         else{
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
-            float maxRatioToBuildGardener = 0.2f;
+            float maxRatioToBuildGardener = 0.6f;
             if (ratio < maxRatioToBuildGardener) shouldBuildGardener = true;
         }
 
