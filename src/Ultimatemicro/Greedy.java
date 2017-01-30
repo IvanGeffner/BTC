@@ -524,12 +524,12 @@ public class Greedy {
                 int a = intervals[i];
 
                 if ((a&1) != 0){
-                    if ((a&4) == 1) ++contBullets;
-                    else if ((a&2) == 1) ++ contSemiBullets;
+                    if ((a&4) == 4) ++contBullets;
+                    else if ((a&2) == 2) ++ contSemiBullets;
                     else ++cont;
                 } else{
-                    if ((a&4) == 1) --contBullets;
-                    else if ((a&2) == 1) --contSemiBullets;
+                    if ((a&4) == 4) --contBullets;
+                    else if ((a&2) == 2) --contSemiBullets;
                     else --cont;
                     if (cont == 0) {
                         if (contBullets < minBulletcont || (contBullets == minBulletcont && contSemiBullets < minSemiBulletcont)) {
@@ -565,12 +565,12 @@ public class Greedy {
         for (int i = intervals.length - 1; i >= 0; --i) {
             int a = intervals[i];
             if ((a&1) == 0){
-                if ((a&4) == 1) ++contBullets;
-                else if ((a&2) == 1) ++contSemiBullets;
+                if ((a&4) == 4) ++contBullets;
+                else if ((a&2) == 2) ++contSemiBullets;
                 else ++cont;
             } else{
-                if ((a&4) == 1) --contBullets;
-                else if ((a&2) == 1) --contSemiBullets;
+                if ((a&4) == 4) --contBullets;
+                else if ((a&2) == 2) --contSemiBullets;
                 else --cont;
                 if (cont == 0) {
                     if (contBullets < minBulletcont || (contBullets == minBulletcont && contSemiBullets < minSemiBulletcont)) {
