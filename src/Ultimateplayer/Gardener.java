@@ -19,8 +19,8 @@ public class Gardener {
     static boolean myFirstTurn = true;
     private static boolean firstGardener;
 
-    private static int[] firstQueue = {2,5,5,2,5,5,2,5,5};
-    private static int[] normalQueue = {5,2,5,5,5,5,5};
+    private static int[] firstQueue = {2,5,5,2,5,5,2,5};
+    private static int[] normalQueue = {5,2,5,5,5,5};
     private static int[] myQueue;
     private static int soldiersSkipped = 0;
     private static int queueIndex = 0;

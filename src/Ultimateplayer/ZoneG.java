@@ -351,8 +351,8 @@ public class ZoneG {
     private static boolean shouldBuildSixTrees(){
         float minHP = 10;
         if (rc.getHealth() < minHP) return true;
-        float ratio = (float)closedGardeners / (float)aliveGardeners;
-        if (ratio < 0.2 && aliveGardeners - closedGardeners > 1) return true;
+        //float ratio = (float)closedGardeners / (float)aliveGardeners;
+        //if (ratio < 0.2 && aliveGardeners - closedGardeners > 1) return true;
         MapLocation myPos = rc.getLocation();
         for (RobotInfo enemy: ZoneG.enemies){
             if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
