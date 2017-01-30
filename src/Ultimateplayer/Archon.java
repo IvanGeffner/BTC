@@ -96,7 +96,9 @@ public class Archon {
                         System.out.println("Va a buscar la zona mes buida");
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
                             Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
-                            newTarget = rc.getLocation().add(optim, 3.0f);
+                            float dist = (float)Math.sqrt(Sight.gradientX*Sight.gradientX + Sight.gradientY*Sight.gradientY);
+                            if (dist < 0.1f) newTarget = realTarget;
+                            else newTarget = rc.getLocation().add(optim, dist);
                         } else newTarget = rc.getLocation();
                     }
                     if (shouldBuildGardener) tryConstruct(); //poso aixo aqui perque si no, quan no pot fer un pages al primer torn no en fa mai
