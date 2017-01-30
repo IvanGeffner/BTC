@@ -119,9 +119,8 @@ public class Archon {
             yBase = Math.round(base.y);
             Communication.init(rc,xBase,yBase);
             Build.init(rc);
-            Map.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
-
+            Map.init(rc);
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
 
@@ -135,6 +134,10 @@ public class Archon {
                 rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(-Constants.INF));
                 rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(Constants.INF));
             }
+            
+            //busca on construir el primer gardener
+            Map.checkMapBounds();
+            firstGardener();
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -158,7 +161,7 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
-
+            //bestZone = firstGardener();
             tryConstruct();
         }
     }
@@ -385,7 +388,10 @@ public class Archon {
             e.printStackTrace();
         }
 
-        if (aliveGardeners == 0) shouldBuildGardener = true;
+        if (aliveGardeners == 0) 
+        { 
+        	shouldBuildGardener = true;
+        }
         else{
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
             float maxRatioToBuildGardener = 0.6f;
@@ -618,4 +624,72 @@ public class Archon {
         }
     }
 
+    private static void firstGardener()
+    {
+    	if(!cornered())
+    	{
+	    	MapLocation nearestEnemy = enemyArchons[0]; 
+	    	
+	    	float distance = rc.getLocation().distanceTo(enemyArchons[0]); 
+	    	for(int i = 1; i < enemyArchons.length; ++i)
+	    	{
+	    		float d = rc.getLocation().distanceTo(enemyArchons[i]); 
+	    		if(d < distance)
+	    		{
+	    			distance = d; 
+	    			nearestEnemy = enemyArchons[i];
+	    		}
+	    	}
+	    	
+	    	Direction desiredDir = rc.getLocation().directionTo(nearestEnemy).opposite(); 
+	    	Direction realDir = Build.findDirectionToBuild(desiredDir, 3.0f); 
+	    	if(realDir == null)
+	    	{
+	    		realDir = Build.findDirectionToBuild(desiredDir, 2.0f); 
+	    		if(realDir == null)
+	    		{
+	    			realDir = Build.findDirectionToBuild(desiredDir, 1.0f); 
+	    		}
+	    	}
+	    	bestZone = rc.getLocation().add(realDir,RobotType.GARDENER.bodyRadius + RobotType.ARCHON.bodyRadius);
+    	}
+    }
+    
+    private static boolean cornered()
+    {
+    	float maxDist = (float) (3.0f-3.0f*Math.sqrt(2.0f)/2.0f) + RobotType.ARCHON.bodyRadius; 
+    	float myX = rc.getLocation().x; 
+    	float myY = rc.getLocation().y; 
+    	System.out.println("x meva " + myX + "y meva " + myY);
+    	System.out.println(" maxX " + Map.maxX + " maxY " + Map.maxY + " minX " + Map.minX + " minY " + Map.minY);
+    	boolean first = false; 
+    	Direction vertical = null; 
+    	Direction horizontal = null;
+    	if(Math.abs(myX -Map.maxX) + Constants.eps <=  maxDist || Math.abs(myX -Map.minX) + Constants.eps <= maxDist) 
+    	{
+    		if(Map.checkMapBound(Direction.EAST) != null) horizontal = Direction.WEST; 
+    		else horizontal = Direction.EAST; 
+    		first = true; 
+    	}
+    	if(first && (Math.abs(myY -Map.maxY) - Constants.eps <=  maxDist || Math.abs(myY -Map.minY) - Constants.eps <=  maxDist)) 
+    	{
+    		if(Map.checkMapBound(Direction.NORTH) != null) vertical = Direction.SOUTH; 
+    		else vertical = Direction.NORTH;
+    		if(rc.canBuildRobot(RobotType.GARDENER, horizontal)) bestZone = rc.getLocation().add(horizontal, 3.0f); 
+    		else
+    		{
+    			if(rc.canBuildRobot(RobotType.GARDENER, vertical)) bestZone = rc.getLocation().add(horizontal, 3.0f); 
+    			else
+    			{
+    				if(rc.canBuildRobot(RobotType.GARDENER, horizontal.opposite())) bestZone = rc.getLocation().add(horizontal.opposite(), 3.0f); 
+    	    		else
+    	    		{
+    	    			if(rc.canBuildRobot(RobotType.GARDENER, vertical.opposite())) bestZone = rc.getLocation().add(horizontal.opposite(), 3.0f); 
+    	    		}
+    			}
+    		}
+    		return true;
+    	}
+    	return false; 
+    }
 }

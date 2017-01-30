@@ -33,7 +33,7 @@ public class Map {
                     MapLocation m = checkMapBound(Direction.NORTH);
                     if (m != null) {
                         rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(m.y));
-                        maxY = bound;
+                        maxY = m.y;
                     }
                 }
                 else {
@@ -86,7 +86,7 @@ public class Map {
     }
 
 
-    private static MapLocation checkMapBound(Direction dir) {
+    static MapLocation checkMapBound(Direction dir) {
         try {
             MapLocation pos = rc.getLocation();
             if (!rc.onTheMap(pos.add(dir, rc.getType().sensorRadius- Constants.eps))) {
