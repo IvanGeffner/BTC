@@ -62,6 +62,14 @@ public class Archon {
             initTurn();
             MapLocation newTarget;
             boolean danger = (emergencyTarget != null);
+            Sight.computeSightRange(rc);
+            System.out.println(Sight.closed);
+            if (Sight.closed){
+                int x = Math.round(rc.getLocation().x);
+                int y = Math.round(rc.getLocation().y);
+                Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDLUMBERJACK);
+                rc.setIndicatorDot(rc.getLocation(), 120, 130, 120);
+            }
             if (emergencyTarget != null){
                 //Si esta en perill
                 System.out.println("Fuig de " + rc.getLocation() + " a " + emergencyTarget);
@@ -86,7 +94,6 @@ public class Archon {
                         System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
                     }else{
                         System.out.println("Va a buscar la zona mes buida");
-                        Sight.computeSightRange(rc);
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
                             Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
                             newTarget = rc.getLocation().add(optim, 3.0f);

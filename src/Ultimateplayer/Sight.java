@@ -12,7 +12,7 @@ import java.util.TreeSet;
  */
 public class Sight {
 
-    static final int MAXTREES = 10;
+    static final int MAXTREES = 16;
     static final float distFactor = 20f;
     static final float angleFactor = 100f;
 
@@ -28,8 +28,12 @@ public class Sight {
     static float distMin;
     static float currentAngle;
 
+    static float sighteps = 0.01f;
+
+    static boolean closed;
+
     static void encodeObstacle(MapLocation myPos, MapLocation obstacleLoc, float radius){
-        float angle = (float)Math.asin(radius/myPos.distanceTo(obstacleLoc));
+        float angle = (float)Math.asin(radius/myPos.distanceTo(obstacleLoc)) + sighteps;
         if (baseDir == null) baseDir = myPos.directionTo(obstacleLoc).rotateRightRads(angle);
 
         float right = baseDir.radiansBetween(myPos.directionTo(obstacleLoc).rotateRightRads(angle));
@@ -92,7 +96,7 @@ public class Sight {
         MapLocation myPos = rc.getLocation();
         float distToMax = Math.abs(Map.maxX - myPos.x);
         if (distToMax < sightRange){
-            float ang = (float)Math.acos(distToMax/sightRange);
+            float ang = (float)Math.acos(distToMax/sightRange)+ sighteps;
             float right = baseDir.radiansBetween(Direction.getEast().rotateRightRads(ang));
             float left = baseDir.radiansBetween(Direction.getEast().rotateLeftRads(ang));
 
@@ -122,7 +126,7 @@ public class Sight {
 
         distToMax = Math.abs(Map.minX - myPos.x);
         if (distToMax < sightRange){
-            float ang = (float)Math.acos(distToMax/sightRange);
+            float ang = (float)Math.acos(distToMax/sightRange)+ sighteps;
             float right = baseDir.radiansBetween(Direction.getWest().rotateRightRads(ang));
             float left = baseDir.radiansBetween(Direction.getWest().rotateLeftRads(ang));
 
@@ -152,7 +156,7 @@ public class Sight {
 
         distToMax = Math.abs(Map.minY - myPos.y);
         if (distToMax < sightRange){
-            float ang = (float)Math.acos(distToMax/sightRange);
+            float ang = (float)Math.acos(distToMax/sightRange)+ sighteps;
             float right = baseDir.radiansBetween(Direction.getSouth().rotateRightRads(ang));
             float left = baseDir.radiansBetween(Direction.getSouth().rotateLeftRads(ang));
 
@@ -182,7 +186,7 @@ public class Sight {
 
         distToMax = Math.abs(Map.maxY - myPos.y);
         if (distToMax < sightRange){
-            float ang = (float)Math.acos(distToMax/sightRange);
+            float ang = (float)Math.acos(distToMax/sightRange)+ sighteps;
             float right = baseDir.radiansBetween(Direction.getNorth().rotateRightRads(ang));
             float left = baseDir.radiansBetween(Direction.getNorth().rotateLeftRads(ang));
 
@@ -217,6 +221,7 @@ public class Sight {
         openObstacles = new TreeSet<>();
         currentAngle = 0;
         gradientX = 0;gradientY = 0;
+        closed = true;
 
         getTrees(rc, loc, rc.getType().bodyRadius, radius);
 
@@ -227,10 +232,15 @@ public class Sight {
 
         intervals = new int[2*Ti.length + 2*Ri.length + 8];
 
+        boolean neutral = false;
+
 
         for (TreeInfo ti : Ti){
+            if (ti.getTeam() != rc.getTeam()) neutral = true;
             encodeObstacle(loc, ti.getLocation(), ti.getRadius());
         }
+
+        if (!neutral) closed = false;
 
         for (RobotInfo ri: Ri){
             if (ri.getID() == rc.getID()) continue;
@@ -253,7 +263,9 @@ public class Sight {
 
         MapLocation prevPoint = loc.add(baseDir, distMin);
 
+
         for (int i = 0; i < intervals.length; ++i){
+            if (distMin == sightRange) closed = false;
             int a = intervals[i];
             //rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
 
@@ -301,6 +313,8 @@ public class Sight {
             }
             //rc.setIndicatorDot(loc.add(baseDir.rotateLeftRads(currentAngle), distMin), 0, 0, 255);
         }
+
+        if (distMin == sightRange) closed = false;
 
         float angle = 2.0f*(float)Math.PI;
         if (distMin == sightRange){
