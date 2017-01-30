@@ -290,7 +290,7 @@ public class Gardener {
         }
         try {
             TreeInfo tree = rc.senseTreeAtLocation(centerIWant);
-            if (tree != null && !lumberjackBuilt)
+            if (tree != null)
                 Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
         } catch (GameActionException e) {
             e.printStackTrace();
@@ -471,7 +471,7 @@ public class Gardener {
             System.out.println("- unit = -1");
             return false;
         }
-        if (unit == Constants.LUMBERJACK && lumberjackBuilt) {
+        if (unit == Constants.LUMBERJACK && lumberjackBuilt && rc.getTeamBullets() < 500) {
             System.out.println("- Ja he fet un lumberjack");
             return false;
         }
