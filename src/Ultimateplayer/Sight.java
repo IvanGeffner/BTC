@@ -13,6 +13,8 @@ import java.util.TreeSet;
 public class Sight {
 
     static final int MAXTREES = 16;
+    static final float offset = 1.0f;
+    static final float sideoffset = 1.5f;
     static final float distFactor = 20f;
     static final float angleFactor = 100f;
 
@@ -33,7 +35,7 @@ public class Sight {
     static boolean closed;
 
     static void encodeObstacle(MapLocation myPos, MapLocation obstacleLoc, float radius){
-        float angle = (float)Math.asin(radius/myPos.distanceTo(obstacleLoc)) + sighteps;
+        float angle = (float)Math.asin((radius + offset) /myPos.distanceTo(obstacleLoc)) + sighteps;
         if (baseDir == null) baseDir = myPos.directionTo(obstacleLoc).rotateRightRads(angle);
 
         float right = baseDir.radiansBetween(myPos.directionTo(obstacleLoc).rotateRightRads(angle));
@@ -94,7 +96,7 @@ public class Sight {
 
     static void addMapBounds(RobotController rc){
         MapLocation myPos = rc.getLocation();
-        float distToMax = Math.abs(Map.maxX - myPos.x);
+        float distToMax = Math.abs(Map.maxX - myPos.x) - sideoffset;
         if (distToMax < sightRange){
             float ang = (float)Math.acos(distToMax/sightRange)+ sighteps;
             float right = baseDir.radiansBetween(Direction.getEast().rotateRightRads(ang));
