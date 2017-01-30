@@ -20,7 +20,7 @@ public class Gardener {
     private static boolean firstGardener;
 
     private static int[] firstQueue = {2,5,5,2,5,5,2,5};
-    private static int[] normalQueue = {5,2,5,5,2,5,5};
+    private static int[] normalQueue = {5,2,5,5,5,5,5};
     private static int[] myQueue;
     private static int queueIndex = 0;
 
@@ -153,7 +153,6 @@ public class Gardener {
             if(m[0] == Constants.GARDENER){
                 if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
             }
-            if(rc.getLocation().distanceSquaredTo(sender) > 10.0f) return -1;
         }
         return m[3];
     }
@@ -228,7 +227,7 @@ public class Gardener {
             MapLocation newCenter = ZoneG.center(newZone);
             if (Map.distToEdge(newCenter) < 1f) continue;
             float distToZone = rc.getLocation().distanceTo(newCenter);
-            if (Constants.DEBUG == 1) rc.setIndicatorDot(newCenter,(int)Math.min(255,distToZone*15),0,0);
+            //if (Constants.DEBUG == 1) rc.setIndicatorDot(newCenter,(int)Math.min(255,distToZone*15),0,0);
             if (zoneType == Constants.emptyZone && distToZone < minDist){
                 closest_empty_zone = newZone;
                 minDist = distToZone;
@@ -425,6 +424,10 @@ public class Gardener {
             System.out.println("- No te els requisits per construir");
             return false;
         }
+        if (!shouldBuildUnit()){
+            System.out.println("- No fa units perque te veins");
+            return false;
+        }
         //if (!Build.allowedToConstruct(unit)) {
         //System.out.println("No tinc prou bales per construir " + unit);
         //System.out.println("Tinc " + rc.getTeamBullets() + " i calen " + totalBulletCost(unit));
@@ -494,11 +497,31 @@ public class Gardener {
     }
 
     private static boolean shouldBuildSixTrees(){
+        return true;/*
         float minHP = 10;
         if (rc.getHealth() < minHP) return true;
         MapLocation myPos = rc.getLocation();
         for (RobotInfo enemy: ZoneG.enemies){
             if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
+        }
+        return false;*/
+    }
+
+    private static boolean shouldBuildUnit(){
+        if (!ZoneG.hasValue(zone)) return true;
+        for (int i = 0; i < 6; i++){
+            MapLocation tree = ZoneG.hexPos[i];
+            try {
+                if(rc.senseTreeAtLocation(tree) != null) continue;
+                int j = (i+1)%6;
+                RobotInfo r1 = rc.senseRobotAtLocation(ZoneG.neighbors[i]);
+                RobotInfo r2 = rc.senseRobotAtLocation(ZoneG.neighbors[j]);
+                if (r1 != null && r1.getTeam() == rc.getTeam() && r1.getType() == RobotType.GARDENER) continue;
+                if (r2 != null && r2.getTeam() == rc.getTeam() && r2.getType() == RobotType.GARDENER) continue;
+                return true;
+            } catch (GameActionException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }

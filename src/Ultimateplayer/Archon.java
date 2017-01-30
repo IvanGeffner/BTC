@@ -367,12 +367,13 @@ public class Archon {
         try {
             int channel = Communication.GARD_COUNT;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            int count = 0;
-            for(int i = initialMessageGardCount; i != lastMessage;) {
+            int count = lastMessage - initialMessageGardCount;
+            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
+            /*for(int i = initialMessageGardCount; i != lastMessage;) {
                 count++;
                 ++i;
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-            }
+            }*/
             System.out.println(aliveGardeners + " alive gardeners");
             aliveGardeners = count;
             initialMessageGardCount = lastMessage;

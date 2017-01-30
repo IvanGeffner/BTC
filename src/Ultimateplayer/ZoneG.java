@@ -33,6 +33,7 @@ public class ZoneG {
     static int turnsResetZone = 50;
 
     static MapLocation[] hexPos = new MapLocation[6];
+    static MapLocation[] neighbors = new MapLocation[6];
     private static MapLocation[] newTankPos = new MapLocation[buildPositionsPerZone];
 
     // 0 = lliure, 1 = arbre aliat, 2 = altre arbre, 3 = tropa, 4 = fora mapa
@@ -230,7 +231,8 @@ public class ZoneG {
         broadcastInfo(assignedZone, Constants.busyZone);
 
         for (int i = 0; i < treesPerZone; i++){
-            hexPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.02f);
+            hexPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI*i/3),2.01f);
+            neighbors[i] = center.add(Direction.EAST.rotateLeftRads((float)Math.PI*i/3),5.5f);
             newTankPos[i] = center.add(dBase.rotateLeftRads((float)Math.PI/6).rotateLeftRads((float)Math.PI*i/3),3.02f);
         }
 
@@ -281,6 +283,21 @@ public class ZoneG {
             }
             return -1;
         }
+
+        for (int i = 0; i < 6; i++){
+            int j = (i+1)%6;
+            if (hexStatus[i] == 0){
+                try {
+                    RobotInfo r1 = rc.senseRobotAtLocation(ZoneG.neighbors[i]);
+                    RobotInfo r2 = rc.senseRobotAtLocation(ZoneG.neighbors[j]);
+                    if (r1 != null && r1.getTeam() == rc.getTeam() && r1.getType() == RobotType.GARDENER) return i;
+                    if (r2 != null && r2.getTeam() == rc.getTeam() && r2.getType() == RobotType.GARDENER) return i;
+                } catch (GameActionException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
         int lastIndex = -1;
         for (int i = 0; i < 6; i++){
             Direction d = rc.getLocation().directionTo(hexPos[i]);
