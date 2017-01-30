@@ -135,7 +135,7 @@ public class Soldier {
             maxScore = 0;
         }
 
-        if (rc.getLocation().distanceTo(enemyBase) < 5.0f){
+        if (enemyBase != null && rc.getLocation().distanceTo(enemyBase) < 5.0f){
             enemyBase = null;
         }
 
