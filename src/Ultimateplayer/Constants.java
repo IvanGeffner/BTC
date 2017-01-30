@@ -22,7 +22,7 @@ public class Constants {
 
     public static int MAX_ROBOTS = 250;
     public static int LAST_ROUND_BUILD = 2900;
-    public static float BULLET_LIMIT = 2500;
+    public static float BULLET_LIMIT = 1000;
 
     public static float rotationAngle = 4.0f*(float)Math.PI/13.0f;
     public static float pushTarget = 5.0f;

@@ -20,3 +20,7 @@ Idees random:
 - improve gradient
 - no malgastar bales
 - fer greedy amb el path de les bales
+- arreglar el posicionament del primer pages
+- que els pagesos es comuniquin per saber quins s'han de tancar
+- que les tropes enviin senyal de construir lumberjack quan veuen tree amb goodies
+- canviar distribucio hexs
