@@ -147,7 +147,7 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (sortedEnemies.length > 0){
                     MapLocation enemyLoc = sortedEnemies[0].getLocation();
-                    if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) >= Math.PI/2 + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                    if (moveSafely(rc, rc.getLocation.directionTo(enemyLoc), dirGreedy)) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 
@@ -201,6 +201,16 @@ public class Greedy {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static boolean moveSafely (RobotController rc, Direction dir1, Direction dir){
+        float a = rc.getType().bodyRadius + GameConstants.BULLET_SPAWN_OFFSET;
+        float b = rc.getType().strideRadius;
+        float c = rc.getType().bodyRadius;
+        float angle = (a*a + b*b - c*c)/(2.0f*a*b);
+        angle = (float)Math.acos(angle);
+
+        return (Math.abs(dir1.radiansBetween(dir)) > angle + Constants.pentadAngle2 + Constants.eps);
     }
 
     static void sortEnemies(RobotController rc){
