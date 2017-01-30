@@ -213,17 +213,6 @@ public class Lumberjack {
             e.printStackTrace();
         }
         try {
-        	/*
-            int channel = Communication.ENEMYCHANNEL;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            for(int i = initialMessageEnemy; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGESLUMBERJACK;)
-            {
-                int a = rc.readBroadcast(channel + i);
-                workMessageEnemyUnit(a);
-                ++i;
-            }
-            initialMessageEnemy = lastMessage;
-			*/
 
             int channel = Communication.STOPCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
@@ -245,12 +234,33 @@ public class Lumberjack {
     {
         int[] m = Communication.decode(a);
         MapLocation unitTreePos = new MapLocation(m[1], m[2]);
-        //System.out.println("Unit Cost in this tree: " + m[3]);
-        //System.out.println("sent by: " + m[0]);
-        if(rc.canSenseLocation(unitTreePos)) return;
+        if(seeingThisTree(unitTreePos)) return; 
         if(m[3] == 1000 || m[3] == -1 || m[3] == 80) m[3] = Constants.ARCHONVALUE;
         calculateNewTarget(unitTreePos, m[3]/ Constants.CONVERSIONBULLETCOST, m[0] != Constants.SCOUT);
     }
+    
+    static boolean seeingThisTree(MapLocation unitTreePos)
+    {
+    	try
+    	{
+	    	if(rc.canSenseLocation(unitTreePos)) return true; 
+	    	Direction toTree = rc.getLocation().directionTo(unitTreePos); 
+	    	MapLocation intersec = rc.getLocation().add(toTree,RobotType.LUMBERJACK.sensorRadius - Constants.eps);
+	    	TreeInfo ti = rc.senseTreeAtLocation(intersec);
+	    	if(ti!= null)
+	    	{
+	    		float R = ti.getRadius(); 
+	    		float dist = intersec.distanceTo(unitTreePos); 
+	    		if(R > dist) return true; 
+	    	}
+    	} catch (GameActionException e)
+    	{
+    		System.out.println(e.getMessage());
+    		e.printStackTrace(); 
+    	}
+    	return false; 
+    }
+    
     static void workMessageEnemyTree(int a)
     {
         int[] m = Communication.decode(a);

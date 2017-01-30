@@ -108,7 +108,7 @@ public class Constants {
 
 
     //LUMBIS
-    static float CONVERSIONBULLETCOST = 12.5f;
+    static float CONVERSIONBULLETCOST = 25f;
     static float BASESCORELUMBERJACK = 0.003f;
     static float ENEMYTREESCORE = 7.5f;
     static float NEUTRALTREESCORE = 5.0f;
