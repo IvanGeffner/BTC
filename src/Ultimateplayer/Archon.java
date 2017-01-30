@@ -192,7 +192,7 @@ public class Archon {
         }
         broadcastLocations();
         Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
-        System.out.println("Map bounds: " + Map.minX + "/" + Map.maxX + "  " + Map.minY + "/" + Map.maxY);
+        checkSuicide();
     }
 
 
@@ -311,6 +311,7 @@ public class Archon {
             }
             if (rc.canBuildRobot(RobotType.GARDENER,dirBuild)){
                 rc.buildRobot(RobotType.GARDENER,dirBuild);
+                Build.incrementRobotsBuilt();
                 rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
                 System.out.println("- Faig pages ");
                 turnsSinceAllowed = 0;
@@ -600,6 +601,21 @@ public class Archon {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private static void checkSuicide(){
+        try {
+            int previousSuicides = rc.readBroadcast(Communication.ARCHONS_SUICIDED);
+            if (rc.getRoundNum() < 200 + previousSuicides) return;
+            int gardsBuilt = rc.readBroadcast(Communication.HAS_BUILT_GARDENER);
+            int robotsBuilt = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            if (rc.getInitialArchonLocations(rc.getTeam()).length == 1 && gardsBuilt == 0) return;
+            if (robotsBuilt > 1) return;
+            rc.broadcast(Communication.ARCHONS_SUICIDED, previousSuicides + 1);
+            rc.disintegrate();
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
 }

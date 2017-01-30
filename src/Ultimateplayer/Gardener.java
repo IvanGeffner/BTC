@@ -477,6 +477,7 @@ public class Gardener {
             try {
                 System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
                 rc.buildRobot(Constants.getRobotTypeFromIndex(unit),dirToBuild);
+                Build.incrementRobotsBuilt();
                 if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
                 if (unit == Constants.SCOUT) rc.broadcast(Communication.SCOUT_LAST_TURN_BUILT,rc.getRoundNum());
                 return true;
@@ -533,7 +534,7 @@ public class Gardener {
         float minHP = 10;
         if (rc.getHealth() < minHP) return true;
         float ratio = (float)closedGardeners / (float)aliveGardeners;
-        if (ratio < 0.6 && aliveGardeners - closedGardeners > 1) return true;
+        if (ratio < 0.5 && aliveGardeners - closedGardeners > 1) return true;
         MapLocation myPos = rc.getLocation();
         for (RobotInfo enemy: ZoneG.enemies){
             if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;

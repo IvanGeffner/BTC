@@ -171,7 +171,7 @@ public class Constants {
 
     static float costOfVictoryPoints(int round)
     {
-        float cost = 12.5f/(2999.0f)*((float)round-1.0f)+7.5f;
+        float cost = 12.5f/(2999.0f)*((float)round)+7.5f;
         return cost;
     }
 

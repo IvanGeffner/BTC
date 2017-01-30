@@ -36,7 +36,10 @@ public class Bot {
         try {
             float cost = Constants.costOfVictoryPoints(rc.getRoundNum());
             if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/cost >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
-            if (rc.getTeamBullets() > Constants.BULLET_LIMIT) rc.donate(((int)(rc.getTeamBullets()-Constants.BULLET_LIMIT)/cost) * cost);
+            float extraBullets = rc.getTeamBullets()-Constants.BULLET_LIMIT;
+            int extraVP = (int)extraBullets/(int)cost;
+            float toDonate = extraVP * cost;
+            if (toDonate > 0) rc.donate(toDonate);
             if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
                 float donation = Math.max(0, rc.getTeamBullets() - 20);
                 if (donation > 20) ;

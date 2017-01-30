@@ -166,4 +166,14 @@ public class Build {
         if (minAngle < 100) return baseDir.rotateLeftRads(minAngle);
         return null;
     }
+
+
+    static void incrementRobotsBuilt(){
+        try {
+            int robots_built = rc.readBroadcast(Communication.ROBOTS_BUILT);
+            rc.broadcast(Communication.ROBOTS_BUILT, robots_built + 1);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
 }
