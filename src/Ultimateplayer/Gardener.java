@@ -427,20 +427,31 @@ public class Gardener {
             System.out.println("- Decideixo fer arbre");
             tryPlanting();
         }else {
+            boolean soldierInSight = false;
+            for (RobotInfo ally: ZoneG.allies){
+                if (ally.getType() == RobotType.SOLDIER) soldierInSight = true;
+            }
+
             if (soldiersSkipped > 0){
                 //si s'ha saltat algun soldat de la cua i no en veu cap, intenta fer-ne un
-                boolean soldierInSight = false;
-                for (RobotInfo ally: ZoneG.allies){
-                    if (ally.getType() == RobotType.SOLDIER) soldierInSight = true;
-                }
                 if (!soldierInSight) {
                     System.out.println("- Intento fer un soldat que m'he saltat");
                     boolean built = tryConstructUnit(Constants.SOLDIER);
                     if (built) soldiersSkipped--;
                 }
             }
+
             if (queueIndex < myQueue.length) {
-                System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + myQueue[queueIndex]);
+                int unit = myQueue[queueIndex];
+                System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + unit);
+                if (soldierInSight && unit == Constants.SOLDIER){
+                    //Si veig un soldat, no el construeixo
+                    queueIndex++;
+                    soldiersSkipped++;
+                    System.out.println("- Em toca soldat pero ja en veig un, provo arbre");
+                    tryPlanting();
+                    return;
+                }
                 boolean built = tryConstructUnit(myQueue[queueIndex]);
                 if (built) queueIndex++;
                 else if (myQueue[queueIndex] == Constants.SOLDIER){
@@ -493,11 +504,23 @@ public class Gardener {
         //return;
         //}
         RobotType newRobotType = Constants.getRobotTypeFromIndex(unit);
-        Direction enemyDir = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
+        Direction dirToBuild = rc.getLocation().directionTo(rc.getInitialArchonLocations(rc.getTeam().opponent())[0]);
+        if (unit == Constants.LUMBERJACK){
+            Direction bestDir = null;
+            float minDist = 9999;
+            for (TreeInfo tree: ZoneG.neutralTrees){
+                if (rc.getLocation().distanceTo(tree.getLocation()) - tree.getRadius() < minDist){
+                    minDist = rc.getLocation().distanceTo(tree.getLocation()) - tree.getRadius();
+                    bestDir = rc.getLocation().directionTo(tree.getLocation());
+                }
+            }
+            if (bestDir != null) dirToBuild = bestDir;
+        }
+
         float r;
         if (unit == Constants.TANK) r = 2;
         else r = 1;
-        Direction dirToBuild = Build.findDirectionToBuild(enemyDir,r);
+        dirToBuild = Build.findDirectionToBuild(dirToBuild,r);
         if (dirToBuild == null) return false;
         if (rc.canBuildRobot(newRobotType,dirToBuild)){
             try {
