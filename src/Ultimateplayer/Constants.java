@@ -71,7 +71,7 @@ public class Constants {
     public static float EMERGENCYSCORE = 25f;
 
     public static final int COSTCYCLE1 = 135;
-    public static final int COSTCYCLE2 = 200;
+    public static final int COSTCYCLE2 = 400;
     public static final int COSTSORT = 120;
     public static final int COSTSELECTION = 33;
 
@@ -82,7 +82,7 @@ public class Constants {
 
     public static float interaction_dist_from_edge = 1f;
 
-    public static final int BYTECODEATSHOOTING = 7500;
+    public static final int BYTECODEATSHOOTING = 12500;
 
     public static int NUMELEMENTS = 5;
 
