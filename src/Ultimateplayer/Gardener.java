@@ -413,6 +413,7 @@ public class Gardener {
                 if (rc.getRoundNum() - last_round_scout_alive < 3 ||
                         rc.getRoundNum() - last_round_scout_built < 23){
                     System.out.println("- Ja hi ha un scout");
+                    return false;
                 }
             } catch (GameActionException e) {
                 e.printStackTrace();
