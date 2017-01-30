@@ -200,7 +200,7 @@ public class Shoot {
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad),255,255,0);
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/12)),255,255,0);
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/6)),255,255,0);
-                            rc.firePentadShot(d);
+                            rc.firePentadShot(dirPentad);
                             return true;
                         }
                     }
