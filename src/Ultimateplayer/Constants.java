@@ -29,6 +29,7 @@ public class Constants {
 
     //SOLDIERS, TANKS
     public static float ENEMYBASESCORE = 0.0001f;
+    public static float ENEMYBASESCOREEARLY = 10000;
     public static int BYTECODEPOSTENEMYMESSAGES = 9250;
     public static int BYTECODEPOSTEMERGENCYMESSAGES = 9000;
     public static int BYTECODEPOSTSTOPMESSAGES = 8750;

@@ -63,8 +63,17 @@ public class Soldier {
                         adjustTarget();
 
                         //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
-
-                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                        if (realTarget == null){
+                            int x = Math.round(rc.getLocation().x);
+                            int y = Math.round(rc.getLocation().y);
+                            Communication.sendMessage(rc, Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSCOUT);
+                            RandomMovement.updateTarget(rc);
+                            Greedy.moveGreedy(rc, RandomMovement.randomTarget, Constants.BYTECODEATSHOOTING);
+                        }
+                        else {
+                            RandomMovement.resetRandom(rc);
+                            Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
+                        }
                     }
                 }
             }catch (Exception e) {
@@ -126,8 +135,16 @@ public class Soldier {
             maxScore = 0;
         }
 
-        updateNewTarget(enemyBase, Constants.ENEMYBASESCORE, true);
+        if (rc.getLocation().distanceTo(enemyBase) < 5.0f){
+            enemyBase = null;
+        }
+
+        if (enemyBase != null) {
+            if (rc.getRoundNum() < 200) updateNewTarget(enemyBase, Constants.ENEMYBASESCOREEARLY, true);
+            else updateNewTarget(enemyBase, Constants.ENEMYBASESCORE, true);
+        }
     }
+
 
     static void adjustTarget(){
         try {
