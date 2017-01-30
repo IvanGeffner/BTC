@@ -34,7 +34,7 @@ public class ZoneG {
     private static int treesPerZone = 6;
     static int buildPositionsPerZone = 6;
 
-    static int turnsResetZone = 50;
+    static int turnsResetZone = 30;
 
     static MapLocation[] hexPos = new MapLocation[6];
     static MapLocation[] neighbors = new MapLocation[6];
@@ -320,9 +320,9 @@ public class ZoneG {
             int j = (i+1)%6;
             if (hexStatus[i] == 0){
                 try {
-                    RobotInfo r1 = rc.senseRobotAtLocation(ZoneG.neighbors[i]);
+                    //RobotInfo r1 = rc.senseRobotAtLocation(ZoneG.neighbors[i]);
                     RobotInfo r2 = rc.senseRobotAtLocation(ZoneG.neighbors[j]);
-                    if (r1 != null && r1.getTeam() == rc.getTeam() && r1.getType() == RobotType.GARDENER) return i;
+                    //if (r1 != null && r1.getTeam() == rc.getTeam() && r1.getType() == RobotType.GARDENER) return i;
                     if (r2 != null && r2.getTeam() == rc.getTeam() && r2.getType() == RobotType.GARDENER) return i;
                     Direction dirHex = rc.getLocation().directionTo(hexPos[i]);
                     if (!rc.onTheMap(rc.getLocation().add(dirHex, 5f))) return i;
