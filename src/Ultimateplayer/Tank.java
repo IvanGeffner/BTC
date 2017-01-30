@@ -140,7 +140,7 @@ public class Tank {
         }
 
         if (enemyBase != null) {
-            if (rc.getRoundNum() < 200) updateNewTarget(enemyBase, Constants.ENEMYBASESCOREEARLY, true);
+            if (rc.getRoundNum() < Constants.EARLYTURNS) updateNewTarget(enemyBase, Constants.ENEMYBASESCOREEARLY, true);
             else updateNewTarget(enemyBase, Constants.ENEMYBASESCORE, true);
         }
     }
