@@ -34,17 +34,14 @@ public class Bot {
 
     static void donate(RobotController rc) {
         try {
-            float cost = Constants.costOfVictoryPoints(rc.getRoundNum());
+            float cost = rc.getVictoryPointCost();
             if(rc.getTeamVictoryPoints() + rc.getTeamBullets()/cost >= Constants.MAXVICTORYPONTS) rc.donate(rc.getTeamBullets());
-            float extraBullets = rc.getTeamBullets()-Constants.BULLET_LIMIT;
+            float extraBullets;
+            if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) extraBullets = Math.max(0, rc.getTeamBullets() - 20);
+            else extraBullets = rc.getTeamBullets()-Constants.BULLET_LIMIT;
             int extraVP = (int)extraBullets/(int)cost;
             float toDonate = extraVP * cost;
             if (toDonate > 0) rc.donate(toDonate);
-            if (rc.getRoundNum() > Constants.LAST_ROUND_BUILD) {
-                float donation = Math.max(0, rc.getTeamBullets() - 20);
-                if (donation > 20) ;
-                rc.donate(donation);
-            }
         } catch (GameActionException e) {
             e.printStackTrace();
         }

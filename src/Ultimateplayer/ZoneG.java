@@ -12,6 +12,10 @@ public class ZoneG {
 
     static MapLocation center;
 
+
+    private static int initialMessageGardCount = 0;
+    private static int initialMessageClosedGard = 0;
+
     private static float zoneOriginX;
     private static float zoneOriginY;
     static MapLocation zoneOrigin;
@@ -45,6 +49,9 @@ public class ZoneG {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] allTrees;
 
+    static int aliveGardeners;
+    static int closedGardeners;
+
     static void init(RobotController rc2){
         rc = rc2;
     }
@@ -54,6 +61,7 @@ public class ZoneG {
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         allTrees = rc.senseNearbyTrees();
+        readMessages();
         if (!hasValue(zone)) freeSpots = 6;
         else freeSpots = freeSpots();
         System.out.println("Envia "+ freeSpots + " free spots");
@@ -61,6 +69,34 @@ public class ZoneG {
         if (surroundings[1] + surroundings[4] == 6){
             System.out.println("Envia pages tancat");
             Communication.sendMessage(Communication.CLOSED_GARDENERS,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
+        }
+    }
+
+    static void readMessages(){
+        try {
+            int channel = Communication.GARD_COUNT;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int count = lastMessage - initialMessageGardCount;
+            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
+            System.out.println(aliveGardeners + " alive gardeners");
+            aliveGardeners = count;
+            initialMessageGardCount = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
+            int channel = Communication.CLOSED_GARDENERS;
+            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
+            int count = lastMessage - initialMessageClosedGard;
+            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
+            System.out.println(closedGardeners + " closed gardeners");
+            closedGardeners = count;
+            initialMessageClosedGard = lastMessage;
+        } catch (GameActionException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -288,23 +324,42 @@ public class ZoneG {
                     RobotInfo r2 = rc.senseRobotAtLocation(ZoneG.neighbors[j]);
                     if (r1 != null && r1.getTeam() == rc.getTeam() && r1.getType() == RobotType.GARDENER) return i;
                     if (r2 != null && r2.getTeam() == rc.getTeam() && r2.getType() == RobotType.GARDENER) return i;
+                    Direction dirHex = rc.getLocation().directionTo(hexPos[i]);
+                    if (!rc.onTheMap(rc.getLocation().add(dirHex, 5f))) return i;
                 } catch (GameActionException e) {
                     e.printStackTrace();
                 }
             }
         }
 
-        int lastIndex = -1;
+        if (surroundings[1] == 5 && !shouldBuildSixTrees()) return -1;
+
+        float maxAngle = 0;
+        int bestIndex = -1;
         for (int i = 0; i < 6; i++){
+            if (hexStatus[i] != 0) continue;
             Direction d = rc.getLocation().directionTo(hexPos[i]);
-            if (hexStatus[i] == 0){
-                if (Math.abs(d.degreesBetween(enemyDir)) > 30) return i;
-                lastIndex = i;
+            if (Math.abs(d.radiansBetween(enemyDir)) > maxAngle){
+                maxAngle = Math.abs(d.radiansBetween(enemyDir));
+                bestIndex = i;
             }
         }
-        if (lastIndex != -1) return lastIndex;
-        return -1;
+        return bestIndex;
     }
+
+
+    private static boolean shouldBuildSixTrees(){
+        float minHP = 10;
+        if (rc.getHealth() < minHP) return true;
+        float ratio = (float)closedGardeners / (float)aliveGardeners;
+        if (ratio < 0.2 && aliveGardeners - closedGardeners > 1) return true;
+        MapLocation myPos = rc.getLocation();
+        for (RobotInfo enemy: ZoneG.enemies){
+            if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
+        }
+        return false;
+    }
+
 
     static boolean shouldRequestLumberjack(){
         //si no te cap lloc lliure i hi ha algun arbre neutral/enemic

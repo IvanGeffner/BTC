@@ -12,18 +12,14 @@ public class Gardener {
     private static MapLocation realTarget;
     private static int initialMessageNeedTroop = 0;
     private static int initialMessageEmergency = 0;
-    private static int initialMessageGardCount = 0;
-    private static int initialMessageClosedGard = 0;
     static boolean lumberjackBuilt = false;
     static boolean shouldBuildTroop = false;
     static boolean shouldBuildLumber = false;
     static boolean shouldBuildScout = false;
     static boolean myFirstTurn = true;
-    static int aliveGardeners;
-    static int closedGardeners;
     private static boolean firstGardener;
 
-    private static int[] firstQueue = {2,5,5,2,5,5,2,5};
+    private static int[] firstQueue = {2,5,5,2,5,5,2,5,5};
     private static int[] normalQueue = {5,2,5,5,5,5,5};
     private static int[] myQueue;
     private static int soldiersSkipped = 0;
@@ -150,31 +146,7 @@ public class Gardener {
             e.printStackTrace();
         }
 
-        try {
-            int channel = Communication.GARD_COUNT;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            int count = lastMessage - initialMessageGardCount;
-            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
-            System.out.println(aliveGardeners + " alive gardeners");
-            aliveGardeners = count;
-            initialMessageGardCount = lastMessage;
-        } catch (GameActionException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
 
-        try {
-            int channel = Communication.CLOSED_GARDENERS;
-            int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            int count = lastMessage - initialMessageClosedGard;
-            if (count < 0) count += Communication.CYCLIC_CHANNEL_LENGTH;
-            System.out.println(closedGardeners + " closed gardeners");
-            closedGardeners = count;
-            initialMessageClosedGard = lastMessage;
-        } catch (GameActionException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     private static int workMessageTroopNeeded(int a) {
@@ -547,10 +519,10 @@ public class Gardener {
             System.out.println("- Massa tard per construir");
             return false;
         }
-        if (ZoneG.freeSpots < 2 && !shouldBuildSixTrees()) {
+        /*if (ZoneG.freeSpots < 2/* && !shouldBuildSixTrees()) {
             System.out.println("- Nomes tinc una posicio oberta");
             return false; //Si nomes hi ha una posicio, la reservem per robots
-        }
+        }*/
         if (shouldBuildLumber || shouldBuildTroop) {
             System.out.println("- He rebut ordres de construir tropa");
             return false; //no planta si te alguna cosa mes prioritaria
@@ -575,18 +547,6 @@ public class Gardener {
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
-        }
-        return false;
-    }
-
-    private static boolean shouldBuildSixTrees(){
-        float minHP = 10;
-        if (rc.getHealth() < minHP) return true;
-        float ratio = (float)closedGardeners / (float)aliveGardeners;
-        if (ratio < 0.5 && aliveGardeners - closedGardeners > 1) return true;
-        MapLocation myPos = rc.getLocation();
-        for (RobotInfo enemy: ZoneG.enemies){
-            if (enemy.getType() != RobotType.SCOUT && myPos.distanceTo(enemy.getLocation()) < 5) return true;
         }
         return false;
     }
