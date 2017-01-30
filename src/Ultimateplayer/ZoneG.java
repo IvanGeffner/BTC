@@ -78,8 +78,8 @@ public class ZoneG {
 
     //centre de la zona z
     static MapLocation center(int[] z){
-        //float d = 5.5f; //arrel de 28 + epsilon
-        float d = 3.5f; //2sqrt3
+        float d = 5.5f; //arrel de 28 + epsilon
+        //float d = 3.5f; //2sqrt3
         Direction v1 = Direction.EAST;
         Direction v2 = v1.rotateLeftRads((float)Math.PI/3); //Aquests dos vectors son la base de coordenades de les zones
         return zoneOrigin.add(v1,d * z[0]).add(v2,d*z[1]);
@@ -108,10 +108,14 @@ public class ZoneG {
     //els calculs son una merde pero estan be, els he trobat per internet
     static int[] getZoneFromPos(MapLocation pos){
         int[] ret = new int[2];
-        float a00 = 2f/7f; //1/(float)Math.sqrt(28);
-        float a01 = -1f/6f; //-1/(float)Math.sqrt(84);
+        //float a00 = 2f/7f;
+        //float a01 = -1f/6f;
+        //float a10 = 0f;
+        //float a11 = 1f/3f;
+        float a00 = 0.18898f; //1/(float)Math.sqrt(28);
+        float a01 = -0.10911f; //-1/(float)Math.sqrt(84);
         float a10 = 0f;
-        float a11 = 1f/3f; //2/(float)Math.sqrt(84);
+        float a11 = 0.21822f; //2/(float)Math.sqrt(84);
         float x = a00 * (pos.x - zoneOriginX) + a01 * (pos.y - zoneOriginY);
         float y = a10 * (pos.x - zoneOriginX) + a11 * (pos.y - zoneOriginY);
         float z = -x-y;
@@ -203,7 +207,8 @@ public class ZoneG {
             }
             return;
         }
-        float a = (float)Math.PI/6; //ara l'angle es 30 /// 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
+        //float a = (float)Math.PI/6; //ara l'angle es 30
+        float a = 0.713724379f; //radiants de desfase = arcsin(sqrt(3/7))
         Direction dBase = new Direction(a);
 
 
