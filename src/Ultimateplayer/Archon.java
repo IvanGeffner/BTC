@@ -395,7 +395,9 @@ public class Archon {
         else{
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
             float maxRatioToBuildGardener = 0.6f;
-            if (ratio < maxRatioToBuildGardener) shouldBuildGardener = true;
+            if (ratio < maxRatioToBuildGardener && rc.getRoundNum() > 30) shouldBuildGardener = true;
+            //if (ratio < maxRatioToBuildGardener) shouldBuildGardener = true;
+            
         }
 
     }
