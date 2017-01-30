@@ -19,7 +19,8 @@ public class Gardener {
     static boolean myFirstTurn = true;
     private static boolean firstGardener;
 
-    private static int[] firstQueue = {2,5,5,2,5,5,2,5};
+    private static int[] firstRushQueue = {2,5,2,5,5,2,5,5};
+    private static int[] firstQueue = {5,2,5,2,5,5,2,5};
     private static int[] normalQueue = {5,2,5,5,5,5};
     private static int[] myQueue;
     private static int soldiersSkipped = 0;
@@ -84,8 +85,12 @@ public class Gardener {
     //nomes es fa la primera ronda
     private static void Initialize(){
         if (rc.getRoundNum() < 5) {
-            myQueue = firstQueue;
             firstGardener = true;
+            MapLocation[] enemies = rc.getInitialArchonLocations(rc.getTeam().opponent());
+            float minDist = 9999;
+            for (MapLocation enemy: enemies) minDist = Math.min(minDist, rc.getLocation().distanceTo(enemy));
+            if (minDist < 30) myQueue = firstRushQueue;
+            else myQueue = firstQueue;
         }else {
             firstGardener = false;
             myQueue = normalQueue;
@@ -414,6 +419,7 @@ public class Gardener {
                     boolean built = tryConstructUnit(Constants.SOLDIER);
                     if (built) soldiersSkipped--;
                 }
+                if (firstGardener) return;
             }
 
             if (queueIndex < myQueue.length) {
@@ -433,7 +439,7 @@ public class Gardener {
                     queueIndex++;
                     soldiersSkipped++;
                     System.out.println("- No puc fer soldat, intento arbre");
-                    tryPlanting();
+                    if (!firstGardener) tryPlanting();
                 }
             } else {
                 System.out.println("- No em toca construir res");
