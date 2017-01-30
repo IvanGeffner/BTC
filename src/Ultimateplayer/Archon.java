@@ -660,8 +660,6 @@ public class Archon {
     	float maxDist = (float) (3.0f-3.0f*Math.sqrt(2.0f)/2.0f) + RobotType.ARCHON.bodyRadius; 
     	float myX = rc.getLocation().x; 
     	float myY = rc.getLocation().y; 
-    	System.out.println("x meva " + myX + "y meva " + myY);
-    	System.out.println(" maxX " + Map.maxX + " maxY " + Map.maxY + " minX " + Map.minX + " minY " + Map.minY);
     	boolean first = false; 
     	Direction vertical = null; 
     	Direction horizontal = null;
