@@ -688,6 +688,8 @@ public class Greedy {
         m1 = m2;
         m2 = m1.add(b.getDir(),20.0f);
 
+        float newR = Math.max(r/2, R - r + Constants.eps);
+
         dirv11 = null; dirv21 = null; dirv12 = null; dirv22 = null;
 
         Dirm1 = pos.directionTo(m1); Dirm2 = pos.directionTo(m2);
@@ -698,7 +700,7 @@ public class Greedy {
         hCoordm1 = distm1*(float) Math.sin(perp.radiansBetween(Dirm1)); hCoordm2 = distm2*(float) Math.sin(perp.radiansBetween(Dirm2));
 
 
-        dist1 = dist + R;
+        dist1 = dist + newR;
         c = dist1/r;
         if (-1 <= c && c <= 1) {
 
@@ -709,7 +711,7 @@ public class Greedy {
 
         }
 
-        dist2 = dist-R;
+        dist2 = dist-newR;
 
         c = dist2/r;
         if (-1 <= c && c <= 1) {
@@ -720,24 +722,13 @@ public class Greedy {
         }
 
         if (dirv11 == null || dirv12 == null) {
-            float t = (distm1*distm1 + rr - R * R) / (2.0f * distm1 * r);
+            float t = (distm1*distm1 + rr - newR * newR) / (2.0f * distm1 * r);
             if (-1 <= t && t <= 1) {
                 float angle = (float) Math.acos(t);
                 float hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateRightRads(angle)));
                 if (hCoord1 >= hCoordm1) dirv11 = Dirm1.rotateRightRads(angle);
                 hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateLeftRads(angle)));
                 if (hCoord1 >= hCoordm1) dirv12 = Dirm1.rotateLeftRads(angle);
-            }
-        }
-
-        if (dirv21 == null || dirv22 == null) {
-            float t = (distm2*distm2 + rr - R * R) / (2.0f * distm2 * r);
-            if (-1 <= t && t <= 1) {
-                float angle = (float) Math.acos(t);
-                float hCoord2 = r*(float)Math.sin(perp.radiansBetween(Dirm2.rotateLeftRads(angle)));
-                if (hCoord2 <= hCoordm2) dirv21 = Dirm2.rotateLeftRads(angle);
-                hCoord2 = r*(float)Math.sin(perp.radiansBetween(Dirm2.rotateRightRads(angle)));
-                if (hCoord2 <= hCoordm2) dirv22 = Dirm2.rotateRightRads(angle);
             }
         }
 
