@@ -17,7 +17,7 @@ public class RandomMovement {
         dir = null;
         float x = (float)Math.random(), y = (float)Math.random();
         if (Math.abs(x-0.5f) > Constants.eps || Math.abs(y-0.5f) > Constants.eps){
-            dir = new Direction(x,y);
+            dir = new Direction(x-0.5f,y-0.5f);
         }
         if (dir == null) resetRandom(rc);
         randomTarget = rc.getLocation().add(dir, dist);

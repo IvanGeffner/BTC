@@ -12,7 +12,7 @@ import java.util.TreeSet;
  */
 public class Sight {
 
-    static final int MAXTREES = 16;
+    static final int MAXTREES = 12;
     static final float offset = 1.0f;
     static final float sideoffset = 1.5f;
     static final float distFactor = 20f;
