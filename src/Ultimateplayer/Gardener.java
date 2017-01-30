@@ -86,7 +86,10 @@ public class Gardener {
         if (rc.getRoundNum() < 5) {
             myQueue = firstQueue;
             firstGardener = true;
-        }else myQueue = normalQueue;
+        }else {
+            firstGardener = false;
+            myQueue = normalQueue;
+        }
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
@@ -416,7 +419,7 @@ public class Gardener {
             if (queueIndex < myQueue.length) {
                 int unit = myQueue[queueIndex];
                 System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + unit);
-                if (soldierInSight && unit == Constants.SOLDIER){
+                if (!firstGardener && soldierInSight && unit == Constants.SOLDIER){
                     //Si veig un soldat, no el construeixo
                     queueIndex++;
                     soldiersSkipped++;
