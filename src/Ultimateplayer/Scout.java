@@ -90,7 +90,7 @@ public class Scout {
             }
             else {
                 realTarget = checkInsideMap(realTarget);
-                Greedy.moveGreedy(rc, realTarget, 9200);
+                Greedy.moveGreedy(rc, realTarget, 13500);
             }
 
             broadcastLocations();
@@ -138,7 +138,7 @@ public class Scout {
                 return;
             }
             if (Constants.DEBUG == 1) rc.setIndicatorDot(randomTarget, 0, 0, 255);
-            Greedy.moveGreedy(rc,randomTarget, 9200);
+            Greedy.moveGreedy(rc,randomTarget, 13500);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             e.printStackTrace();

@@ -99,8 +99,8 @@ public class Archon {
             if (realTarget == null) {
                 //if (Constants.DEBUG == 1) rc.setIndicatorDot(rc.getLocation(), 255, 0, 0);
             }else if (realTarget.distanceTo(rc.getLocation()) < Constants.eps){
-                Greedy.moveToSelf(rc,Clock.getBytecodesLeft() - 500);
-            } else Greedy.moveGreedy(rc, realTarget, Clock.getBytecodesLeft() - 500);
+                Greedy.moveToSelf(rc,28000);
+            } else Greedy.moveGreedy(rc, realTarget, 28000);
             Clock.yield();
         }
     }

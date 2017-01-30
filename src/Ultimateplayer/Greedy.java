@@ -28,11 +28,17 @@ public class Greedy {
 
     static RobotInfo[] sortedEnemies;
 
+    static float factor = 1;
+
+    static void flipFactor(){
+        factor = -factor;
+    }
+
 
 
     static MapLocation pos;
     static float R = -1, r = -1, rr;
-    static int cont, contBullets;
+    static int cont, contBullets, contSemiBullets;
     static MapLocation target;
     static Direction dir;
 
@@ -124,19 +130,7 @@ public class Greedy {
             }
             getBullets(rc);
 
-            Direction dirGreedy;
-            float expectedByteCode = Clock.getBytecodeNum();
-            expectedByteCode += Ri.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ri.length;
-            expectedByteCode += 2*RiE.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 4 * RiE.length;
-            expectedByteCode += Ti.length * Constants.COSTCYCLE1 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * Ti.length;
-            expectedByteCode += bullets.length * Constants.COSTCYCLE2 + (Constants.COSTSORT + Constants.COSTSELECTION) * 2 * bullets.length;
-
-            if (expectedByteCode < bytecodeleft) dirGreedy = greedyStep(rc, bytecodeleft);
-            else if (expectedByteCode + (Constants.COSTCYCLE1 - Constants.COSTCYCLE2 - (Constants.COSTSORT + Constants.COSTSELECTION))*bullets.length  < bytecodeleft) dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
-            else dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
-
-            //dirGreedy = greedySuperLowBytecode(rc, dir, bytecodeleft, 0);
-            //dirGreedy = greedyStepLowBytecode(rc, bytecodeleft);
+            Direction dirGreedy = greedyStep(rc, bytecodeleft);
 
             boolean shoot = true;
             if (rc.getType() == RobotType.SOLDIER || rc.getType() == RobotType.TANK){
@@ -147,7 +141,7 @@ public class Greedy {
             if (!shoot && dirGreedy != null){
                 if (sortedEnemies.length > 0){
                     MapLocation enemyLoc = sortedEnemies[0].getLocation();
-                    if (Math.abs(dirGreedy.radiansBetween(pos.directionTo(enemyLoc))) >= Math.PI/2 + Constants.eps) shoot = Shoot.tryShoot(rc, 1);
+                    if (moveSafely(rc, rc.getLocation().directionTo(enemyLoc), dirGreedy)) shoot = Shoot.tryShoot(rc, 1);
                 }
             }
 
@@ -187,7 +181,7 @@ public class Greedy {
                 //Ivan, aixo em peta quan no puc fer el rc.senserobot
                 if (obstacle != null && rc.canSenseLocation(obstacle)) {
                     RobotInfo r = rc.senseRobotAtLocation(obstacle);
-                    if (rc.getType() != RobotType.ARCHON && r != null && r.getTeam() == rc.getTeam()) {
+                    if (r != null && r.getTeam() == rc.getTeam()) {
                         Communication.sendMessage(rc, Communication.STOPCHANNEL, Math.round(obstacle.x), Math.round(obstacle.y), 0);
                     }
                 }
@@ -201,6 +195,16 @@ public class Greedy {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static boolean moveSafely (RobotController rc, Direction dir1, Direction dir){
+        float a = rc.getType().bodyRadius + GameConstants.BULLET_SPAWN_OFFSET;
+        float b = rc.getType().strideRadius;
+        float c = rc.getType().bodyRadius;
+        float angle = (a*a + b*b - c*c)/(2.0f*a*b);
+        angle = (float)Math.acos(angle);
+
+        return (Math.abs(dir1.radiansBetween(dir)) > angle + Constants.pentadAngle2 + Constants.eps);
     }
 
     static void sortEnemies(RobotController rc){
@@ -240,7 +244,7 @@ public class Greedy {
 
             //System.out.println(Clock.getBytecodeNum());
             if (bi.getLocation().distanceTo(pos) > r+R + Constants.eps && Math.abs(pos.directionTo(bi.getLocation()).radiansBetween(bi.getDir())) < Math.PI/2) continue;
-            if (bi.getLocation().distanceTo(pos) > r+R+ Constants.eps + bi.getSpeed()) continue;
+            //if (bi.getLocation().distanceTo(pos) > r+R+ Constants.eps + bi.getSpeed()) continue;
             bulletAux[cont] = bi;
             ++cont;
         }
@@ -273,198 +277,6 @@ public class Greedy {
         }
     }
 
-    public static Direction greedySuperLowBytecode(RobotController rc, Direction mainDir, int bytecodeLeft, int tries){
-
-        if (tries == 0) System.out.println("SUPER LOW BYTECODE");
-
-        if (tries >= Constants.GREEDYTRIES) return null;
-
-        if (tries == 0 && mainDir == null){
-            mainDir = new Direction ((float)Math.random(), (float)Math.random());
-            shouldMove = false;
-        } else if (tries == 0) {
-            if (target.distanceTo(pos) < r) shouldMove = false;
-            else shouldMove = true;
-        }
-
-        if (tries > 0 && rc.canMove(mainDir)) return mainDir;
-
-        obstacle = null;
-
-        MapLocation nextPos = pos.add(mainDir, r);
-
-        RobotInfo[] RI = rc.senseNearbyRobots(nextPos, R, null);
-
-        Direction dirL = mainDir, dirR = mainDir;
-        boolean scout = (rc.getType() == RobotType.SCOUT);
-
-        MapLocation obstacleLeft = null, obstacleRight = null;
-
-        for (RobotInfo ri : RI){
-
-            if (Clock.getBytecodeNum() > bytecodeLeft) break;
-
-            if (ri.getID() == rc.getID())continue;
-            MapLocation m2 = ri.getLocation();
-            Direction dir2 = pos.directionTo(m2);
-
-            float l = (R+ri.getType().bodyRadius);
-            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-            if (t <= 1 && t >= -1) {
-
-                float angle = (float) Math.acos(t) + Constants.eps;
-                Direction newDirL = dir2.rotateLeftRads(angle);
-                Direction newDirR = dir2.rotateRightRads(angle);
-                if (dirL.radiansBetween(newDirL) > 0){
-                    dirL = newDirL;
-                    obstacleLeft = m2;
-                }
-                if (dirR.radiansBetween(newDirR) < 0){
-                    obstacleRight = m2;
-                    dirR = newDirR;
-                }
-            }
-        }
-
-        if (!scout){
-            TreeInfo[] TI = rc.senseNearbyTrees(nextPos, R, null);
-            for (TreeInfo ti : TI){
-                if (Clock.getBytecodeNum() > bytecodeLeft) break;
-                MapLocation m2 = ti.getLocation();
-                Direction dir2 = pos.directionTo(m2);
-
-                float l = (R+ti.getRadius());
-                float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-                if (t <= 1 && t >= -1) {
-
-                    float angle = (float) Math.acos(t) + Constants.eps;
-                    Direction newDirL = dir2.rotateLeftRads(angle);
-                    Direction newDirR = dir2.rotateRightRads(angle);
-                    if (dirL.radiansBetween(newDirL) > 0){
-                        dirL = newDirL;
-                        obstacleLeft = m2;
-                    }
-                    if (dirR.radiansBetween(newDirR) < 0){
-                        obstacleRight = m2;
-                        dirR = newDirR;
-                    }
-                }
-            }
-        }
-
-        BulletInfo[] BI = rc.senseNearbyBullets(Constants.BULLETSIGHT);
-
-        float angL = getPositiveAngle(mainDir, dirL), angR = getPositiveAngle(mainDir, dirR);
-        if (angR == 0) angR = Constants.PI2;
-
-        for (BulletInfo bi : BI){
-            if (Clock.getBytecodeNum() > bytecodeLeft) break;
-            MapLocation m2 = bi.getLocation().add(bi.getDir(),(bi.getSpeed()/2));
-            Direction dir2 = pos.directionTo(m2);
-            float l = (R+bi.getSpeed()/2);
-
-            if (!shouldMove && target.distanceTo(m2) <= l) shouldMove = true;
-
-            //if (nextPos.distanceTo(m2) > l) continue;
-
-
-            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-            if (t <= 1 && t >= -1) {
-
-                float angle = (float) Math.acos(t) + Constants.eps;
-
-
-                Direction newDirL = dir2.rotateLeftRads(angle);
-                Direction newDirR = dir2.rotateRightRads(angle);
-
-
-                float newAngL = getPositiveAngle(mainDir, newDirL);
-                float newAngR = getPositiveAngle(mainDir, newDirR);
-
-                if (newAngL > angL){
-                    if (newAngL < angR) {
-                        angL = newAngL;
-                        dirL = newDirL;
-                    }
-                }
-
-                if (newAngR < angR){
-                    if (newAngR > angL){
-                        angR = newAngR;
-                        dirR = newDirR;
-
-                    }
-                }
-            }
-        }
-
-        if (left == 0) {
-            if (Clock.getBytecodeNum() > bytecodeLeft) return dirL;
-            if (Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps && Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps) return dirR;
-            left = -1;
-            Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
-            MapLocation auxObs;
-            if (obstacle == null) auxObs = obstacleRight;
-            else auxObs = obstacle;
-            left = 1;
-            Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
-            if (obstacle == null) obstacle = obstacleLeft;
-            if (UltimateLeft != null) {
-                if (UltimateRight == null || !rc.canMove(UltimateRight) || pos.add(UltimateLeft, r).distanceTo(target) < pos.add(UltimateRight, r).distanceTo(target))
-                    return UltimateLeft;
-                obstacle = auxObs;
-                left = -1;
-                return UltimateRight;
-            }
-            obstacle = auxObs;
-            left = -1;
-            return UltimateRight;
-
-        } else if (left == -1) {
-            if (Clock.getBytecodeNum() > bytecodeLeft) return dirR;
-            if (Math.abs(dirR.radiansBetween(mainDir)) < Constants.eps) {
-                if (rc.canMove(dirR)) {
-                    obstacle = obstacleRight;
-                    return dirR;
-                } else return null;
-            } else {
-                Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
-                if (UltimateRight != null && rc.canMove(UltimateRight)) {
-                    if (obstacle == null) obstacle = obstacleRight;
-                    return UltimateRight;
-                } else{
-                    left = 1;
-                    Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
-                    if (UltimateLeft != null && rc.canMove(UltimateLeft)) {
-                        if (obstacle == null) obstacle = obstacleLeft;
-                    }
-                    return UltimateLeft;
-                }
-            }
-        } else {
-            if (Clock.getBytecodeNum() > bytecodeLeft) return dirL;
-            if (Math.abs(dirL.radiansBetween(mainDir)) < Constants.eps) {
-                if (rc.canMove(dirL)) {
-                    obstacle = obstacleLeft;
-                    return dirL;
-                } else return null;
-            } else {
-                Direction UltimateLeft = greedySuperLowBytecode(rc, dirL, bytecodeLeft, tries + 1);
-                if (UltimateLeft != null && rc.canMove(UltimateLeft)) {
-                    if (obstacle == null) obstacle = obstacleLeft;
-                    return UltimateLeft;
-                } else {
-                    left = -1;
-                    Direction UltimateRight = greedySuperLowBytecode(rc, dirR, bytecodeLeft, tries + 1);
-                    if (UltimateRight != null && rc.canMove(UltimateRight)) {
-                        if (obstacle == null) obstacle = obstacleRight;
-                    }
-                    return UltimateRight;
-                }
-            }
-        }
-    }
-
     public static float getPositiveAngle(Direction A, Direction B){
         float a = A.radiansBetween(B);
         if (a < 0) a += Constants.PI2;
@@ -473,7 +285,7 @@ public class Greedy {
 
     public static Direction greedyStep(RobotController rc, int bytecodeLeft){
 
-        System.out.println("LOW BYTECODEE!!");
+        System.out.println("EPIC GREEDY!!");
 
 
         if (dir == null){
@@ -494,10 +306,11 @@ public class Greedy {
 
         cont = 0;
         contBullets = 0;
+        contSemiBullets = 0;
 
         //System.out.println("PRecomputation" + Clock.getBytecodeNum());
 
-        int maxLength = 2*Ti.length + 2*Ri.length + 4*RiE.length + 4*bullets.length;
+        int maxLength = 2*Ti.length + 2*Ri.length + 4*RiE.length + 8*bullets.length;
 
         intervals = new int[maxLength];
         obstacles = new int[maxLength];
@@ -524,12 +337,12 @@ public class Greedy {
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                 if (x < 0) x += Constants.PI2;
-                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
+                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 8 * (inter & 0x1F);
                 obstacles[inter] = obstacleCount;
                 ++inter;
                 float y = dir.radiansBetween(dir2.rotateRightRads(angle));
                 if (y < 0) y += Constants.PI2;
-                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
+                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 1 + 8 * (inter & 0x1F);
                 obstacles[inter] = obstacleCount;
                 ++inter;
                 if (y > x) ++cont;
@@ -559,12 +372,12 @@ public class Greedy {
 
                 float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                 if (x < 0) x += Constants.PI2;
-                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
+                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 8 * (inter & 0x1F);
                 obstacles[inter] = obstacleCount;
                 ++inter;
                 float y = dir.radiansBetween(dir2.rotateRightRads(angle));
                 if (y < 0) y += Constants.PI2;
-                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
+                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 1 + 8 * (inter & 0x1F);
                 obstacles[inter] = obstacleCount;
                 ++inter;
                 if (y > x) ++cont;
@@ -582,12 +395,12 @@ public class Greedy {
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                     if (x < 0) x += Constants.PI2;
-                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) +1+ 4 * (inter & 0x1F);
+                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 4 + 8 * (inter & 0x1F);
                     obstacles[inter] = obstacleCount;
                     ++inter;
                     float y = dir.radiansBetween(dir2.rotateRightRads(angle));
                     if (y < 0) y += Constants.PI2;
-                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3 + 4 * (inter & 0x1F);
+                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 5 + 8 * (inter & 0x1F);
                     obstacles[inter] = obstacleCount;
                     ++inter;
                     if (y > x) ++contBullets;
@@ -617,12 +430,12 @@ public class Greedy {
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                     if (x < 0) x += Constants.PI2;
-                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
+                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 8 * (inter & 0x1F);
                     obstacles[inter] = obstacleCount;
                     ++inter;
                     float y = dir.radiansBetween(dir2.rotateRightRads(angle));
                     if (y < 0) y += Constants.PI2;
-                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
+                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 1 + 8 * (inter & 0x1F);
                     obstacles[inter] = obstacleCount;
                     ++inter;
                     if (y > x) ++cont;
@@ -691,262 +504,21 @@ public class Greedy {
         }
     }
 
-    public static Direction greedyStepLowBytecode(RobotController rc, int bytecodeLeft){
-
-       //System.out.println("SUPER HIGH BYTECODEE!!");
-
-
-        if (dir == null){
-            dir = new Direction ((float)Math.random(), (float)Math.random());
-            shouldMove = false;
-        } else {
-            if (pos.distanceTo(target) < r) shouldMove = false;
-            else shouldMove = true;
-        }
-
-        inter = 0; //position at intervals
-
-        int a = 1;
-        if (left == 0) ++a;
-
-        MapLocation pos = rc.getLocation();
-        boolean scout = (rc.getType() == RobotType.SCOUT);
-
-        cont = 0;
-
-        //System.out.println("PRecomputation" + Clock.getBytecodeNum());
-
-        int maxLength = 2*Ti.length + 2*Ri.length + 4*RiE.length + 2*bullets.length;
-
-        intervals = new int[maxLength];
-        obstacles = new int[maxLength];
-
-        int obstacleCount = -1;
-
-        for (RobotInfo ri : Ri){
-            ++obstacleCount;
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
-            if (ri.getID() == rc.getID()) continue;
-
-            //CALCULA INTERVAL
-            MapLocation m2 = ri.getLocation();
-            Direction dir2 = pos.directionTo(m2);
-
-            float l = (R+ri.getType().bodyRadius);
-
-            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-
-            if (t <= 1 && t >= -1) {
-
-                float angle = (float) Math.acos(t) + Constants.eps;
-
-
-                float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                if (x < 0) x += Constants.PI2;
-                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
-                obstacles[inter] = obstacleCount;
-                ++inter;
-                float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                if (y < 0) y += Constants.PI2;
-                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
-                obstacles[inter] = obstacleCount;
-                ++inter;
-                if (y > x) ++cont;
-            }
-
-        }
-        contBullets = 0;
-
-        obstacleCount = Ri.length - 1;
-
-        for (RobotInfo ri : RiE){
-            ++obstacleCount;
-            if (Clock.getBytecodeNum() + 2* Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
-            if (ri.getID() == rc.getID()) continue;
-
-            //CALCULA INTERVAL
-            MapLocation m2 = ri.getLocation();
-            Direction dir2 = pos.directionTo(m2);
-
-            float l = (R+ri.getType().bodyRadius);
-
-            float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-
-            if (t <= 1 && t >= -1) {
-
-                float angle = (float) Math.acos(t) + Constants.eps;
-
-
-                float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                if (x < 0) x += Constants.PI2;
-                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
-                obstacles[inter] = obstacleCount;
-                ++inter;
-                float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                if (y < 0) y += Constants.PI2;
-                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
-                obstacles[inter] = obstacleCount;
-                ++inter;
-                if (y > x) ++cont;
-            }
-
-            float safe = Constants.safetyDistance(ri.getType());
-            if (safe > 0){
-                l += safe;
-                t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-
-                if (t <= 1 && t >= -1) {
-
-                    float angle = (float) Math.acos(t) + Constants.eps;
-
-
-                    float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                    if (x < 0) x += Constants.PI2;
-                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) +1+ 4 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                    if (y < 0) y += Constants.PI2;
-                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3 + 4 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    if (y > x) ++contBullets;
-                }
-            }
-
-        }
-
-        obstacleCount = Ri.length + RiE.length - 1;
-
-        if (!scout) {
-            for (TreeInfo ti : Ti) {
-                ++obstacleCount;
-                if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
-                if (ti.getID() == rc.getID()) continue;
-
-                MapLocation m2 = ti.getLocation();
-                Direction dir2 = pos.directionTo(m2);
-
-                float l = (R+ti.getRadius());
-
-                float t = (pos.distanceSquaredTo(m2) + rr - l*l)/(2.0f * pos.distanceTo(m2)*r);
-
-                if (t <= 1 && t >= -1) {
-
-                    float angle = (float) Math.acos(t) + Constants.eps;
-
-                    float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                    if (x < 0) x += Constants.PI2;
-                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 4 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                    if (y < 0) y += Constants.PI2;
-                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 2 + 4 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    if (y > x) ++cont;
-                }
-
-            }
-
-        }
-
-        for (BulletInfo bul : bullets) {
-            if (Clock.getBytecodeNum() + Constants.COSTCYCLE1 + inter*(Constants.COSTSORT + a* Constants.COSTSELECTION) >= bytecodeLeft) break;
-
-            MapLocation m2 = bul.getLocation().add(bul.getDir(), bul.getSpeed() / 2);
-            Direction dir2 = pos.directionTo(m2);
-
-            float d = pos.distanceTo(m2);
-            float l = (R + bul.getSpeed() / 2);
-
-            if (!shouldMove && target.distanceTo(m2) <= l) shouldMove = true;
-
-
-            float t = (pos.distanceSquaredTo(m2) + rr - l * l) / (2.0f * d * r);
-            if (-1 <= t && t <= 1) {
-                float angle = (float) Math.acos(t) + Constants.eps;
-
-                float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                if (x < 0) x += Constants.PI2;
-                intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 1 + 4 * (inter & 0x1F);
-                obstacles[inter] = Constants.INTINF;
-                ++inter;
-                float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                if (y < 0) y += Constants.PI2;
-                intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3 + 4 * (inter & 0x1F);
-                obstacles[inter] = Constants.INTINF;
-                ++inter;
-                if (y > x) ++contBullets;
-            }
-
-        }
-
-        if (inter < maxLength){
-            intervals = Arrays.copyOf(intervals, inter);
-            obstacles = Arrays.copyOf(obstacles, inter);
-        }
-
-        //System.out.println("PRE-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
-        if (intervals.length > 1) IfSorting.quickSortOnly(intervals);
-        //System.out.println("POST-SORT: " + intervals.length + "  " + Clock.getBytecodeNum() );
-        //Arrays.sort(intervals);
-
-        newObs = -1;
-
-        if (left != 0){
-            Direction di = bestDirection(rc, (left > 0), 0);
-            if (newObs >= 0) {
-                if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
-                else {
-                    newObs -= Ri.length;
-                    if(newObs < RiE.length){
-                        obstacle = RiE[newObs].getLocation();
-                    } else {
-                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                        else bulletDodge = rc.getRoundNum();
-                    }
-                }
-            }
-            return di;
-        } else{
-            Direction di1 =  bestDirection(rc, true, 1);
-            int aux = newObs;
-            Direction di2 =  bestDirection(rc, false, 1);
-            if (di1 != null && pos.add(di1, r).distanceTo(target) < pos.add(di2, r).distanceTo(target)){
-                newObs = aux;
-                di2 = di1;
-                left = 1;
-            }
-            if (newObs >= 0) {
-                if (newObs < Ri.length) obstacle = Ri[newObs].getLocation();
-                else {
-                    newObs -= Ri.length;
-                    if(newObs < RiE.length){
-                        obstacle = RiE[newObs].getLocation();
-                    } else {
-                        if (newObs < Ti.length) obstacle = Ti[newObs].getLocation();
-                        else bulletDodge = rc.getRoundNum();
-                    }
-                }
-            }
-            return di2;
-        }
-    }
-
 
     static Direction bestDirection(RobotController rc, boolean l, int tries){
         if (tries > 2) return null;
         Direction ans = null;
-        int minBulletcont = 999;
+        int minBulletcont = 999, minSemiBulletcont = 999;
 
         int k = -1;
 
         if (cont == 0){
-            if (contBullets == 0) return dir;
+            if (contBullets == 0){
+                if (contSemiBullets == 0) return dir;
+            }
             ans = dir;
             minBulletcont = contBullets;
+            minSemiBulletcont = contSemiBullets;
         }
 
         if (l) {
@@ -957,16 +529,19 @@ public class Greedy {
                 //System.out.println("bucle 1 " + Clock.getBytecodeNum());
                 int a = intervals[i];
 
-                if ((a&2) != 0){
-                    if ((a&1) == 0) ++cont;
-                    else ++contBullets;
+                if ((a&1) != 0){
+                    if ((a&4) == 4) ++contBullets;
+                    else if ((a&2) == 2) ++ contSemiBullets;
+                    else ++cont;
                 } else{
-                    if ((a&1) == 0) --cont;
-                    else --contBullets;
+                    if ((a&4) == 4) --contBullets;
+                    else if ((a&2) == 2) --contSemiBullets;
+                    else --cont;
                     if (cont == 0) {
-                        if (contBullets < minBulletcont) {
+                        if (contBullets < minBulletcont || (contBullets == minBulletcont && contSemiBullets < minSemiBulletcont)) {
                             minBulletcont = contBullets;
-                            float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
+                            minSemiBulletcont = contSemiBullets;
+                            float x = (float) (a >> (3 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
                             k = a;
 
                             ans = dir.rotateLeftRads(x);
@@ -980,7 +555,7 @@ public class Greedy {
             if (ans != null) {
                 if (rc.canMove(ans)) {
                     if (k >= 0) {
-                        newObs = obstacles[(k >> 2)&0x1F];
+                        newObs = obstacles[(k >> 3)&0x1F];
                         if (l) left = 1;
                         else left = -1;
                     }
@@ -995,17 +570,21 @@ public class Greedy {
 
         for (int i = intervals.length - 1; i >= 0; --i) {
             int a = intervals[i];
-            if ((a&2) == 0){
-                if ((a&1) == 0) ++cont;
-                else ++contBullets;
+            if ((a&1) == 0){
+                if ((a&4) == 4) ++contBullets;
+                else if ((a&2) == 2) ++contSemiBullets;
+                else ++cont;
             } else{
-                if ((a&1) == 0) --cont;
-                else --contBullets;
+                if ((a&4) == 4) --contBullets;
+                else if ((a&2) == 2) --contSemiBullets;
+                else --cont;
                 if (cont == 0) {
-                    if (contBullets < minBulletcont) {
+                    if (contBullets < minBulletcont || (contBullets == minBulletcont && contSemiBullets < minSemiBulletcont)) {
                         minBulletcont = contBullets;
-                        float x = (float) (a >> (2 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
+                        minSemiBulletcont = contSemiBullets;
+                        float x = (float) (a >> (3 + Constants.NUMELEMENTS)) / Constants.ANGLEFACTOR;
                         k = a;
+
                         ans = dir.rotateLeftRads(x);
                     }
                 }
@@ -1017,7 +596,7 @@ public class Greedy {
         if (ans != null) {
             if (rc.canMove(ans)){
                 if (k >= 0) {
-                    newObs = obstacles[(k >> 2)&0x1F];
+                    newObs = obstacles[(k >> 3)&0x1F];
                     if (l) left = 1;
                     else left = -1;
                 }
@@ -1028,19 +607,6 @@ public class Greedy {
             }
         }
         return null;
-    }
-
-
-    static void InsertionSort (int a, int b){
-        for (int i = a; i <= b; ++i){
-            int minj = i;
-            for (int j = i+1; j <= b; ++j){
-                if (intervals[j] < intervals[minj]) minj = j;
-            }
-            int aux = intervals[i];
-            intervals[i] = intervals[minj];
-            intervals[minj] = aux;
-        }
     }
 
     static void addIntervalsImproved (BulletInfo b){
@@ -1124,112 +690,70 @@ public class Greedy {
             else if (dirv12 != null) addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv12));
         }
 
-    }
 
-    static void addIntervals(BulletInfo b){
+        m1 = m2;
+        m2 = m1.add(b.getDir(),20.0f);
 
-        //System.out.println("Bytecode pls1: " + Clock.getBytecodeNum());
+        float newR = Math.max(r/2, R - r + Constants.eps);
 
-        try {
+        dirv11 = null; dirv21 = null; dirv12 = null; dirv22 = null;
+
+        Dirm1 = pos.directionTo(m1); Dirm2 = pos.directionTo(m2);
+        distm1 = pos.distanceTo(m1); distm2 = pos.distanceTo(m2);
+
+        dist = distm1 * (float) Math.cos(perp.radiansBetween(Dirm1));
+
+        hCoordm1 = distm1*(float) Math.sin(perp.radiansBetween(Dirm1)); hCoordm2 = distm2*(float) Math.sin(perp.radiansBetween(Dirm2));
 
 
-            MapLocation m1 = b.getLocation();
-            MapLocation m2 = m1.add(b.getDir(), b.getSpeed());
-            Direction perp = b.getDir().rotateLeftRads((float) Math.PI / 2);
+        dist1 = dist + newR;
+        c = dist1/r;
+        if (-1 <= c && c <= 1) {
 
-            if (!shouldMove && m1.add(b.getDir(), b.getSpeed()/2).distanceTo(target) <= b.getSpeed()/2 + R) shouldMove = true;
+            float ang = (float) Math.acos(c);
+            float hCoord1 = r*(float)Math.sin(ang);
+            if (hCoordm1 >= hCoord1 && hCoordm2 <= hCoord1) dirv11 = perp.rotateLeftRads(ang);
+            if (hCoordm1 >= -hCoord1 && hCoordm2 <= -hCoord1) dirv21 = perp.rotateRightRads(ang);
 
-            MapLocation V11 = m1.add(perp, R);
-            MapLocation V21 = m2.add(perp, R);
-
-            Direction DV11 = pos.directionTo(V11);
-            Direction DV21 = pos.directionTo(V21);
-
-            float dist1 = pos.distanceTo(V11) * (float) Math.cos(perp.radiansBetween(pos.directionTo(V11)));
-
-            MapLocation V12 = m1.add(perp.opposite(), R);
-            MapLocation V22 = m2.add(perp.opposite(), R);
-            Direction DV12 = pos.directionTo(V12);
-            Direction DV22 = pos.directionTo(V22);
-
-            float dist2 = pos.distanceTo(V12) * (float) Math.cos(perp.radiansBetween(pos.directionTo(V12)));
-
-            Direction dirv11 = null, dirv21 = null, dirv12 = null, dirv22 = null;
-
-            float c = dist1/r;
-            if (-1 <= c && c <= 1) {
-
-                float ang = (float) Math.acos(c);
-                dirv11 = perp.rotateLeftRads(ang);
-                if (!Mates.areOrdered(DV11, dirv11, DV21)) dirv11 = null;
-                dirv21 = perp.rotateRightRads(ang);
-                if (!Mates.areOrdered(DV11, dirv21, DV21)) dirv21 = null;
-
-            }
-
-            c = dist2/r;
-
-            if (-1 <= c && c <= 1) {
-
-                float ang2 = (float) Math.acos(c);
-                dirv12 = perp.rotateLeftRads(ang2);
-                if (!Mates.areOrdered(DV12, dirv12, DV22)) dirv12 = null;
-                dirv22 = perp.rotateRightRads(ang2);
-                if (!Mates.areOrdered(DV12, dirv22, DV22)) dirv22 = null;
-
-            }
-
-            if (dirv11 == null || dirv12 == null) {
-                float t = (pos.distanceSquaredTo(m1) + rr - R * R) / (2.0f * pos.distanceTo(m1) * r);
-                if (-1 <= t && t <= 1) {
-                    Direction d = pos.directionTo(m1);
-                    float angle = (float) Math.acos(t);
-                    float angle2 = (float)Math.acos((pos.distanceSquaredTo(m1) + R*R - rr) / (2.0f * pos.distanceTo(m1) * R));
-                    if (dirv11 == null){
-                        if (m1.directionTo(pos).rotateLeftRads(angle2).radiansBetween(perp) <= 0) dirv11 = d.rotateRightRads(angle);
-                    }
-                    if (dirv12 == null) {
-                        if (m1.directionTo(pos).rotateRightRads(angle2).radiansBetween(perp) <= 0) dirv12 = d.rotateLeftRads(angle);
-                    }
-                }
-            }
-
-            if (dirv21 == null || dirv22 == null) {
-                float t = (pos.distanceSquaredTo(m2) + rr - R * R) / (2.0f * pos.distanceTo(m2) * r);
-                if (-1 <= t && t <= 1) {
-                    Direction d = pos.directionTo(m2);
-                    float angle = (float) Math.acos(t);
-                    float angle2 = (float)Math.acos((pos.distanceSquaredTo(m2) + R*R - rr) / (2.0f * pos.distanceTo(m2) * R));
-                    if (dirv21 == null){
-                        if (m2.directionTo(pos).rotateRightRads(angle2).radiansBetween(perp) >= 0) dirv21 = d.rotateLeftRads(angle);
-                    }
-                    if (dirv22 == null) {
-                        if (m2.directionTo(pos).rotateLeftRads(angle2).radiansBetween(perp) >= 0) dirv22 = d.rotateRightRads(angle);
-                    }
-                }
-            }
-
-            if (dirv11 != null) {
-                if (dirv21 != null) {
-                    if (dirv12 != null) {
-                        addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
-                        addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
-                    } else addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv21));
-                } else {
-                    if (dirv12 != null) addInterval(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
-                }
-            } else {
-                if (dirv21 != null) addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
-                else if (dirv12 != null) addInterval(dir.radiansBetween(dirv22), dir.radiansBetween(dirv12));
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
         }
 
+        dist2 = dist-newR;
 
-        //System.out.println("Bytecode pls2: " + Clock.getBytecodeNum());
+        c = dist2/r;
+        if (-1 <= c && c <= 1) {
+            float ang = (float) Math.acos(c);
+            float hCoord1 = r*(float)Math.sin(ang);
+            if (hCoordm1 >= hCoord1 && hCoordm2 <= hCoord1) dirv12 = perp.rotateLeftRads(ang);
+            if (hCoordm1 >= -hCoord1 && hCoordm2 <= -hCoord1) dirv22 = perp.rotateRightRads(ang);
+        }
 
+        if (dirv11 == null || dirv12 == null) {
+            float t = (distm1*distm1 + rr - newR * newR) / (2.0f * distm1 * r);
+            if (-1 <= t && t <= 1) {
+                float angle = (float) Math.acos(t);
+                float hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateRightRads(angle)));
+                if (hCoord1 >= hCoordm1) dirv11 = Dirm1.rotateRightRads(angle);
+                hCoord1 = r*(float)Math.sin(perp.radiansBetween(Dirm1.rotateLeftRads(angle)));
+                if (hCoord1 >= hCoordm1) dirv12 = Dirm1.rotateLeftRads(angle);
+            }
+        }
+
+        //System.out.println("Final Tractament bala: " + Clock.getBytecodeNum());
+
+
+        if (dirv11 != null) {
+            if (dirv21 != null) {
+                if (dirv12 != null) {
+                    addIntervalSemiBullet(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
+                    addIntervalSemiBullet(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
+                } else addIntervalSemiBullet(dir.radiansBetween(dirv11), dir.radiansBetween(dirv21));
+            } else {
+                if (dirv12 != null) addIntervalSemiBullet(dir.radiansBetween(dirv11), dir.radiansBetween(dirv12));
+            }
+        } else {
+            if (dirv21 != null) addIntervalSemiBullet(dir.radiansBetween(dirv22), dir.radiansBetween(dirv21));
+            else if (dirv12 != null) addIntervalSemiBullet(dir.radiansBetween(dirv22), dir.radiansBetween(dirv12));
+        }
 
 
     }
@@ -1243,10 +767,27 @@ public class Greedy {
         if (left < right){
             ++contBullets;
         }
-        intervals[inter] = (Math.round(left * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 1 + 4*(inter&0x1F);
+        intervals[inter] = (Math.round(left * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 4 + 8*(inter&0x1F);
         obstacles[inter] = Constants.INTINF;
         ++inter;
-        intervals[inter] = (Math.round(right* Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 2)) + 3+ 4*(inter&0x1F);
+        intervals[inter] = (Math.round(right* Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 5+ 8*(inter&0x1F);
+        obstacles[inter] = Constants.INTINF;
+        ++inter;
+    }
+
+    static void addIntervalSemiBullet(float right, float left){
+        right -= Constants.eps;
+        left += Constants.eps;
+        if (right < 0) right += Constants.PI2;
+        if (left < 0) left += Constants.PI2;
+
+        if (left < right){
+            ++contSemiBullets;
+        }
+        intervals[inter] = (Math.round(left * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 2 + 8*(inter&0x1F);
+        obstacles[inter] = Constants.INTINF;
+        ++inter;
+        intervals[inter] = (Math.round(right* Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 3+ 8*(inter&0x1F);
         obstacles[inter] = Constants.INTINF;
         ++inter;
     }
