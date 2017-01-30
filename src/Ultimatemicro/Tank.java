@@ -15,7 +15,6 @@ public class Tank {
 
     static MapLocation base;
     static MapLocation enemyBase;
-    static MapLocation pos;
     static int xBase;
     static int yBase;
 
@@ -47,7 +46,7 @@ public class Tank {
 
             beginRound();
 
-            pos = rc.getLocation();
+
             round = rc.getRoundNum();
             readMessages();
             broadcastLocations();
@@ -56,28 +55,22 @@ public class Tank {
             try {
                 //if (realTarget != null) rc.setIndicatorDot(realTarget, 125, 125, 125);
 
-                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius))
-                    Greedy.moveGreedy(rc, emergencyTarget, Constants.BYTECODEATSHOOTING);
+                if (emergencyTarget != null && rc.canSenseAllOfCircle(emergencyTarget, rc.getType().bodyRadius) && rc.onTheMap(emergencyTarget, rc.getType().bodyRadius)) Greedy.moveGreedy(rc,emergencyTarget, Constants.BYTECODEATSHOOTING);
                 else {
 
                     if (shouldStop) Greedy.stop(rc, Constants.BYTECODEATSHOOTING);
                     else {
                         adjustTarget();
-                        try {
-                            System.out.println("OBJECTIU: (" + realTarget.x + "," + realTarget.y + ", enemyBase: (" + enemyBase.x + ", " + enemyBase.y + ")");
-                            //rc.setIndicatorLine(pos, realTarget, 0, 255, 255);
-                        } catch (Exception e) {
-                            System.out.println("No hi ha realTarget");
-                        }
-                        if (shouldWalkOverTrees()) rc.move(realTarget);
-                        else Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
 
+                        //rc.setIndicatorLine(rc.getLocation(), realTarget, 255, 0, 0);
+
+                        Greedy.moveGreedy(rc, realTarget, Constants.BYTECODEATSHOOTING);
                     }
                 }
             }catch (Exception e) {
-                    System.out.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
 
             Clock.yield();
         }
@@ -247,8 +240,8 @@ public class Tank {
 
     static void workMessageStop(int a){
         int[] m = Communication.decode(a);
-        MapLocation stopPos = new MapLocation(m[1], m[2]);
-        if (stopPos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
+        MapLocation pos = new MapLocation(m[1], m[2]);
+        if (pos.distanceTo(rc.getLocation()) < rc.getType().bodyRadius) shouldStop = true;
     }
 
     static void workMessageEmergency(int a){
@@ -266,7 +259,9 @@ public class Tank {
 
         if (round != rc.getRoundNum()) return;
 
-        RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
+        //coses que ha canviat la DIANA estan marcades amb di.
+
+        RobotInfo[] Ri = rc.senseNearbyRobots(); //di
         boolean sent = false;
 
         int foundSoldier = 0;
@@ -274,61 +269,82 @@ public class Tank {
 
         float xSol = 0, ySol = 0, xTank = 0, yTank = 0;
 
+        float needSoldier = 0.0f; //di
+        boolean foundEnemy = false; //di
 
         MapLocation pos = rc.getLocation();
 
         for (RobotInfo ri : Ri) {
-            MapLocation enemyPos = ri.getLocation();
-            int x = Math.round(enemyPos.x);
-            int y = Math.round(enemyPos.y);
-            int a = Constants.getIndex(ri.type);
-            if (a == 0){
-                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-            }
-            else if (a == 5){
-                Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
-                initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-                enemyBase = enemyPos;
-            }
-            else if (!sent){
-                Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
-                initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
-                sent = true;
-            }
+            if(ri.getTeam().equals(rc.getTeam().opponent()))
+            {
+                foundEnemy = true; //di
+                MapLocation enemyPos = ri.getLocation();
+                int x = Math.round(enemyPos.x);
+                int y = Math.round(enemyPos.y);
+                int a = Constants.getIndex(ri.type);
+                if (a == 0){
+                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
+                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                }
+                else if (a == 5){
+                    Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
+                    initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                    enemyBase = enemyPos;
+                }
+                else if (!sent){
+                    Communication.sendMessage(Communication.ENEMYCHANNEL, Math.round(enemyPos.x), Math.round(enemyPos.y), a);
+                    initialMessageEnemy = (initialMessageEnemy+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                    sent = true;
+                }
 
-            if (a == 2){
-                ++foundSoldier;
-                float dinv = 1/pos.distanceTo(enemyPos);
-                xSol += dinv*(pos.x - enemyPos.x);
-                ySol += dinv*(pos.y - enemyPos.y);
-            }
+                if (a == 2){
+                    ++foundSoldier;
+                    float dinv = 1/pos.distanceTo(enemyPos);
+                    xSol += dinv*(pos.x - enemyPos.x);
+                    ySol += dinv*(pos.y - enemyPos.y);
+                }
 
-            if (a == 3){
-                ++foundTank;
-                float dinv = 1/pos.distanceTo(enemyPos);
-                xTank += dinv*(pos.x - enemyPos.x);
-                yTank += dinv*(pos.y - enemyPos.y);
+                if (a == 3){
+                    ++foundTank;
+                    float dinv = 1/pos.distanceTo(enemyPos);
+                    xTank += dinv*(pos.x - enemyPos.x);
+                    yTank += dinv*(pos.y - enemyPos.y);
+                }
+                updateNewTarget(enemyPos, Constants.enemyScore(a), true);
+                needSoldier += Bot.dangerScore(Constants.getIndex(ri.type)); //di
+            } else
+            {
+                needSoldier -= Bot.dangerScore(Constants.getIndex(ri.type)); //di
             }
-            updateNewTarget(enemyPos, Constants.enemyScore(a), true);
         }
 
-
-        float randomDev = (0.5f - (float)Math.random())/5.0f;
+        needSoldier -= Bot.dangerScore(Constants.SOLDIER); //di
 
         if (foundTank > 0){
-            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xTank, yTank);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         } else if (foundSoldier > 0){
-            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xSol, ySol);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         }
 
         if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
+
+        //di:
+        if(foundEnemy && needSoldier >= 0)
+        {
+            rc.setIndicatorDot(rc.getLocation(), 200, 0, 200);
+            int x = Math.round(rc.getLocation().x);
+            int y = Math.round(rc.getLocation().y);
+            Communication.sendMessage(rc, Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSOLDIERTANK);
+        }
+
+        if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
+        //fi di
 
         TreeInfo[] Ti = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         if (Ti.length > 0) {
@@ -356,27 +372,5 @@ public class Tank {
         }
     }
 
-    static boolean shouldWalkOverTrees() {
-        if (!rc.canMove(realTarget)) return false;
-        float stride = rc.getType().strideRadius;
-        MapLocation newPos = pos.add(pos.directionTo(realTarget), stride);
-        if (pos.distanceTo(realTarget) < stride) newPos = realTarget;
-        float strikeValue = 0;
-        int neutrals = 0;
-        TreeInfo[] Ti = rc.senseNearbyTrees(newPos, rc.getType().bodyRadius, null);
-        for (TreeInfo ti: Ti) {
-            if (ti.getTeam() == Team.NEUTRAL) neutrals += 1;
-            else if (ti.getTeam() == rc.getTeam()) strikeValue -= Constants.ENEMYTREESCORE;
-            else strikeValue += Constants.ENEMYTREESCORE;
-        }
-        RobotInfo[] Ri = rc.senseNearbyRobots(newPos, rc.getType().bodyRadius, null);
-        for (RobotInfo ri: Ri) {
-            float val = 0.001f;
-            if(ri.getType() != RobotType.ARCHON && ri.getType() != RobotType.SCOUT) val = ri.getType().bulletCost/ri.getType().maxHealth;
-            if(ri.getTeam() == rc.getTeam().opponent()) strikeValue += val*1000.0f;
-            else strikeValue -= val*1000.0f;
-        }
-        System.out.println("StrikeValue: " + strikeValue + ", arbres neutrals: " + neutrals);
-        return strikeValue > 0 || (Math.abs(strikeValue) < Constants.eps && neutrals > 0);
-    }
+
 }

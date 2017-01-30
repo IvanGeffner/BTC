@@ -34,8 +34,6 @@ public class Soldier {
 
     static MapLocation emergencyTarget;
 
-    static float sign;
-
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -257,12 +255,6 @@ public class Soldier {
     static void broadcastLocations() {
         int byte1 = Clock.getBytecodeNum();
 
-        if (emergencyTarget == null){
-            sign = (float)Math.random();
-            if (sign > 0.5f) sign = 1;
-            else sign = -1;
-        }
-
         emergencyTarget = null;
 
         if (round != rc.getRoundNum()) return;
@@ -328,16 +320,13 @@ public class Soldier {
         
         needSoldier -= Bot.dangerScore(Constants.SOLDIER); //di
 
-
-        float randomDev = sign* Constants.pentadAngle2;
-
         if (foundTank > 0){
-            Direction dir = new Direction(xTank, yTank).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xTank, yTank);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
         } else if (foundSoldier > 0){
-            Direction dir = new Direction(xSol, ySol).rotateLeftRads(randomDev);
+            Direction dir = new Direction(xSol, ySol);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }

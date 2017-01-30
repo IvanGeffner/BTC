@@ -170,18 +170,17 @@ public class Shoot {
                     }
 
                     if (ut > maxUtilSingle){
-                        dirSingle = dirRight.rotateLeftRads(realAngle);
+                        dirSingle = shootingDir;
                         maxUtilSingle = ut;
                     }
 
                     if (utTriad > maxUtilTriad){
-                        dirTriad = dirRight.rotateLeftRads(realAngle);
+                        dirTriad = shootingDir;
                         maxUtilTriad = utTriad;
                     }
 
                     if (utPentad > maxUtilPentad){
-                        if (shootPentad) dirPentad = dirRight.rotateLeftRads(realAngle);
-                        else dirPentad = dirRightA.rotateLeftRads(dirRightA.radiansBetween(dirLeftA)/2);
+                        dirPentad = shootingDir;
                         maxUtilPentad = utPentad;
                     }
                 }
@@ -201,7 +200,7 @@ public class Shoot {
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad),255,255,0);
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/12)),255,255,0);
                             if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(), rc.getLocation().add(dirPentad.rotateLeftRads((float) Math.PI/6)),255,255,0);
-                            rc.firePentadShot(dirPentad);
+                            rc.firePentadShot(d);
                             return true;
                         }
                     }
