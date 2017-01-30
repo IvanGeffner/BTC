@@ -135,7 +135,7 @@ public class Tank {
             maxScore = 0;
         }
 
-        if (rc.getLocation().distanceTo(enemyBase) < 5.0f){
+        if (enemyBase != null && rc.getLocation().distanceTo(enemyBase) < 5.0f){
             enemyBase = null;
         }
 
@@ -251,7 +251,7 @@ public class Tank {
         int[] m = Communication.decode(a);
         MapLocation enemyPos = new MapLocation(m[1], m[2]);
         if (rc.canSenseLocation(enemyPos)) return;
-        if (m[3] == 5) enemyBase = enemyPos;
+        if (m[3] == 5 || m[3] == 0) enemyBase = enemyPos;
         updateNewTarget(enemyPos, Constants.enemyScore(m[3]), true);
     }
 
@@ -302,6 +302,7 @@ public class Tank {
                 if (a == 0){
                     Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 0);
                     initialMessageEnemyGardener = (initialMessageEnemyGardener+1)% Communication.CYCLIC_CHANNEL_LENGTH;
+                    enemyBase = enemyPos;
                 }
                 else if (a == 5){
                     Communication.sendMessage(Communication.ENEMYGARDENERCHANNEL, x, y, 5);
