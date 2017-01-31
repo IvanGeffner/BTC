@@ -36,6 +36,7 @@ public class Constants {
     public static int BYTECODEPOSTSTOPMESSAGES = 8750;
     public static int BYTECODEPOSTENEMYGARDENERMESSAGES = 8500;
     public static int BROADCASTMAXSOLDIER = 600;
+    public static float SHOOTGARDENER = 4f;
 
 
     //archon
