@@ -452,7 +452,8 @@ public class Gardener {
         }
         if (shouldBuildSoldier) {
             System.out.println("- He rebut request de soldat");
-            tryConstructUnit(Constants.SOLDIER);
+            boolean build = tryConstructUnit(Constants.SOLDIER);
+            if (build && myQueue[queueIndex] == Constants.SOLDIER) queueIndex++;
             return;
         }
         if (shouldBuildLumber && allowedLumber()) {
@@ -517,7 +518,8 @@ public class Gardener {
                 if (built) queueIndex++;
             }else{
                 System.out.println("- (1st) Ja he acabat la cua, planto");
-                tryPlanting();
+                boolean built = tryPlanting();
+                if (built) queueIndex++;
             }
         }
     }
