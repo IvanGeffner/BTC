@@ -23,6 +23,8 @@ public class Archon {
 
     static boolean initializedZone = false;
     static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
+    static Direction firstVertical; 
+    static Direction firstHorizontal;
 
     //coses de buscar zona per pagesos
     private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
@@ -308,20 +310,43 @@ public class Archon {
             Direction d = Direction.EAST;
             if (bestZone != null)
                 d = rc.getLocation().directionTo(bestZone);
-
-            Direction dirBuild = Build.findDirectionToBuild(d,RobotType.GARDENER.bodyRadius);
-            if (dirBuild == null){
-                System.out.println("- No pot construir en cap direccio");
-                return;
-            }
-            if (rc.canBuildRobot(RobotType.GARDENER,dirBuild)){
-                rc.buildRobot(RobotType.GARDENER,dirBuild);
-                Build.incrementRobotsBuilt();
-                rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                System.out.println("- Faig pages ");
-                turnsSinceAllowed = 0;
-                turnsSinceLastGardener = 0;
-                bestZ = new MapLocation(-Constants.INF, 0);
+            if(initializedZone || bestZone != null)
+            {
+	            Direction dirBuild = Build.findDirectionToBuild(d,RobotType.GARDENER.bodyRadius);
+	            if (dirBuild == null){
+	                System.out.println("- No pot construir en cap direccio");
+	                return;
+	            }
+	            if (rc.canBuildRobot(RobotType.GARDENER,dirBuild)){
+	                rc.buildRobot(RobotType.GARDENER,dirBuild);
+	                Build.incrementRobotsBuilt();
+	                rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+	                System.out.println("- Faig pages ");
+	                turnsSinceAllowed = 0;
+	                turnsSinceLastGardener = 0;
+	                bestZ = new MapLocation(-Constants.INF, 0);
+	            }
+            }else
+            {
+            	rc.setIndicatorDot(rc.getLocation(), 0, 200, 0);
+            	if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal)) rc.buildRobot(RobotType.GARDENER, firstHorizontal); 
+        		else
+        		{
+        			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical)) rc.buildRobot(RobotType.GARDENER, firstVertical);
+        			else
+        			{
+        				if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite())) bestZone = rc.getLocation().add(firstHorizontal.opposite(), 3.0f); 
+        	    		else
+        	    		{
+        	    			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite())) bestZone = rc.getLocation().add(firstVertical.opposite(), 3.0f); 
+        	    			else
+        	    			{
+        	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius); 
+        	    				rc.buildRobot(RobotType.GARDENER, d);
+        	    			}
+        	    		}
+        			}
+        		}
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -661,35 +686,23 @@ public class Archon {
     
     private static boolean cornered()
     {
-    	float maxDist = (float) (3.0f-3.0f*Math.sqrt(2.0f)/2.0f) + RobotType.ARCHON.bodyRadius; 
+    	float maxDist = (float) 4.7f + Constants.eps; 
     	float myX = rc.getLocation().x; 
     	float myY = rc.getLocation().y; 
     	boolean first = false; 
-    	Direction vertical = null; 
-    	Direction horizontal = null;
-    	if(Math.abs(myX -Map.maxX) + Constants.eps <=  maxDist || Math.abs(myX -Map.minX) + Constants.eps <= maxDist) 
+    	System.out.println("myX: " + myX + "myY: " + myY);
+    	System.out.println("maxX: " + Map.maxX + " maxY: " + Map.maxY + " minX: "+ Map.minX + " minY: " + Map.minY);
+    	if(Math.abs(myX -Map.maxX) <=  maxDist || Math.abs(myX -Map.minX) <= maxDist) 
     	{
-    		if(Map.checkMapBound(Direction.EAST) != null) horizontal = Direction.WEST; 
-    		else horizontal = Direction.EAST; 
+    		if(Map.checkMapBound(Direction.EAST) != null) firstHorizontal = Direction.WEST; 
+    		else firstHorizontal = Direction.EAST; 
     		first = true; 
     	}
-    	if(first && (Math.abs(myY -Map.maxY) - Constants.eps <=  maxDist || Math.abs(myY -Map.minY) - Constants.eps <=  maxDist)) 
+    	if(first && (Math.abs(myY -Map.maxY) <=  maxDist || Math.abs(myY -Map.minY) <=  maxDist)) 
     	{
-    		if(Map.checkMapBound(Direction.NORTH) != null) vertical = Direction.SOUTH; 
-    		else vertical = Direction.NORTH;
-    		if(rc.canBuildRobot(RobotType.GARDENER, horizontal)) bestZone = rc.getLocation().add(horizontal, 3.0f); 
-    		else
-    		{
-    			if(rc.canBuildRobot(RobotType.GARDENER, vertical)) bestZone = rc.getLocation().add(horizontal, 3.0f); 
-    			else
-    			{
-    				if(rc.canBuildRobot(RobotType.GARDENER, horizontal.opposite())) bestZone = rc.getLocation().add(horizontal.opposite(), 3.0f); 
-    	    		else
-    	    		{
-    	    			if(rc.canBuildRobot(RobotType.GARDENER, vertical.opposite())) bestZone = rc.getLocation().add(horizontal.opposite(), 3.0f); 
-    	    		}
-    			}
-    		}
+    		if(Map.checkMapBound(Direction.NORTH) != null) firstVertical = Direction.SOUTH; 
+    		else firstVertical = Direction.NORTH;
+    		bestZone = null; 
     		return true;
     	}
     	return false; 
