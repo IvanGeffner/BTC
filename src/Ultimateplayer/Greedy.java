@@ -422,7 +422,6 @@ public class Greedy {
 
                     float angle = (float) Math.acos(t) + Constants.eps;
 
-                    if (ri.getType() == RobotType.LUMBERJACK){
 
                     float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
                     if (x < 0) x += Constants.PI2;
@@ -435,7 +434,6 @@ public class Greedy {
                     obstacles[inter] = obstacleCount;
                     ++inter;
                     if (y > x) ++contBullets;
-
                 }
             }
 
