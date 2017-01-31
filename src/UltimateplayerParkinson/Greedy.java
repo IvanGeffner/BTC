@@ -233,6 +233,7 @@ public class Greedy {
         float c = rc.getType().bodyRadius;
         float angle = (a*a + b*b - c*c)/(2.0f*a*b);
         angle = (float)Math.acos(angle);
+        angle += 0.2f;
 
         return (Math.abs(dir1.radiansBetween(dir)) > angle + Constants.pentadAngle2 + Constants.eps);
     }
