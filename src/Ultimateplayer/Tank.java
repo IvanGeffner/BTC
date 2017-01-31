@@ -281,10 +281,9 @@ public class Tank {
         RobotInfo[] Ri = rc.senseNearbyRobots(); //di
         boolean sent = false;
 
-        int foundSoldier = 0;
         int foundTank = 0;
 
-        float xSol = 0, ySol = 0, xTank = 0, yTank = 0;
+        float xTank = 0, yTank = 0;
 
         float needSoldier = 0.0f; //di
         boolean foundEnemy = false; //di
@@ -315,13 +314,6 @@ public class Tank {
                     sent = true;
                 }
 
-                if (a == 2){
-                    ++foundSoldier;
-                    float dinv = 1/pos.distanceTo(enemyPos);
-                    xSol += dinv*(pos.x - enemyPos.x);
-                    ySol += dinv*(pos.y - enemyPos.y);
-                }
-
                 if (a == 3){
                     ++foundTank;
                     float dinv = 1/pos.distanceTo(enemyPos);
@@ -340,11 +332,6 @@ public class Tank {
 
         if (foundTank > 0){
             Direction dir = new Direction(xTank, yTank);
-            if (dir != null){
-                emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
-            }
-        } else if (foundSoldier > 0){
-            Direction dir = new Direction(xSol, ySol);
             if (dir != null){
                 emergencyTarget = pos.add(dir, rc.getType().strideRadius+1);
             }
