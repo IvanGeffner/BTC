@@ -1,4 +1,4 @@
-package Godplayer;
+package Ultimateplayer;
 
 /**
  * Created by David on 20/01/2017.
