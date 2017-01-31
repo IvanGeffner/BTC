@@ -202,6 +202,23 @@ public class Gardener {
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
         }
+
+        float score = 0;
+        for (RobotInfo enemy: ZoneG.enemies){
+            if (enemy.getType() == RobotType.SCOUT) score += 0.2;
+            if (enemy.getType() == RobotType.LUMBERJACK) score += 0.5;
+            if (enemy.getType() == RobotType.SOLDIER) score += 1;
+            if (enemy.getType() == RobotType.TANK) score += 2;
+        }
+        for (RobotInfo ally: ZoneG.allies){
+            if (ally.getType() == RobotType.SCOUT) score -= 0.2;
+            if (ally.getType() == RobotType.LUMBERJACK) score -= 0.5;
+            if (ally.getType() == RobotType.SOLDIER) score -= 1;
+            if (ally.getType() == RobotType.TANK) score -= 2;
+        }
+        if (score > 0)
+            Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
+
     }
 
     //retorna una zona del voltant que estigui buida
@@ -331,13 +348,11 @@ public class Gardener {
     //si hi ha enemics, pondera les distancies i fuig cap a la direccio oposada
     private static MapLocation checkNearbyEnemies(){
         //return null;
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         MapLocation myPos = rc.getLocation();
         MapLocation escapePos = rc.getLocation();
         //System.out.println("Numero enemics: " + enemies.length);
-        for (RobotInfo enemy: enemies){
+        for (RobotInfo enemy: ZoneG.enemies){
             if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER) continue;
-            Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(enemy.getLocation().x),Math.round(enemy.getLocation().y),0);
             if (enemy.getType() == RobotType.SCOUT) continue;
             Direction enemyDir = myPos.directionTo(enemy.getLocation());
             escapePos = escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
