@@ -93,7 +93,7 @@ public class Shoot {
 
             for (TreeInfo tree : trees) {
                 if (Clock.getBytecodesLeft() < 400) break;
-                if (r == RobotType.GARDENER && tree.getTeam() == rc.getTeam().opponent()) continue;
+                if (r == RobotType.GARDENER && tree.getTeam() == rc.getTeam().opponent() && rc.getLocation().distanceTo(m) <= Constants.SHOOTGARDENER) continue;
                 if (dirLeft.radiansBetween(dirRight) > 0) continue;
                 MapLocation m2 = tree.getLocation();
                 Direction dir2 = pos.directionTo(m2);

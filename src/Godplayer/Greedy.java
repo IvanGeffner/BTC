@@ -422,18 +422,32 @@ public class Greedy {
 
                     float angle = (float) Math.acos(t) + Constants.eps;
 
-
-                    float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
-                    if (x < 0) x += Constants.PI2;
-                    intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 4 + 8 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    float y = dir.radiansBetween(dir2.rotateRightRads(angle));
-                    if (y < 0) y += Constants.PI2;
-                    intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 5 + 8 * (inter & 0x1F);
-                    obstacles[inter] = obstacleCount;
-                    ++inter;
-                    if (y > x) ++contBullets;
+                    if (ri.getType() == RobotType.LUMBERJACK) {
+                        float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                        if (x < 0) x += Constants.PI2;
+                        intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 4 + 8 * (inter & 0x1F);
+                        obstacles[inter] = obstacleCount;
+                        ++inter;
+                        float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                        if (y < 0) y += Constants.PI2;
+                        intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 5 + 8 * (inter & 0x1F);
+                        obstacles[inter] = obstacleCount;
+                        ++inter;
+                        if (y > x) ++contBullets;
+                    }
+                    else {
+                        float x = dir.radiansBetween(dir2.rotateLeftRads(angle));
+                        if (x < 0) x += Constants.PI2;
+                        intervals[inter] = (Math.round(x * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 2 + 8 * (inter & 0x1F);
+                        obstacles[inter] = obstacleCount;
+                        ++inter;
+                        float y = dir.radiansBetween(dir2.rotateRightRads(angle));
+                        if (y < 0) y += Constants.PI2;
+                        intervals[inter] = (Math.round(y * Constants.ANGLEFACTOR) << (Constants.NUMELEMENTS + 3)) + 3 + 8 * (inter & 0x1F);
+                        obstacles[inter] = obstacleCount;
+                        ++inter;
+                        if (y > x) ++contSemiBullets;
+                    }
                 }
             }
 

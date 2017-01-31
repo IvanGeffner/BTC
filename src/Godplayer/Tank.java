@@ -157,7 +157,7 @@ public class Tank {
             if (r == null) return;
             RobotType rt = r.getType();
             if (rt == RobotType.GARDENER) {
-                if (rc.getLocation().distanceTo(r.getLocation()) < rc.getType().bodyRadius + 1.5f) realTarget = rc.getLocation();
+                if (rc.getLocation().distanceTo(r.getLocation()) < rc.getType().bodyRadius + 3.6f) realTarget = rc.getLocation();
             }
             if (rt == RobotType.ARCHON) {
                 if (rc.getLocation().distanceTo(r.getLocation()) < rc.getType().bodyRadius + 2.5f) realTarget = rc.getLocation();
