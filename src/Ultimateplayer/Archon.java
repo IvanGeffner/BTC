@@ -533,6 +533,9 @@ public class Archon {
         }
 
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
+
+        float numberOfBullets = 0;
+
         for (TreeInfo ti : Ti) {
             if (Clock.getBytecodesLeft() < 500) return;
             MapLocation treePos = ti.getLocation();
@@ -544,6 +547,13 @@ public class Archon {
                 if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
             }
+            numberOfBullets += ti.getContainedBullets();
+        }
+
+        if (numberOfBullets >= 40) {
+            int x = Math.round(rc.getLocation().x);
+            int y = Math.round(rc.getLocation().y);
+            Communication.sendMessage(Communication.NEEDTROOPCHANNEL, );
         }
 
 
