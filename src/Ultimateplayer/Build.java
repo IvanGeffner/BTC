@@ -26,18 +26,20 @@ public class Build {
     }
 
     static Direction findDirectionToBuild(Direction baseDir, float r){
+        return findDirectionToBuild(rc.getLocation(), baseDir, rc.getType().bodyRadius, r);
+    }
 
-        MapLocation pos = rc.getLocation();
+    static Direction findDirectionToBuild(MapLocation pos, Direction baseDir, float r1, float r){
 
-        float R = rc.getType().bodyRadius + 2*r;
+        float R = r1 + 2*r;
         cont = 0; overlap = 0;
 
-        RobotInfo Ri[] = rc.senseNearbyRobots(R);
-        TreeInfo Ti[] = rc.senseNearbyTrees(R);
+        RobotInfo Ri[] = rc.senseNearbyRobots(pos, R, null);
+        TreeInfo Ti[] = rc.senseNearbyTrees(pos, R, null);
 
         intervals = new int[2*Ti.length + 2*Ri.length + 8];
 
-        float Rr = r + rc.getType().bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET;
+        float Rr = r + r1 + GameConstants.GENERAL_SPAWN_OFFSET;
 
         for (RobotInfo ri : Ri){
             MapLocation m = ri.getLocation();
@@ -72,7 +74,7 @@ public class Build {
             }
         }
 
-        checkBoundaries(r, baseDir);
+        checkBoundaries(pos, r1, r, baseDir);
 
         intervals = Arrays.copyOf(intervals, cont);
 
@@ -81,10 +83,9 @@ public class Build {
         return closestDir(baseDir);
     }
 
-    static void checkBoundaries(float r, Direction baseDir){
-        MapLocation pos = rc.getLocation();
+    static void checkBoundaries(MapLocation pos, float r1, float r, Direction baseDir){
         float dist = Math.abs(Map.maxX - pos.x) - r;
-        float Rr = r + rc.getType().bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET;
+        float Rr = r + r1 + GameConstants.GENERAL_SPAWN_OFFSET;
         if (dist <= Rr){
             float angle = (float)Math.acos(dist/Rr) + Constants.eps;
             Direction dir = Direction.getEast(), dirRight = dir.rotateRightRads(angle), dirLeft = dir.rotateLeftRads(angle);

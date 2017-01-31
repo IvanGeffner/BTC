@@ -790,24 +790,23 @@ public class Archon {
     {
 
         //rc.setIndicatorDot(rc.getLocation(),200,0,0);
-        MapLocation nearestEnemy = enemyArchons[0];
 
-        float distance = rc.getLocation().distanceTo(enemyArchons[0]);
-        for(int i = 1; i < enemyArchons.length; ++i)
+        float x = 0, y = 0;
+        for(int i = 0; i < enemyArchons.length; ++i)
         {
-            float d = rc.getLocation().distanceTo(enemyArchons[i]);
-            if(d < distance)
-            {
-                distance = d;
-                nearestEnemy = enemyArchons[i];
-            }
+            x+= enemyArchons[i].x; y += enemyArchons[i].y;
         }
+
+        x/= enemyArchons.length;
+        y/= enemyArchons.length;
+
+        MapLocation nearestEnemy = new MapLocation(x,y);
 
         Direction bestZoneToArchon = bestZone.directionTo(nearestEnemy);
         Direction dirBestZone = rc.getLocation().directionTo(bestZone);
 
         float angle = dirBestZone.radiansBetween(bestZoneToArchon);
-        if(angle <= Math.PI/2.0f) return bestZone.add(bestZoneToArchon, RobotType.ARCHON.bodyRadius + RobotType.GARDENER.bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET);
-        return bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET);
+
+        return bestZone.add(Build.findDirectionToBuild(bestZone, bestZoneToArchon, RobotType.GARDENER.bodyRadius, RobotType.ARCHON.bodyRadius), RobotType.ARCHON.bodyRadius + RobotType.GARDENER.bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET + Constants.eps);
     }
 }

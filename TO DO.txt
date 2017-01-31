@@ -1,9 +1,6 @@
 Idees random:
-- fer els objectius dels soldats be, que ara es queden a l'archon inicial enemic. Fer que es moguin random pel mapa fins que trobin un objectiu
-- lumberjacks prioritzen pagesos per sobre d'arbres (enemics)
 - ignorar lumbers que estiguin prou lluny (no disparar) els primers X torns
-- si l'archon veu que esta tancat, envia senyal de lumberjack
-- improve gradient
-- arreglar el posicionament del primer pages
-- que les tropes enviin senyal de construir lumberjack quan veuen tree amb goodies
+- FIX BUG PAGESOS!!!!
 - scouts aggressius
+- Que el pages es mogui
+- Improve la busqueda de zones
