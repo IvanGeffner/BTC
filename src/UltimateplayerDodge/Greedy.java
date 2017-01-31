@@ -724,7 +724,7 @@ public class Greedy {
         m1 = m2;
         m2 = m1.add(b.getDir(),20.0f);
 
-        float newR = Math.max(R/2, R - r + Constants.eps);
+        float newR = Math.max(r/2, R - r + Constants.eps);
 
         dirv11 = null; dirv21 = null; dirv12 = null; dirv22 = null;
 
