@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;

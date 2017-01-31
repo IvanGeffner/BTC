@@ -7,6 +7,8 @@ import battlecode.common.*;
  */
 public class Shoot {
 
+    static float t = 0.75f;
+
 
     static boolean tryShoot(RobotController rc, int tries){
 
@@ -123,7 +125,7 @@ public class Shoot {
 
                 Direction shootingDir = dirRightExact.rotateLeftRads(realAngle);
                 float oberture = Math.min(shootingDir.radiansBetween(dirLeft), dirRight.radiansBetween(shootingDir));
-                shootingDir = shootingDir.rotateLeftRads(0.5f*realAngle*Greedy.factor);
+                shootingDir = shootingDir.rotateLeftRads(t*realAngle*Greedy.factor);
                 float maxOberture = Math.min(shootingDir.radiansBetween(dirLeftA), dirRightA.radiansBetween(shootingDir));
 
 

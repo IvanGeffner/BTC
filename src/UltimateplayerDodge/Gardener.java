@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.*;
 
@@ -19,6 +19,8 @@ public class Gardener {
     static boolean myFirstTurn = true;
     private static boolean firstGardener;
 
+    private static int father; //ID del archon que l'ha creat (modul 0xFFF)
+
     private static int[] firstRushQueue = {2,5,2,5,5,2,5,5};
     private static int[] firstQueue = {5,2,5,2,5,5,2,5};
     private static int[] normalQueue = {5,2,5,5,5,5};
@@ -31,8 +33,6 @@ public class Gardener {
 
     private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1};
     private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5};
-
-    private static MapLocation[] myArchons;
 
     public static void run(RobotController rcc) {
         rc = rcc;
@@ -114,8 +114,8 @@ public class Gardener {
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
-        myArchons = rc.getInitialArchonLocations(rc.getTeam());
-        MapLocation base =myArchons[0];
+        MapLocation[] myArchons = rc.getInitialArchonLocations(rc.getTeam());
+        MapLocation base = myArchons[0];
         int xBase = Math.round(base.x);
         int yBase = Math.round(base.y);
         Communication.init(rc,xBase, yBase);
@@ -133,20 +133,31 @@ public class Gardener {
         } catch (GameActionException e) {
             e.printStackTrace();
         }
+        RobotInfo[] allies = rc.senseNearbyRobots(4, rc.getTeam());
+        for (RobotInfo ally: allies){
+            if (ally.getType() == RobotType.ARCHON) father = ally.getID()&0xFFF;
+        }
+        try {
+            initialMessageNeedTroop = rc.readBroadcast(Communication.NEEDTROOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageEmergency = rc.readBroadcast(Communication.EMERGENCYCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void initTurn(){
+        System.out.println("Father = " + father);
         Bot.shake(rc);
         Bot.donate(rc);
         Map.checkMapBounds();
         Communication.sendMessage(Communication.GARD_COUNT,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
         shouldBuildLumber = false;
         shouldBuildTroop = false;
-        System.out.println("Before read " + Clock.getBytecodeNum());
+        //System.out.println("Before read " + Clock.getBytecodeNum());
         readMessages();
-        System.out.println("Before zone init " + Clock.getBytecodeNum());
+        //System.out.println("Before zone init " + Clock.getBytecodeNum());
         ZoneG.initTurn();
-        System.out.println("Before broadcast " + Clock.getBytecodeNum());
+        //System.out.println("Before broadcast " + Clock.getBytecodeNum());
         broadcastLocations();
     }
 
@@ -166,7 +177,6 @@ public class Gardener {
                 if(t == Communication.NEEDSCOUT) shouldBuildScout = true;
             }
             initialMessageNeedTroop = lastMessage;
-
 
             channel = Communication.EMERGENCYCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
@@ -239,8 +249,6 @@ public class Gardener {
             if (enemy.getType() == RobotType.TANK) score += 2;
         }
         for (RobotInfo ally: ZoneG.allies){
-            if (ally.getType() == RobotType.SCOUT) score -= 0.2;
-            if (ally.getType() == RobotType.LUMBERJACK) score -= 0.5;
             if (ally.getType() == RobotType.SOLDIER) score -= 1;
             if (ally.getType() == RobotType.TANK) score -= 2;
         }
@@ -346,12 +354,7 @@ public class Gardener {
                 zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
                 System.out.println("- La zona que volia esta fora del mapa 2");
                 return;
-            }/*
-            if (Map.distToEdge(centerIWant) < 5){
-                ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
-                zoneIWant = ZoneG.nullZone(); //aixo es un parche que he ficat, nose si esta be fer-ho
-                return;
-            }*/
+            }
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
             if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) {
@@ -433,30 +436,20 @@ public class Gardener {
             System.out.println("- Tinc cooldown");
             return;
         }
-        try {
-            if (shouldBuildTroop) {
-                System.out.println("- He rebut request de soldat/tank");
-                //tria el que hi ha abans entre tank i soldat
-                int tankIndex = rc.readBroadcast(Communication.unitChannels[Constants.TANK]);
-                int soldierIndex = rc.readBroadcast(Communication.unitChannels[Constants.SOLDIER]);
-                if (tankIndex < soldierIndex){
-                    tryConstructUnit(Constants.TANK);
-                    tryConstructUnit(Constants.SOLDIER);
-                }else{
-                    tryConstructUnit(Constants.SOLDIER);
-                    tryConstructUnit(Constants.TANK);
-                }
-            }
-        } catch (GameActionException e) {
-            e.printStackTrace();
+        if (shouldBuildTroop) {
+            System.out.println("- He rebut request de soldat");
+            tryConstructUnit(Constants.SOLDIER);
+            return;
         }
         if (shouldBuildLumber) {
             System.out.println("- He rebut request de lumberjack");
             tryConstructUnit(Constants.LUMBERJACK);
+            return;
         }
         if (shouldBuildScout){
             System.out.println("- He rebut request de scout");
             tryConstructUnit(Constants.SCOUT);
+            //no faig return
         }
         int early_game_length = 500;
         if (rc.getRoundNum() > early_game_length) {

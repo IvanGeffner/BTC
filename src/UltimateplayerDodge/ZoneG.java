@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.*;
 
@@ -54,6 +54,12 @@ public class ZoneG {
 
     static void init(RobotController rc2){
         rc = rc2;
+        try {
+            initialMessageGardCount = rc.readBroadcast(Communication.GARD_COUNT + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageClosedGard = rc.readBroadcast(Communication.CLOSED_GARDENERS + Communication.CYCLIC_CHANNEL_LENGTH);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     static void initTurn() {
@@ -363,7 +369,11 @@ public class ZoneG {
 
     static boolean shouldRequestLumberjack(){
         //si no te cap lloc lliure i hi ha algun arbre neutral/enemic
-        return surroundings[2] != 0 && surroundings[0] <= 1;
+        if (surroundings[2] != 0 && surroundings[0] <= 1) return true;
+        if (rc.getTeamBullets() < 500) return false;
+        TreeInfo[] trees = rc.senseNearbyTrees(5f, Team.NEUTRAL);
+        //fem request quan hi ha un arbre a distancia <5 i tenim moltes bullets
+        return trees.length > 0;
     }
 
     private static int freeSpots(){

@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.*;
 
@@ -7,7 +7,7 @@ import battlecode.common.*;
  */
 public class Shoot {
 
-    static float t = 0.85f;
+    static float t = 0.75f;
 
 
     static boolean tryShoot(RobotController rc, int tries){

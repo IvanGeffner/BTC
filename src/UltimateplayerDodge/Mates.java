@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

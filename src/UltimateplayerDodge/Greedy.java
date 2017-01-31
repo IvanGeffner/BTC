@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.*;
 
@@ -233,7 +233,6 @@ public class Greedy {
         float c = rc.getType().bodyRadius;
         float angle = (a*a + b*b - c*c)/(2.0f*a*b);
         angle = (float)Math.acos(angle);
-        angle += 0.2f;
 
         return (Math.abs(dir1.radiansBetween(dir)) > angle + Constants.pentadAngle2 + Constants.eps);
     }
@@ -725,7 +724,7 @@ public class Greedy {
         m1 = m2;
         m2 = m1.add(b.getDir(),20.0f);
 
-        float newR = Math.max(r/2, R - r + Constants.eps);
+        float newR = Math.max(R/2, R - r + Constants.eps);
 
         dirv11 = null; dirv21 = null; dirv12 = null; dirv22 = null;
 

@@ -1,4 +1,4 @@
-package UltimateplayerParkinson;
+package UltimateplayerDodge;
 
 import battlecode.common.*;
 
@@ -23,12 +23,12 @@ public class Archon {
 
     static boolean initializedZone = false;
     static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
-    static Direction firstVertical; 
+    static Direction firstVertical;
     static Direction firstHorizontal;
 
     //coses de buscar zona per pagesos
-    private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
-    private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -7, -7, -7, -7, -7, -7, -7, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -8, -8, -8, -8, -8, -8, -8, -8, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -9, -9, -9, -9, -9, -9, -9, -9, -9, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10, -11, -12, -13, -14};
+    private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1};
+    private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5};
 
 
     static boolean firstTurn = true;
@@ -46,9 +46,9 @@ public class Archon {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] enemyTrees;
 
-    static int turnsSinceLastGardener = 0; 
+    static int turnsSinceLastGardener = 0;
 
-    static MapLocation[] enemyArchons; 
+    static MapLocation[] enemyArchons;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -63,6 +63,7 @@ public class Archon {
         if (rc.getRoundNum() > 5) init();
         while (true) {
             initTurn();
+            System.out.println("Who am i " + whoAmI);
             MapLocation newTarget = null;
             boolean danger = (emergencyTarget != null);
             Sight.computeSightRange(rc);
@@ -80,19 +81,22 @@ public class Archon {
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                //busca la millor zona per deixar un page
+                //busca la millor zona per deixar un pages
                 if(turnsSinceLastGardener >= 20)
                 {
-                    bestZone = findBestZone();
-                    //drawZone();
-
-                    newTarget = buildFrom();
-                    rc.setIndicatorLine(rc.getLocation(), newTarget, 200, 0, 200);
-                    if(shouldBuildGardener && initializedZone) {
-                        System.out.println("Vaig a buscar zona");
-                        ++turnsSinceAllowed;
-                        System.out.println("La millor zona es " + bestZone);
-                        tryConstruct();
+                    if (!initializedZone){
+                        System.out.println("NO S'HA INICIALITZAT EL ZONE ORIGIN I S'HA CRIDAT FINDBESTZONE!!!!");
+                    }else {
+                        bestZone = findBestZone();
+                        //drawZone();
+                        newTarget = buildFrom();
+                        rc.setIndicatorLine(rc.getLocation(), newTarget, 200, 0, 200);
+                        if (shouldBuildGardener && initializedZone) {
+                            System.out.println("Vaig a buscar zona");
+                            ++turnsSinceAllowed;
+                            System.out.println("La millor zona es " + bestZone);
+                            tryConstruct();
+                        }
                     }
                 }
                 if(newTarget == null)
@@ -133,11 +137,8 @@ public class Archon {
             Map.init(rc);
             float score = getInitialScore();
             rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
-
             if (whoAmI == 0) { // first to execute
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archons.length);
-
-
                 // inicialitzem el limits del mapa
                 rc.broadcast(Communication.MAP_UPPER_BOUND, Float.floatToIntBits(Constants.INF));
                 rc.broadcast(Communication.MAP_LOWER_BOUND, Float.floatToIntBits(-Constants.INF));
@@ -202,6 +203,10 @@ public class Archon {
         broadcastLocations();
         Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
         checkSuicide();
+        if (whoAmI < 5){
+            MapLocation myPos = rc.getLocation();
+            Communication.encodeFinding(0,Math.round(myPos.x), Math.round(myPos.y),rc.getID());
+        }
     }
 
 
@@ -229,25 +234,6 @@ public class Archon {
         System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
         System.out.println("Score = " + score);
         return score;
-    }
-
-    private static MapLocation checkNearbyEnemies(){
-        //return null;
-        RobotInfo[] enemies = rc.senseNearbyRobots(4, rc.getTeam().opponent());
-        MapLocation myPos = rc.getLocation();
-        MapLocation escapePos = rc.getLocation();
-        //System.out.println("Numero enemics: " + enemies.length);
-        for (RobotInfo enemy: enemies){
-            if (enemy.getType() == RobotType.ARCHON || enemy.getType() == RobotType.GARDENER) continue;
-            Direction enemyDir = myPos.directionTo(enemy.getLocation());
-            escapePos = escapePos.add(enemyDir, -1/(1 + myPos.distanceTo(enemy.getLocation())));
-        }
-        //System.out.println("Escape pos: " + escapePos);
-        if (myPos.isWithinDistance(escapePos, Constants.eps)) return null;
-        escapePos = myPos.add(myPos.directionTo(escapePos), 6);
-
-        //rc.setIndicatorLine(myPos,escapePos, 0,255,255);
-        return escapePos;
     }
 
     private static MapLocation checkShakeTrees(){
@@ -291,21 +277,9 @@ public class Archon {
             return; //per repartir-se els pagesos entre els archons
         }
 
-        //if (whichRobotToBuild(rc.readInfoBroadcast(Communication.ROBOTS_BUILT)) != RobotType.GARDENER) return;
-        /*try {
-            System.out.println("Index " + 0 + " = " + rc.readBroadcast(Communication.unitChannels[0]));
-            System.out.println("Index " + 1 + " = " + rc.readBroadcast(Communication.unitChannels[1]));
-            System.out.println("Index " + 2 + " = " + rc.readBroadcast(Communication.unitChannels[2]));
-            System.out.println("Index " + 3 + " = " + rc.readBroadcast(Communication.unitChannels[3]));
-            System.out.println("Index " + 4 + " = " + rc.readBroadcast(Communication.unitChannels[4]));
-            System.out.println("Index " + 5 + " = " + rc.readBroadcast(Communication.unitChannels[5]));
-
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }*/
         try{
             if (rc.readBroadcast(Communication.HAS_BUILT_GARDENER) == 1 && rc.getRoundNum() < 25){
-                System.out.println("- Nomes podem fer un pages els primers 25 torns");
+                System.out.println("- Nomes podem fer 1 pages els primers 25 torns");
                 return;
             }
             if(!initializedZone) firstGardener(); //calcula on anira el primer gardener
@@ -320,77 +294,24 @@ public class Archon {
 	                System.out.println("- No pot construir en cap direccio");
 	                return;
 	            }
-	            if (rc.canBuildRobot(RobotType.GARDENER,dirBuild)){
-	                rc.buildRobot(RobotType.GARDENER,dirBuild);
-	                Build.incrementRobotsBuilt();
-	                rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-	                System.out.println("- Faig pages ");
-	                turnsSinceAllowed = 0;
-	                turnsSinceLastGardener = 0;
-	                bestZ = new MapLocation(-Constants.INF, 0);
-	            }
-            }else
-            {
+	            buildGardener(dirBuild);
+            }else {
             	rc.setIndicatorDot(rc.getLocation(), 0, 200, 0);
             	if(firstHorizontal != null && rc.canBuildRobot(RobotType.GARDENER, firstHorizontal))
-                {
-                    rc.buildRobot(RobotType.GARDENER, firstHorizontal);
-                    Build.incrementRobotsBuilt();
-                    rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                    System.out.println("- Faig pages ");
-                    turnsSinceAllowed = 0;
-                    turnsSinceLastGardener = 0;
-                    bestZ = new MapLocation(-Constants.INF, 0);
-                }
+            	    buildGardener(firstHorizontal);
         		else
         		{
         			if(firstVertical != null && rc.canBuildRobot(RobotType.GARDENER, firstVertical))
-                    {
-                        rc.buildRobot(RobotType.GARDENER, firstVertical);
-                        Build.incrementRobotsBuilt();
-                        rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                        System.out.println("- Faig pages ");
-                        turnsSinceAllowed = 0;
-                        turnsSinceLastGardener = 0;
-                        bestZ = new MapLocation(-Constants.INF, 0);
-                    }
-        			else
-        			{
+        			    buildGardener(firstVertical);
+        			else {
         				if(firstHorizontal != null && rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite()))
-                        {
-                            rc.buildRobot(RobotType.GARDENER, firstHorizontal.opposite());
-                            Build.incrementRobotsBuilt();
-                            rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                            System.out.println("- Faig pages ");
-                            turnsSinceAllowed = 0;
-                            turnsSinceLastGardener = 0;
-                            bestZ = new MapLocation(-Constants.INF, 0);
-                        }
-        	    		else
-        	    		{
-        	    			if(firstVertical != null && rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite()))
-                            {
-                                rc.buildRobot(RobotType.GARDENER, firstVertical.opposite());
-                                Build.incrementRobotsBuilt();
-                                rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                                System.out.println("- Faig pages ");
-                                turnsSinceAllowed = 0;
-                                turnsSinceLastGardener = 0;
-                                bestZ = new MapLocation(-Constants.INF, 0);
-                            }
-        	    			else
-        	    			{
+        				    buildGardener(firstHorizontal.opposite());
+        	    		else {
+        	    		    if(firstVertical != null && rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite()))
+        	    		        buildGardener(firstVertical.opposite());
+        	    			else {
         	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius);
-        	    				if(rc.canBuildRobot(RobotType.GARDENER, d))
-                                {
-                                    rc.buildRobot(RobotType.GARDENER, d);
-                                    Build.incrementRobotsBuilt();
-                                    rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
-                                    System.out.println("- Faig pages ");
-                                    turnsSinceAllowed = 0;
-                                    turnsSinceLastGardener = 0;
-                                    bestZ = new MapLocation(-Constants.INF, 0);
-                                }
+        	    				buildGardener(d);
         	    			}
         	    		}
         			}
@@ -402,8 +323,25 @@ public class Archon {
         }
     }
 
+    private static void buildGardener(Direction d){
+        if (d == null) return;
+        if (!rc.canBuildRobot(RobotType.GARDENER, d)) return;
+        try {
+            rc.buildRobot(RobotType.GARDENER, d);
+            Build.incrementRobotsBuilt();
+            rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+            System.out.println("- Faig pages ");
+            turnsSinceAllowed = 0;
+            turnsSinceLastGardener = 0;
+            bestZ = new MapLocation(-Constants.INF, 0);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static boolean myTurn(){
         try {
+            if (rc.getRoundNum() < 25) return leader; //al principi nomes fa pagesos el lider
             int archonNumber = Math.max(0,rc.readBroadcast(Communication.ARCHONS_LAST_TURN));
             return (rc.getRoundNum()%archonNumber == whoAmI);
         } catch (Exception e) {
@@ -625,6 +563,7 @@ public class Archon {
 
     //Agafa les zones mes properes, calcula el score i retorna la millor
     private static MapLocation findBestZone() {
+
         float bestScore = -1f;
         int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
         System.out.println("myZone: " + myZone[0] + " " + myZone[1]);
@@ -766,20 +705,20 @@ public class Archon {
 
     private static boolean cornered()
     {
-    	float maxDist = (float) 4.7f + Constants.eps;
-    	float myX = rc.getLocation().x;
-    	float myY = rc.getLocation().y;
-    	boolean first = false;
-    	System.out.println("myX: " + myX + "myY: " + myY);
-    	System.out.println("maxX: " + Map.maxX + " maxY: " + Map.maxY + " minX: "+ Map.minX + " minY: " + Map.minY);
+    	float maxDist = 4.7f + Constants.eps;
+    	float myX = rc.getLocation().x; 
+    	float myY = rc.getLocation().y; 
+    	boolean first = false; 
+    	//System.out.println("myX: " + myX + "myY: " + myY);
+    	//System.out.println("maxX: " + Map.maxX + " maxY: " + Map.maxY + " minX: "+ Map.minX + " minY: " + Map.minY);
     	//TODO canviar per no gastar bytecode
-    	if(Math.abs(myX - Map.maxX) <=  maxDist || Math.abs(myX - Map.minX) <= maxDist)
+    	if(Math.abs(myX -Map.maxX) <=  maxDist || Math.abs(myX -Map.minX) <= maxDist) 
     	{
     		if(Map.checkMapBound(Direction.EAST) != null) firstHorizontal = Direction.EAST;
     		else firstHorizontal = Direction.WEST;
-    		first = true;
+    		first = true; 
     	}
-    	if(first && (Math.abs(myY - Map.maxY) <=  maxDist || Math.abs(myY - Map.minY) <=  maxDist))
+    	if(first && (Math.abs(myY -Map.maxY) <=  maxDist || Math.abs(myY -Map.minY) <=  maxDist)) 
     	{
     		if(Map.checkMapBound(Direction.NORTH) != null) firstVertical = Direction.NORTH;
     		else firstVertical = Direction.SOUTH;
