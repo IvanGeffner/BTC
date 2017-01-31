@@ -56,8 +56,9 @@ public class Archon {
         ZoneG.init(rc);
         initializedZone = false;
         turnsSinceAllowed = 0;
-        turnsSinceLastGardener = 0; 
-        enemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent()); 
+        turnsSinceLastGardener = 0;
+        enemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent());
+
 
         if (rc.getRoundNum() > 5) init();
         while (true) {
@@ -78,18 +79,20 @@ public class Archon {
                 //if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 newTarget = emergencyTarget;
             }else {
-                //busca la millor zona per deixar un pages
-                if(shouldBuildGardener && initializedZone) {
-                    System.out.println("Vaig a buscar zona");
-                    ++turnsSinceAllowed;
+                //busca la millor zona per deixar un page
+                if(turnsSinceLastGardener >= 20)
+                {
                     bestZone = findBestZone();
-                    System.out.println("La millor zona es " + bestZone);
-                    rc.setIndicatorLine(rc.getLocation(),bestZone, 200, 0, 200);
-                    drawZone();
-                    Direction dirBestZone = rc.getLocation().directionTo(bestZone);
-                    newTarget = bestZone.add(dirBestZone.opposite(),RobotType.ARCHON.bodyRadius+RobotType.GARDENER.bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET);
-                    if(rc.getLocation().distanceTo(newTarget) < Constants.eps)tryConstruct();
-                    else if(turnsSinceAllowed > 50) tryConstruct();
+                    //drawZone();
+
+                    newTarget = buildFrom();
+                    rc.setIndicatorLine(rc.getLocation(), bestZone, 200, 0, 200);
+                    if(shouldBuildGardener && initializedZone) {
+                        System.out.println("Vaig a buscar zona");
+                        ++turnsSinceAllowed;
+                        System.out.println("La millor zona es " + bestZone);
+                        tryConstruct();
+                    }
                 }else {
                     newTarget = checkShakeTrees();
                     if (newTarget != null){
@@ -138,10 +141,6 @@ public class Archon {
                 rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(-Constants.INF));
                 rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(Constants.INF));
             }
-            
-            //busca on construir el primer gardener
-            Map.checkMapBounds();
-            firstGardener();
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -306,9 +305,11 @@ public class Archon {
                 System.out.println("- Nomes podem fer un pages els primers 25 torns");
                 return;
             }
+            if(!initializedZone) firstGardener(); //calcula on anira el primer gardener
             Direction d = Direction.EAST;
             if (bestZone != null)
                 d = rc.getLocation().directionTo(bestZone);
+
             if(initializedZone || bestZone != null)
             {
 	            Direction dirBuild = Build.findDirectionToBuild(d,RobotType.GARDENER.bodyRadius);
@@ -328,20 +329,65 @@ public class Archon {
             }else
             {
             	rc.setIndicatorDot(rc.getLocation(), 0, 200, 0);
-            	if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal)) rc.buildRobot(RobotType.GARDENER, firstHorizontal); 
+            	if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal))
+                {
+                    rc.buildRobot(RobotType.GARDENER, firstHorizontal);
+                    Build.incrementRobotsBuilt();
+                    rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+                    System.out.println("- Faig pages ");
+                    turnsSinceAllowed = 0;
+                    turnsSinceLastGardener = 0;
+                    bestZ = new MapLocation(-Constants.INF, 0);
+                }
         		else
         		{
-        			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical)) rc.buildRobot(RobotType.GARDENER, firstVertical);
+        			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical))
+                    {
+                        rc.buildRobot(RobotType.GARDENER, firstVertical);
+                        Build.incrementRobotsBuilt();
+                        rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+                        System.out.println("- Faig pages ");
+                        turnsSinceAllowed = 0;
+                        turnsSinceLastGardener = 0;
+                        bestZ = new MapLocation(-Constants.INF, 0);
+                    }
         			else
         			{
-        				if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite())) bestZone = rc.getLocation().add(firstHorizontal.opposite(), 3.0f); 
+        				if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite()))
+                        {
+                            rc.buildRobot(RobotType.GARDENER, firstHorizontal.opposite());
+                            Build.incrementRobotsBuilt();
+                            rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+                            System.out.println("- Faig pages ");
+                            turnsSinceAllowed = 0;
+                            turnsSinceLastGardener = 0;
+                            bestZ = new MapLocation(-Constants.INF, 0);
+                        }
         	    		else
         	    		{
-        	    			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite())) bestZone = rc.getLocation().add(firstVertical.opposite(), 3.0f); 
+        	    			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite()))
+                            {
+                                rc.buildRobot(RobotType.GARDENER, firstVertical.opposite());
+                                Build.incrementRobotsBuilt();
+                                rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+                                System.out.println("- Faig pages ");
+                                turnsSinceAllowed = 0;
+                                turnsSinceLastGardener = 0;
+                                bestZ = new MapLocation(-Constants.INF, 0);
+                            }
         	    			else
         	    			{
         	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius); 
-        	    				rc.buildRobot(RobotType.GARDENER, d);
+        	    				if(rc.canBuildRobot(RobotType.GARDENER, d))
+                                {
+                                    rc.buildRobot(RobotType.GARDENER, d);
+                                    Build.incrementRobotsBuilt();
+                                    rc.broadcast(Communication.HAS_BUILT_GARDENER,1);
+                                    System.out.println("- Faig pages ");
+                                    turnsSinceAllowed = 0;
+                                    turnsSinceLastGardener = 0;
+                                    bestZ = new MapLocation(-Constants.INF, 0);
+                                }
         	    			}
         	    		}
         			}
@@ -422,7 +468,6 @@ public class Archon {
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
             float maxRatioToBuildGardener = 0.6f;
             if (ratio < maxRatioToBuildGardener && rc.getRoundNum() > 30) shouldBuildGardener = true;
-            //if (ratio < maxRatioToBuildGardener) shouldBuildGardener = true;
             
         }
 
@@ -630,6 +675,9 @@ public class Archon {
 	                }
 	            }
 		        score += score_i;
+		        if(score_i == 2) rc.setIndicatorDot(toBuild, 0, 200, 0);
+		        if(score_i == 1) rc.setIndicatorDot(toBuild, 0, 0, 200);
+		        if(score_i == 0) rc.setIndicatorDot(toBuild, 200, 0, 0);
 	        }
         }catch (GameActionException e) {
             e.printStackTrace();
@@ -684,6 +732,7 @@ public class Archon {
     {
     	if(!cornered())
     	{
+    	    rc.setIndicatorDot(rc.getLocation(),200,0,0);
 	    	MapLocation nearestEnemy = enemyArchons[0]; 
 	    	
 	    	float distance = rc.getLocation().distanceTo(enemyArchons[0]); 
@@ -707,7 +756,7 @@ public class Archon {
 	    			realDir = Build.findDirectionToBuild(desiredDir, 1.0f); 
 	    		}
 	    	}
-	    	bestZone = rc.getLocation().add(realDir,RobotType.GARDENER.bodyRadius + RobotType.ARCHON.bodyRadius);
+	    	if(realDir != null) bestZone = rc.getLocation().add(realDir,RobotType.GARDENER.bodyRadius + RobotType.ARCHON.bodyRadius);
     	}
     }
     
@@ -719,19 +768,44 @@ public class Archon {
     	boolean first = false; 
     	System.out.println("myX: " + myX + "myY: " + myY);
     	System.out.println("maxX: " + Map.maxX + " maxY: " + Map.maxY + " minX: "+ Map.minX + " minY: " + Map.minY);
+    	//TODO canviar per no gastar bytecode
     	if(Math.abs(myX -Map.maxX) <=  maxDist || Math.abs(myX -Map.minX) <= maxDist) 
     	{
-    		if(Map.checkMapBound(Direction.EAST) != null) firstHorizontal = Direction.WEST; 
-    		else firstHorizontal = Direction.EAST; 
+    		if(Map.checkMapBound(Direction.EAST) != null) firstHorizontal = Direction.EAST;
+    		else firstHorizontal = Direction.WEST;
     		first = true; 
     	}
     	if(first && (Math.abs(myY -Map.maxY) <=  maxDist || Math.abs(myY -Map.minY) <=  maxDist)) 
     	{
-    		if(Map.checkMapBound(Direction.NORTH) != null) firstVertical = Direction.SOUTH; 
-    		else firstVertical = Direction.NORTH;
+    		if(Map.checkMapBound(Direction.NORTH) != null) firstVertical = Direction.NORTH;
+    		else firstVertical = Direction.SOUTH;
     		bestZone = null; 
     		return true;
     	}
     	return false; 
+    }
+
+    private static MapLocation buildFrom()
+    {
+
+        //rc.setIndicatorDot(rc.getLocation(),200,0,0);
+        MapLocation nearestEnemy = enemyArchons[0];
+
+        float distance = rc.getLocation().distanceTo(enemyArchons[0]);
+        for(int i = 1; i < enemyArchons.length; ++i)
+        {
+            float d = rc.getLocation().distanceTo(enemyArchons[i]);
+            if(d < distance)
+            {
+                distance = d;
+                nearestEnemy = enemyArchons[i];
+            }
+        }
+
+        Direction bestZoneToArchon = bestZone.directionTo(nearestEnemy);
+
+        return bestZone.add(bestZoneToArchon, RobotType.ARCHON.bodyRadius + RobotType.GARDENER.bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET);
+
+        //Direction dirBestZone = rc.getLocation().directionTo(bestZone);
     }
 }

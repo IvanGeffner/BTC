@@ -63,6 +63,7 @@ public class Lumberjack {
             tryChop();
 
             System.out.println("stopGreedyMove: " + shouldStop + " "+ shouldGreedy + " " + shouldMove);
+            if(realTarget != null) rc.setIndicatorLine(rc.getLocation(), realTarget, 0,200,0);
             if(shouldMove)
             {
                 if(shouldStop) Greedy.stop(rc, 13000);
