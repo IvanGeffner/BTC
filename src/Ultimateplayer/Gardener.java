@@ -268,13 +268,9 @@ public class Gardener {
             System.out.println("- Estic massa lluny del centre de la zona");
             return;
         }
-        try {
-            TreeInfo tree = rc.senseTreeAtLocation(centerIWant);
-            if (tree != null)
-                Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
+        TreeInfo[] tree = rc.senseNearbyTrees(centerIWant,rc.getType().bodyRadius,null);
+        if (tree.length != 0)
+            Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
 
         int zoneType = ZoneG.readTypeBroadcast(zoneIWant);
         try{
