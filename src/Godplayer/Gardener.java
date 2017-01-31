@@ -13,6 +13,7 @@ public class Gardener {
     private static int initialMessageNeedTroop = 0;
     private static int initialMessageEmergency = 0;
     static int lumbersToBuild = 2;
+    static int soldiersBuilt = 0;
     static boolean shouldBuildSoldier = false;
     static boolean shouldBuildLumber = false;
     static boolean shouldBuildScout = false;
@@ -97,7 +98,7 @@ public class Gardener {
 
     //nomes es fa la primera ronda
     private static void Initialize(){
-        if (rc.getRoundNum() < 5) {
+        if (rc.getRoundNum() < 10) {
             firstGardener = true;
             MapLocation[] enemies = rc.getInitialArchonLocations(rc.getTeam().opponent());
             float minDist = 9999;
@@ -454,12 +455,12 @@ public class Gardener {
             tryConstructUnit(Constants.SOLDIER);
             return;
         }
-        if (shouldBuildLumber) {
+        if (shouldBuildLumber && allowedLumber()) {
             System.out.println("- He rebut request de lumberjack");
             tryConstructUnit(Constants.LUMBERJACK);
             return;
         }
-        if (shouldBuildScout){
+        if (shouldBuildScout && allowedScout()){
             System.out.println("- He rebut request de scout");
             tryConstructUnit(Constants.SCOUT);
             //no faig return
@@ -519,54 +520,19 @@ public class Gardener {
                 tryPlanting();
             }
         }
+    }
 
+    private static boolean allowedLumber(){
+        if (!firstGardener) return true;
+        if (soldiersBuilt >= 2) return true;
+        if (lumbersToBuild == 2) return true;
+        return false;
+    }
 
-
-/*
-
-
-        if (rc.getRoundNum() > early_game_length) {
-            System.out.println("- Decideixo fer arbre");
-            tryPlanting();
-        }else {
-            boolean soldierInSight = false;
-            for (RobotInfo ally: ZoneG.allies){
-                if (ally.getType() == RobotType.SOLDIER) soldierInSight = true;
-            }
-
-            if (soldiersSkipped > 0){
-                //si s'ha saltat algun soldat de la cua i no en veu cap, intenta fer-ne un
-                if (!soldierInSight) {
-                    System.out.println("- Intento fer un soldat que m'he saltat");
-                    boolean built = tryConstructUnit(Constants.SOLDIER);
-                    if (built) soldiersSkipped--;
-                }
-                if (firstGardener) return;
-            }
-
-            if (queueIndex < myQueue.length) {
-                int unit = myQueue[queueIndex];
-                System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + unit);
-                if (!firstGardener && soldierInSight && unit == Constants.SOLDIER){
-                    //Si veig un soldat, no el construeixo
-                    queueIndex++;
-                    soldiersSkipped++;
-                    System.out.println("- Em toca soldat pero ja en veig un, provo arbre");
-                    tryPlanting();
-                    return;
-                }
-                boolean built = tryConstructUnit(myQueue[queueIndex]);
-                if (built) queueIndex++;
-                else if (myQueue[queueIndex] == Constants.SOLDIER){
-                    queueIndex++;
-                    soldiersSkipped++;
-                    System.out.println("- No puc fer soldat, intento arbre");
-                    if (!firstGardener) tryPlanting();
-                }
-            } else {
-                System.out.println("- No em toca construir res");
-            }
-        }*/
+    private static boolean allowedScout() {
+        if (!firstGardener) return true;
+        if (soldiersBuilt != 0) return true;
+        return false;
     }
 
     private static boolean tryConstructUnit(int unit){
@@ -632,6 +598,7 @@ public class Gardener {
                 Build.incrementRobotsBuilt();
                 if (unit == Constants.LUMBERJACK) lumbersToBuild--;
                 if (unit == Constants.SCOUT) rc.broadcast(Communication.SCOUT_LAST_TURN_BUILT,rc.getRoundNum());
+                if (unit == Constants.SOLDIER) soldiersBuilt++;
                 return true;
             } catch (GameActionException e) {
                 e.printStackTrace();
