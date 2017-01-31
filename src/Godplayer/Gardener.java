@@ -453,7 +453,7 @@ public class Gardener {
         if (shouldBuildSoldier) {
             System.out.println("- He rebut request de soldat");
             boolean build = tryConstructUnit(Constants.SOLDIER);
-            if (build && myQueue[queueIndex] == Constants.SOLDIER) queueIndex++;
+            if (build && queueIndex < myQueue.length && myQueue[queueIndex] == Constants.SOLDIER) queueIndex++;
             return;
         }
         if (shouldBuildLumber && allowedLumber()) {
