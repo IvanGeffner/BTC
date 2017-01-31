@@ -63,7 +63,7 @@ public class Archon {
         if (rc.getRoundNum() > 5) init();
         while (true) {
             initTurn();
-            MapLocation newTarget;
+            MapLocation newTarget = null;
             boolean danger = (emergencyTarget != null);
             Sight.computeSightRange(rc);
             System.out.println(Sight.closed);
@@ -94,7 +94,9 @@ public class Archon {
                         System.out.println("La millor zona es " + bestZone);
                         tryConstruct();
                     }
-                }else {
+                }
+                if(newTarget == null)
+                {
                     newTarget = checkShakeTrees();
                     if (newTarget != null){
                         System.out.println("Va a fer shake de " + rc.getLocation() + " a " + newTarget);
@@ -625,6 +627,7 @@ public class Archon {
     private static MapLocation findBestZone() {
         float bestScore = -1f;
         int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
+        System.out.println("myZone: " + myZone[0] + " " + myZone[1]);
         MapLocation bestCenter = ZoneG.center(myZone);
         for(int i = 0; i < 19; ++i) { //busca les 19 zones mes properes
             int[] newZone = new int[]{myZone[0] + xHex[i], myZone[1] + yHex[i]};
@@ -801,11 +804,12 @@ public class Archon {
         y/= enemyArchons.length;
 
         MapLocation nearestEnemy = new MapLocation(x,y);
-
+        if(bestZone == null)
+        {
+            System.out.println("Best Zone es null!");
+            return null;
+        }
         Direction bestZoneToArchon = bestZone.directionTo(nearestEnemy);
-        Direction dirBestZone = rc.getLocation().directionTo(bestZone);
-
-        float angle = dirBestZone.radiansBetween(bestZoneToArchon);
 
         return bestZone.add(Build.findDirectionToBuild(bestZone, bestZoneToArchon, RobotType.GARDENER.bodyRadius, RobotType.ARCHON.bodyRadius), RobotType.ARCHON.bodyRadius + RobotType.GARDENER.bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET + Constants.eps);
     }
