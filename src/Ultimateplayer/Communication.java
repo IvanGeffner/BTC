@@ -66,12 +66,6 @@ public class Communication {
 
     static int xBase = 9999, yBase = 9999;
 
-
-    //BC parameters
-    //gardener lumberjack soldier tank scout trees
-    static final int[] unitChannels = {501, 502, 503, 504, 505, 506};
-    static final int INITIALIZED = 507;
-
     static final int ARCHON_TURN = 508;
     static final int ARCHON_COUNT = 509;
     static final int ARCHONS_LAST_TURN = 510;
@@ -143,10 +137,6 @@ public class Communication {
         }
     }
 
-    static boolean areArchonsAlive(){
-        return countArchons() > 0;
-    }
-
     static int countArchons(){
         try {
             return rc.readBroadcast(ARCHONS_LAST_TURN);
@@ -154,16 +144,6 @@ public class Communication {
             e.printStackTrace();
         }
         return -1;
-    }
-
-    static boolean areGardenersAlive(){
-        try {
-            int lastRoundGardeners = rc.readBroadcast(GARDENER_REPORT);
-            return lastRoundGardeners >= rc.getRoundNum() - 1;
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
 }

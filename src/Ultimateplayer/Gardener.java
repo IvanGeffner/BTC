@@ -19,7 +19,7 @@ public class Gardener {
     static boolean myFirstTurn = true;
     private static boolean firstGardener;
 
-    private static int father; //ID del archon que l'ha creat
+    private static int father; //ID del archon que l'ha creat (modul 0xFFF)
 
     private static int[] firstRushQueue = {2,5,2,5,5,2,5,5};
     private static int[] firstQueue = {5,2,5,2,5,5,2,5};
@@ -135,7 +135,7 @@ public class Gardener {
         }
         RobotInfo[] allies = rc.senseNearbyRobots(4, rc.getTeam());
         for (RobotInfo ally: allies){
-            if (ally.getType() == RobotType.ARCHON) father = ally.getID();
+            if (ally.getType() == RobotType.ARCHON) father = ally.getID()&0xFFF;
         }
         try {
             initialMessageNeedTroop = rc.readBroadcast(Communication.NEEDTROOPCHANNEL + Communication.CYCLIC_CHANNEL_LENGTH);
@@ -356,12 +356,7 @@ public class Gardener {
                 zoneIWant = ZoneG.nullZone(); //si esta fora del mapa, resetejo
                 System.out.println("- La zona que volia esta fora del mapa 2");
                 return;
-            }/*
-            if (Map.distToEdge(centerIWant) < 5){
-                ZoneG.broadcastInfo(zoneIWant,Constants.outOfMapZone);
-                zoneIWant = ZoneG.nullZone(); //aixo es un parche que he ficat, nose si esta be fer-ho
-                return;
-            }*/
+            }
             //System.out.println("El punt " + centerIWant + " esta dintre el mapa");
             if (Constants.DEBUG == 1) rc.setIndicatorDot(centerIWant,255,255,255);
             if (rc.getLocation().distanceTo(centerIWant) < Constants.eps) {
@@ -456,6 +451,7 @@ public class Gardener {
         if (shouldBuildScout){
             System.out.println("- He rebut request de scout");
             tryConstructUnit(Constants.SCOUT);
+            //no faig return
         }
         int early_game_length = 500;
         if (rc.getRoundNum() > early_game_length) {
