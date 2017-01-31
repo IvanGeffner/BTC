@@ -287,6 +287,7 @@ public class Soldier {
 
         float needSoldier = 0.0f; //di
         boolean foundEnemy = false; //di
+        boolean foundLumberjackAlly = false;
 
         MapLocation pos = rc.getLocation();
 
@@ -324,6 +325,7 @@ public class Soldier {
                 needSoldier += Bot.dangerScore(Constants.getIndex(ri.type)); //di
             } else
             {
+                if(ri.getType().equals(RobotType.LUMBERJACK)) foundLumberjackAlly = true;
                 needSoldier -= Bot.dangerScore(Constants.getIndex(ri.type)); //di
             }
         }
@@ -365,6 +367,7 @@ public class Soldier {
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
             if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
+            System.out.println("miro arbres ");
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
@@ -373,6 +376,7 @@ public class Soldier {
                 int a = r.bulletCost;
                 if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
+                if(!foundLumberjackAlly && Bot.needLumberjack(Constants.getIndex(r))) Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDLUMBERJACK);
             }
         }
     }

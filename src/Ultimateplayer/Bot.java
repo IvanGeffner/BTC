@@ -46,9 +46,6 @@ public class Bot {
             e.printStackTrace();
         }
     }
-    
-    //ASK FOR UNITS
-    static final float LUMBERJACKSCORE = 5.0f;
 
     static float dangerScore(int rt)
     {
@@ -59,11 +56,9 @@ public class Bot {
       	return 0.0f; //archons (i granjers) 0
     }
 
-    static float unitTreeScore(int rt)
+    static boolean needLumberjack(int rt)
     {
-      	if(rt == 0) return 1.0f;
-      	if(rt == 2) return 2.5f;
-      	if(rt == 3) return 5.0f;
-      	return 0.0f; //sudando d'scouts i archons
+      	if(rt == Constants.GARDENER || rt == Constants.SOLDIER || rt == Constants.TANK || rt == Constants.LUMBERJACK) return true;
+      	return false; //sudando d'scouts i archons
 	}
 }

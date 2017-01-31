@@ -149,6 +149,18 @@ public class Scout {
 
 
     static MapLocation findBestTree() {
+        boolean foundLumberjackAlly = false;
+
+        RobotInfo[] Ri = rc.senseNearbyRobots(-1, rc.getTeam());
+        for(RobotInfo ri : Ri)
+        {
+            if(ri.getType().equals(RobotType.LUMBERJACK))
+            {
+                foundLumberjackAlly = true;
+                break;
+            }
+        }
+
         MapLocation target2 = null;
         float maxUtil = 0;
         TreeInfo[] Ti = rc.senseNearbyTrees (-1, Team.NEUTRAL);
@@ -162,6 +174,7 @@ public class Scout {
                 int a = r.bulletCost;
                 if (r == RobotType.ARCHON) a = 1000;
                 Communication.sendMessage(Communication.TREEWITHGOODIES, x, y, a);
+                if(!foundLumberjackAlly && Bot.needLumberjack(Constants.getIndex(r))) Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDLUMBERJACK);
             }
             float f = ti.getContainedBullets() / (1 + pos.distanceTo(ti.getLocation()));
             if (f > maxUtil) {

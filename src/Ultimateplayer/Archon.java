@@ -71,6 +71,7 @@ public class Archon {
                 int x = Math.round(rc.getLocation().x);
                 int y = Math.round(rc.getLocation().y);
                 Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDLUMBERJACK);
+                System.out.println("asking for a lumbi ");
                 rc.setIndicatorDot(rc.getLocation(), 120, 130, 120);
             }
             if (emergencyTarget != null){
@@ -329,7 +330,7 @@ public class Archon {
             }else
             {
             	rc.setIndicatorDot(rc.getLocation(), 0, 200, 0);
-            	if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal))
+            	if(firstHorizontal != null && rc.canBuildRobot(RobotType.GARDENER, firstHorizontal))
                 {
                     rc.buildRobot(RobotType.GARDENER, firstHorizontal);
                     Build.incrementRobotsBuilt();
@@ -341,7 +342,7 @@ public class Archon {
                 }
         		else
         		{
-        			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical))
+        			if(firstVertical != null && rc.canBuildRobot(RobotType.GARDENER, firstVertical))
                     {
                         rc.buildRobot(RobotType.GARDENER, firstVertical);
                         Build.incrementRobotsBuilt();
@@ -353,7 +354,7 @@ public class Archon {
                     }
         			else
         			{
-        				if(rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite()))
+        				if(firstHorizontal != null && rc.canBuildRobot(RobotType.GARDENER, firstHorizontal.opposite()))
                         {
                             rc.buildRobot(RobotType.GARDENER, firstHorizontal.opposite());
                             Build.incrementRobotsBuilt();
@@ -365,7 +366,7 @@ public class Archon {
                         }
         	    		else
         	    		{
-        	    			if(rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite()))
+        	    			if(firstVertical != null && rc.canBuildRobot(RobotType.GARDENER, firstVertical.opposite()))
                             {
                                 rc.buildRobot(RobotType.GARDENER, firstVertical.opposite());
                                 Build.incrementRobotsBuilt();

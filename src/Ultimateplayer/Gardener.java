@@ -32,6 +32,7 @@ public class Gardener {
     private static int[] xHex = {0, 0, 1, 1, 0, -1, -1, 0, 1, 2, 2, 2, 1, 0, -1, -2, -2, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1};
     private static int[] yHex = {0, -1, -1, 0, 1, 1, 0, -2, -2, -2, -1, 0, 1, 2, 2, 2, 1, 0, -1, -3, -3, -3, -3, -2, -1, 0, 1, 2, 3, 3, 3, 3, 2, 1, 0, -1, -2, -4, -4, -4, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 4, 4, 4, 3, 2, 1, 0, -1, -2, -3, -5, -5, -5, -5, -5, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -6, -6, -6, -6, -6, -6, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5};
 
+    private static MapLocation[] myArchons;
 
     public static void run(RobotController rcc) {
         rc = rcc;
@@ -113,7 +114,8 @@ public class Gardener {
         ZoneG.init(rc);
         Map.init(rc);
         Build.init(rc);
-        MapLocation base = rc.getInitialArchonLocations(rc.getTeam())[0];
+        myArchons = rc.getInitialArchonLocations(rc.getTeam());
+        MapLocation base =myArchons[0];
         int xBase = Math.round(base.x);
         int yBase = Math.round(base.y);
         Communication.init(rc,xBase, yBase);
@@ -185,7 +187,12 @@ public class Gardener {
             if(m[0] == Constants.GARDENER){
                 if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
             }
-            if(rc.getLocation().distanceTo(sender) > 10.0f) return -1;
+            if(m[0] == 5)
+            {
+                float toMessage = rc.getLocation().distanceTo(sender);
+                if(toMessage > rc.getType().sensorRadius) return -1;
+            }
+            if(rc.getLocation().distanceTo(sender) > 20.0f) return -1;
 
             //Els 200 primers torns no fa lumbs excepte per pagesos o archons
             if (rc.getRoundNum() < 200 && m[0] != Constants.GARDENER  && m[0] != 5) return -1;
