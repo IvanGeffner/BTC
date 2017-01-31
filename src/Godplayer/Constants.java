@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package Godplayer;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;

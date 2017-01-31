@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package Godplayer;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;

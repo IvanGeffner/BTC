@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package Godplayer;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
