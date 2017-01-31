@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package AggroScout;
 
 import battlecode.common.*;
 
@@ -23,7 +23,7 @@ public class Archon {
 
     static boolean initializedZone = false;
     static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
-    static Direction firstVertical; 
+    static Direction firstVertical;
     static Direction firstHorizontal;
 
     //coses de buscar zona per pagesos
@@ -46,9 +46,9 @@ public class Archon {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] enemyTrees;
 
-    static int turnsSinceLastGardener = 0; 
+    static int turnsSinceLastGardener = 0;
 
-    static MapLocation[] enemyArchons; 
+    static MapLocation[] enemyArchons, archons;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -58,11 +58,13 @@ public class Archon {
         turnsSinceAllowed = 0;
         turnsSinceLastGardener = 0;
         enemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        archons = rc.getInitialArchonLocations(rc.getTeam());
 
 
         if (rc.getRoundNum() > 5) init();
         while (true) {
             initTurn();
+            checkScout();
             MapLocation newTarget;
             boolean danger = (emergencyTarget != null);
             Sight.computeSightRange(rc);
@@ -102,7 +104,7 @@ public class Archon {
                         System.out.println("Va a buscar la zona mes buida");
                         if (Sight.gradientX != 0 || Sight.gradientY != 0) {
                             Direction optim = new Direction(Sight.gradientX, Sight.gradientY);
-                            float dist = (float)Math.sqrt(Sight.gradientX*Sight.gradientX + Sight.gradientY*Sight.gradientY);
+                            float dist = (float)Math.sqrt(Sight.gradientX* Sight.gradientX + Sight.gradientY* Sight.gradientY);
                             if (dist < 0.1f) newTarget = realTarget;
                             else newTarget = rc.getLocation().add(optim, dist);
                         } else newTarget = rc.getLocation();
@@ -149,6 +151,18 @@ public class Archon {
         }
     }
 
+    private static void checkScout(){
+        if (rc.getRoundNum() > 50) return;
+        for (MapLocation m : enemyArchons){
+            for (MapLocation l : archons){
+                if (m.distanceTo(l) < 30) return;
+            }
+        }
+        int x = Math.round(rc.getLocation().x);
+        int y = Math.round(rc.getLocation().y);
+        Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSCOUT);
+    }
+
     private static void init2(){
         float bestScore = -1;
         int bestArchon = -1;
@@ -175,7 +189,7 @@ public class Archon {
         shouldBuildGardener = false;
         if(turnsSinceLastGardener > 40 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) shouldBuildGardener = true;
         totalFreeSpots = 0;
-        ++turnsSinceLastGardener; 
+        ++turnsSinceLastGardener;
         allies = rc.senseNearbyRobots(-1, rc.getTeam());
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -378,7 +392,7 @@ public class Archon {
                             }
         	    			else
         	    			{
-        	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius); 
+        	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius);
         	    				if(rc.canBuildRobot(RobotType.GARDENER, d))
                                 {
                                     rc.buildRobot(RobotType.GARDENER, d);
@@ -461,15 +475,15 @@ public class Archon {
             e.printStackTrace();
         }
 
-        if (aliveGardeners == 0) 
-        { 
+        if (aliveGardeners == 0)
+        {
         	shouldBuildGardener = true;
         }
         else{
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
             float maxRatioToBuildGardener = 0.6f;
             if (ratio < maxRatioToBuildGardener && rc.getRoundNum() > 30) shouldBuildGardener = true;
-            
+
         }
 
     }
@@ -653,15 +667,15 @@ public class Archon {
         try {
         	if (!rc.canSenseAllOfCircle(center, R)) return -1.0f;
             if(!rc.onTheMap(center, R)) return -1.0f;
-            
+
             RobotInfo gardener = rc.senseRobotAtLocation(center);
             if(gardener != null && gardener.getType().equals(RobotType.GARDENER)) return -1.0f;
-            
+
             float r = GameConstants.BULLET_TREE_RADIUS;
 
             float a = (float)Math.PI/6; //ara l'angle es 30
 	        Direction dBase = new Direction(a);
-            
+
             TreeInfo[] trees = rc.senseNearbyTrees(center, R + r, null);
             for (int i = 0; i < 6; i++) {
             	float score_i = 2;
@@ -670,7 +684,7 @@ public class Archon {
                 else if (!rc.onTheMap(toBuild, r)) score_i = -0.5f;
 		        for (TreeInfo tree: trees) {
 		            if (i == 0 && center.distanceTo(tree.getLocation()) <= R + tree.getRadius()) return -1; //si l'arbre talla el centre
-		
+
 	                if (toBuild.distanceTo(tree.getLocation()) <= r + tree.getRadius()){
 	                    score_i = Math.min(score_i,0);
 	                }
@@ -683,11 +697,11 @@ public class Archon {
         }catch (GameActionException e) {
             e.printStackTrace();
         }
-        
-        
+
+
         float score2 = 9999.0f;
         for (MapLocation m : enemyArchons) score2 = Math.min(score2, center.distanceTo(m));
-        
+
         return score + score2/10000;
     }
     private static void drawZone() {
@@ -734,56 +748,56 @@ public class Archon {
     	if(!cornered())
     	{
     	    rc.setIndicatorDot(rc.getLocation(),200,0,0);
-	    	MapLocation nearestEnemy = enemyArchons[0]; 
-	    	
-	    	float distance = rc.getLocation().distanceTo(enemyArchons[0]); 
+	    	MapLocation nearestEnemy = enemyArchons[0];
+
+	    	float distance = rc.getLocation().distanceTo(enemyArchons[0]);
 	    	for(int i = 1; i < enemyArchons.length; ++i)
 	    	{
-	    		float d = rc.getLocation().distanceTo(enemyArchons[i]); 
+	    		float d = rc.getLocation().distanceTo(enemyArchons[i]);
 	    		if(d < distance)
 	    		{
-	    			distance = d; 
+	    			distance = d;
 	    			nearestEnemy = enemyArchons[i];
 	    		}
 	    	}
-	    	
-	    	Direction desiredDir = rc.getLocation().directionTo(nearestEnemy).opposite(); 
-	    	Direction realDir = Build.findDirectionToBuild(desiredDir, 3.0f); 
+
+	    	Direction desiredDir = rc.getLocation().directionTo(nearestEnemy).opposite();
+	    	Direction realDir = Build.findDirectionToBuild(desiredDir, 3.0f);
 	    	if(realDir == null)
 	    	{
-	    		realDir = Build.findDirectionToBuild(desiredDir, 2.0f); 
+	    		realDir = Build.findDirectionToBuild(desiredDir, 2.0f);
 	    		if(realDir == null)
 	    		{
-	    			realDir = Build.findDirectionToBuild(desiredDir, 1.0f); 
+	    			realDir = Build.findDirectionToBuild(desiredDir, 1.0f);
 	    		}
 	    	}
 	    	if(realDir != null) bestZone = rc.getLocation().add(realDir,RobotType.GARDENER.bodyRadius + RobotType.ARCHON.bodyRadius);
     	}
     }
-    
+
     private static boolean cornered()
     {
-    	float maxDist = (float) 4.7f + Constants.eps; 
-    	float myX = rc.getLocation().x; 
-    	float myY = rc.getLocation().y; 
-    	boolean first = false; 
+    	float maxDist = (float) 4.7f + Constants.eps;
+    	float myX = rc.getLocation().x;
+    	float myY = rc.getLocation().y;
+    	boolean first = false;
     	System.out.println("myX: " + myX + "myY: " + myY);
     	System.out.println("maxX: " + Map.maxX + " maxY: " + Map.maxY + " minX: "+ Map.minX + " minY: " + Map.minY);
     	//TODO canviar per no gastar bytecode
-    	if(Math.abs(myX -Map.maxX) <=  maxDist || Math.abs(myX -Map.minX) <= maxDist) 
+    	if(Math.abs(myX - Map.maxX) <=  maxDist || Math.abs(myX - Map.minX) <= maxDist)
     	{
     		if(Map.checkMapBound(Direction.EAST) != null) firstHorizontal = Direction.EAST;
     		else firstHorizontal = Direction.WEST;
-    		first = true; 
+    		first = true;
     	}
-    	if(first && (Math.abs(myY -Map.maxY) <=  maxDist || Math.abs(myY -Map.minY) <=  maxDist)) 
+    	if(first && (Math.abs(myY - Map.maxY) <=  maxDist || Math.abs(myY - Map.minY) <=  maxDist))
     	{
     		if(Map.checkMapBound(Direction.NORTH) != null) firstVertical = Direction.NORTH;
     		else firstVertical = Direction.SOUTH;
-    		bestZone = null; 
+    		bestZone = null;
     		return true;
     	}
-    	return false; 
+    	return false;
     }
 
     private static MapLocation buildFrom()
