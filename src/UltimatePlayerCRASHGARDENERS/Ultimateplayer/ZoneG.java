@@ -147,6 +147,9 @@ public class ZoneG {
     //diu a quina zona pertany una posicio
     //els calculs son una merde pero estan be, els he trobat per internet
     static int[] getZoneFromPos(MapLocation pos){
+        System.out.println("======INICI=====");
+        System.out.println("Pos " + pos);
+        System.out.println("Zone origin " + zoneOriginX + "," + zoneOriginY);
         int[] ret = new int[2];
         //float a00 = 2f/7f;
         //float a01 = -1f/6f;
@@ -159,6 +162,7 @@ public class ZoneG {
         float x = a00 * (pos.x - zoneOriginX) + a01 * (pos.y - zoneOriginY);
         float y = a10 * (pos.x - zoneOriginX) + a11 * (pos.y - zoneOriginY);
         float z = -x-y;
+        System.out.println("x,y,z = " + x + "," + y + "," + z);
         int rx = Math.round(x);
         int ry = Math.round(y);
         int rz = Math.round(z);
@@ -172,6 +176,8 @@ public class ZoneG {
         }
         ret[0] = rx;
         ret[1] = ry;
+        System.out.println("Retorna " + rx + "," + ry);
+        System.out.println("======FINAL=====");
         return ret;
     }
 

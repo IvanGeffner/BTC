@@ -249,8 +249,6 @@ public class Gardener {
             if (enemy.getType() == RobotType.TANK) score += 2;
         }
         for (RobotInfo ally: ZoneG.allies){
-            if (ally.getType() == RobotType.SCOUT) score -= 0.2;
-            if (ally.getType() == RobotType.LUMBERJACK) score -= 0.5;
             if (ally.getType() == RobotType.SOLDIER) score -= 1;
             if (ally.getType() == RobotType.TANK) score -= 2;
         }

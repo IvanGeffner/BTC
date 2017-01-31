@@ -1,8 +1,6 @@
 Idees random:
 - FIX BUG PAGESOS!!!!
-- Mirar que passa al Cropcircle i al House divided. (Creiem que al house estan demanant soldats tota l'estona).
 - MIRAR QUE PASSA AL CRASHGARDENERS al crossfire
-- Mirar que passa a WAVES!!
 
 - scouts aggressius
 
@@ -12,6 +10,4 @@ Idees random:
 
 
 
--truere fer tanks
--arreglar build archon
 -pagesos demanen lumber per arbres d'a tocar la zona

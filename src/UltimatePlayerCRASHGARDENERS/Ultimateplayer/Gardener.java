@@ -249,6 +249,7 @@ public class Gardener {
         int[] closest_empty_zone = ZoneG.nullZone();
         float minDist = Constants.INF;
         int[] myZone = ZoneG.getZoneFromPos(rc.getLocation());
+        System.out.println("Soc a la zona " + myZone[0] + "," + myZone[1]);
         //System.out.println("Troba la zona de la meva pos: " + Clock.getBytecodeNum());
         for (int i = 0; i < xHex.length; i++){
             //System.out.println("bytecode inici for: " + Clock.getBytecodeNum());
