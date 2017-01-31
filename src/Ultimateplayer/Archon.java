@@ -557,7 +557,7 @@ public class Archon {
             if (ally.getType() == RobotType.TANK) score -= 2;
         }
         if (score > 0)
-            Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
+            Communication.sendMessage(Communication.EMERGENCYCHANNEL,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),rc.getID());
 
     }
 

@@ -13,7 +13,7 @@ public class Gardener {
     private static int initialMessageNeedTroop = 0;
     private static int initialMessageEmergency = 0;
     static boolean lumberjackBuilt = false;
-    static boolean shouldBuildTroop = false;
+    static boolean shouldBuildSoldier = false;
     static boolean shouldBuildLumber = false;
     static boolean shouldBuildScout = false;
     static boolean myFirstTurn = true;
@@ -38,33 +38,29 @@ public class Gardener {
         rc = rcc;
         Initialize();
         while (true) {
-            System.out.println("init bucle " + Clock.getBytecodeNum());
             initTurn();
-            System.out.println("after init turn " + Clock.getBytecodeNum());
             MapLocation newTarget = checkNearbyEnemies(); //si te algun enemic a prop, fuig
-            System.out.println("Despres check nearby enemies " + Clock.getBytecodeNum());
             if (ZoneG.hasValue(zone)) {
                 //si soc a la zona
                 ZoneG.broadcastMyZone();
                 checkNeutralTreesInZone();
                 if (rc.getLocation().distanceTo(ZoneG.center) > Constants.eps) {
+                    //si per qualsevol rao marxa de la zona
                     ZoneG.broadcastInfo(zone, Constants.abandonedZone);
                     zone = ZoneG.nullZone();
                     ZoneG.resetMyZone();
                     System.out.println("No esta a la zona, reseteja");
-
                 }
-                System.out.println("Post analisi zona: " + Clock.getBytecodeNum());
+                //System.out.println("Post analisi zona: " + Clock.getBytecodeNum());
             }else{
-                System.out.println("no te zona");
+                System.out.println("No te zona");
                 //si no soc a la zona
                 if (newTarget != null){
                     System.out.println("Fuig de " + rc.getLocation() + " a " + newTarget);
                     if (Constants.DEBUG == 1) rc.setIndicatorLine(rc.getLocation(),newTarget, 0, 255, 255);
                 }else if (!ZoneG.hasValue(zone)) {
                     //si esta buscant zona
-                    if (rc.getRoundNum() % ZoneG.turnsResetZone == 0)
-                    {
+                    if (rc.getRoundNum() % ZoneG.turnsResetZone == 0) {
                         zoneIWant = ZoneG.nullZone();
                         System.out.println("Ha assignat null zone a zone I want: "+ Clock.getBytecodeNum());
                     }
@@ -152,7 +148,7 @@ public class Gardener {
         Map.checkMapBounds();
         Communication.sendMessage(Communication.GARD_COUNT,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
         shouldBuildLumber = false;
-        shouldBuildTroop = false;
+        shouldBuildSoldier = false;
         //System.out.println("Before read " + Clock.getBytecodeNum());
         readMessages();
         //System.out.println("Before zone init " + Clock.getBytecodeNum());
@@ -165,14 +161,13 @@ public class Gardener {
         try {
             int channel = Communication.NEEDTROOPCHANNEL;
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            System.out.println("first last " + initialMessageNeedTroop + "," + lastMessage);
             for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;i++) {
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
                 System.out.println("loop " + Clock.getBytecodeNum());
                 int bitmap = rc.readBroadcast(channel + i);
                 int t = workMessageTroopNeeded(bitmap);
                 if(t == -1) continue;
-                if(t == Communication.NEEDSOLDIERTANK) shouldBuildTroop = true;
+                if(t == Communication.NEEDSOLDIERTANK) shouldBuildSoldier = true;
                 if(t == Communication.NEEDLUMBERJACK && !lumberjackBuilt) shouldBuildLumber = true;
                 if(t == Communication.NEEDSCOUT) shouldBuildScout = true;
             }
@@ -180,7 +175,11 @@ public class Gardener {
 
             channel = Communication.EMERGENCYCHANNEL;
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
-            if (initialMessageEmergency != lastMessage) shouldBuildTroop = true;
+            for(int i = initialMessageEmergency; i != lastMessage; i++){
+                if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+                int bitmap = rc.readBroadcast(channel + i);
+                workMessageEmergency(bitmap);
+            }
             initialMessageEmergency = lastMessage;
         } catch (GameActionException e) {
             System.out.println(e.getMessage());
@@ -208,6 +207,12 @@ public class Gardener {
             if (rc.getRoundNum() < 200 && m[0] != Constants.GARDENER  && m[0] != 5) return -1;
         }
         return m[3];
+    }
+
+    private static void workMessageEmergency(int bitmap){
+        int[] m = Communication.decode(bitmap);
+        if (m[0] == 5 && m[3] != father) return; // si es un archon i no es el meu, suda
+        shouldBuildSoldier = true;
     }
 
     static void broadcastLocations() {
@@ -436,7 +441,7 @@ public class Gardener {
             System.out.println("- Tinc cooldown");
             return;
         }
-        if (shouldBuildTroop) {
+        if (shouldBuildSoldier) {
             System.out.println("- He rebut request de soldat");
             tryConstructUnit(Constants.SOLDIER);
             return;
@@ -581,7 +586,7 @@ public class Gardener {
             System.out.println("- Nomes tinc una posicio oberta");
             return false; //Si nomes hi ha una posicio, la reservem per robots
         }*/
-        if (shouldBuildLumber || shouldBuildTroop) {
+        if (shouldBuildLumber || shouldBuildSoldier) {
             System.out.println("- He rebut ordres de construir tropa");
             return false; //no planta si te alguna cosa mes prioritaria
         }

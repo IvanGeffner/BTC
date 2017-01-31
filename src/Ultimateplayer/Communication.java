@@ -127,16 +127,6 @@ public class Communication {
         sendMessage(rc,channel,x,y,value);
     }
 
-    //cada torn les tropes envien el numero de torn, aixi sabem quan no en tenim
-    static void sendReport(int channel){
-        try {
-            System.out.println("Envia report a " + channel);
-            rc.broadcast(channel,rc.getRoundNum());
-        } catch (GameActionException e) {
-            e.printStackTrace();
-        }
-    }
-
     static int countArchons(){
         try {
             return rc.readBroadcast(ARCHONS_LAST_TURN);
