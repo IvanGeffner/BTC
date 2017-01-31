@@ -21,6 +21,7 @@ public class Gardener {
 
     private static int father; //ID del archon que l'ha creat (modul 0xFFF)
 
+    private static int[] firstExtremeRushQueue = {2,2,5,5,5,5,5};
     private static int[] firstRushQueue = {2,5,2,5,5,2,5,5};
     private static int[] firstQueue = {5,2,5,2,5,5,2,5};
     private static int[] normalQueue = {5,2,5,5,5,5};
@@ -101,6 +102,7 @@ public class Gardener {
             MapLocation[] enemies = rc.getInitialArchonLocations(rc.getTeam().opponent());
             float minDist = 9999;
             for (MapLocation enemy: enemies) minDist = Math.min(minDist, rc.getLocation().distanceTo(enemy));
+            if (minDist < 6) myQueue = firstExtremeRushQueue;
             if (minDist < 30) myQueue = firstRushQueue;
             else myQueue = firstQueue;
         }else {
@@ -149,11 +151,11 @@ public class Gardener {
         Communication.sendMessage(Communication.GARD_COUNT,Math.round(rc.getLocation().x),Math.round(rc.getLocation().y),0);
         shouldBuildLumber = false;
         shouldBuildSoldier = false;
-        //System.out.println("Before read " + Clock.getBytecodeNum());
+        System.out.println("Before read " + Clock.getBytecodeNum());
         readMessages();
-        //System.out.println("Before zone init " + Clock.getBytecodeNum());
+        System.out.println("Before zone init " + Clock.getBytecodeNum());
         ZoneG.initTurn();
-        //System.out.println("Before broadcast " + Clock.getBytecodeNum());
+        System.out.println("Before broadcast " + Clock.getBytecodeNum());
         broadcastLocations();
     }
 
@@ -163,7 +165,8 @@ public class Gardener {
             int lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             for(int i = initialMessageNeedTroop; i != lastMessage && Clock.getBytecodesLeft() > Constants.BYTECODEPOSTMESSAGES;i++) {
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
-                System.out.println("loop " + Clock.getBytecodeNum());
+                if (i == lastMessage) break;
+                //System.out.println("loop " + Clock.getBytecodeNum());
                 int bitmap = rc.readBroadcast(channel + i);
                 int t = workMessageTroopNeeded(bitmap);
                 if(t == -1) continue;
@@ -177,6 +180,8 @@ public class Gardener {
             lastMessage = rc.readBroadcast(channel + Communication.CYCLIC_CHANNEL_LENGTH);
             for(int i = initialMessageEmergency; i != lastMessage; i++){
                 if (i >= Communication.CYCLIC_CHANNEL_LENGTH) i -= Communication.CYCLIC_CHANNEL_LENGTH;
+                if (i == lastMessage) break;
+                //System.out.println("loop2 " + i + "," + lastMessage);
                 int bitmap = rc.readBroadcast(channel + i);
                 workMessageEmergency(bitmap);
             }
@@ -457,6 +462,66 @@ public class Gardener {
             //no faig return
         }
         int early_game_length = 500;
+        if (rc.getRoundNum() > early_game_length){
+            //Post 500
+            System.out.println("- Decideixo fer arbre");
+            tryPlanting();
+        }else if (!firstGardener){
+            //Pre 500
+            boolean soldierInSight = false;
+            for (RobotInfo ally: ZoneG.allies){
+                if (ally.getType() == RobotType.SOLDIER) soldierInSight = true;
+            }
+            if (soldiersSkipped > 0 && !soldierInSight){
+                System.out.println("- Intento fer un soldat que m'he saltat");
+                boolean built = tryConstructUnit(Constants.SOLDIER);
+                if (built) soldiersSkipped--;
+            }
+            if (queueIndex < myQueue.length){
+                int unit = myQueue[queueIndex];
+                System.out.println("- Construeixo de la cua, index " + queueIndex + " = " + unit);
+                if (unit == Constants.SOLDIER){
+                    if (soldierInSight) {
+                        //Si ja veig un soldier, me'l salto
+                        queueIndex++;
+                        soldiersSkipped++;
+                        System.out.println("- Em toca soldat pero ja en veig un, provo arbre");
+                        tryPlanting();
+                        return;
+                    }else{
+                        boolean built = tryConstructUnit(Constants.SOLDIER);
+                        queueIndex++;
+                        if (!built){
+                            soldiersSkipped++;
+                            System.out.println("- No he pogut construir soldat, provo plantar");
+                            tryPlanting();
+                        }
+                    }
+                }else{
+                    tryPlanting();
+                }
+            }else{
+                System.out.println("- Ja he acabat la cua, provo de plantar");
+                tryPlanting();
+            }
+        }else{
+            //First gardener, nomes segueix la cua i mai se salta res
+            if (queueIndex < myQueue.length){
+                int unit = myQueue[queueIndex];
+                System.out.println("- (1st) Construeixo de la cua, index " + queueIndex + " = " + unit);
+                boolean built = tryConstructUnit(unit);
+                if (built) queueIndex++;
+            }else{
+                System.out.println("- (1st) Ja he acabat la cua, planto");
+                tryPlanting();
+            }
+        }
+
+
+
+/*
+
+
         if (rc.getRoundNum() > early_game_length) {
             System.out.println("- Decideixo fer arbre");
             tryPlanting();
@@ -498,7 +563,7 @@ public class Gardener {
             } else {
                 System.out.println("- No em toca construir res");
             }
-        }
+        }*/
     }
 
     private static boolean tryConstructUnit(int unit){
@@ -582,6 +647,9 @@ public class Gardener {
             System.out.println("- Massa tard per construir");
             return false;
         }
+        if (rc.getTeamBullets() < 50 + 100*soldiersSkipped){
+            System.out.println("- No tinc prou bullets: " + rc.getTeamBullets() + "/" + (50+100*soldiersSkipped));
+        }
         /*if (ZoneG.freeSpots < 2/* && !shouldBuildSixTrees()) {
             System.out.println("- Nomes tinc una posicio oberta");
             return false; //Si nomes hi ha una posicio, la reservem per robots
@@ -595,7 +663,7 @@ public class Gardener {
             return false;
         }
         int index = ZoneG.indexToPlant(); //si hi ha algun arbre no ocupat
-        System.out.println("- Planta l'arbre " + index);
+        System.out.println("- Vol plantar l'arbre " + index);
         if (index == -1) {
             System.out.println("- Index = -1");
             return false;
@@ -606,11 +674,13 @@ public class Gardener {
             try {
                 //Planta l'arbre
                 rc.plantTree(plantingDirection);
+                System.out.println("- Planta l'arbre");
                 return true;
             } catch (GameActionException e) {
                 e.printStackTrace();
             }
         }
+        System.out.println("- No planta l'arbre");
         return false;
     }
 
@@ -638,46 +708,4 @@ public class Gardener {
         realTarget = newTarget;
         //Greedy.resetObstacle(rc);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

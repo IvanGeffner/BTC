@@ -50,6 +50,9 @@ public class Archon {
 
     static MapLocation[] enemyArchons;
 
+
+    static float sv;
+
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
         rc = rcc;
@@ -66,7 +69,6 @@ public class Archon {
             System.out.println("Who am i " + whoAmI);
             MapLocation newTarget = null;
             boolean danger = (emergencyTarget != null);
-            Sight.computeSightRange(rc);
             System.out.println(Sight.closed);
             if (Sight.closed){
                 int x = Math.round(rc.getLocation().x);
@@ -135,8 +137,6 @@ public class Archon {
             Build.init(rc);
             MapLocation[] archons = rc.getInitialArchonLocations(rc.getTeam());
             Map.init(rc);
-            float score = getInitialScore();
-            rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
             if (whoAmI == 0) { // first to execute
                 rc.broadcast(Communication.ARCHONS_LAST_TURN, archons.length);
                 // inicialitzem el limits del mapa
@@ -145,6 +145,11 @@ public class Archon {
                 rc.broadcast(Communication.MAP_LEFT_BOUND, Float.floatToIntBits(-Constants.INF));
                 rc.broadcast(Communication.MAP_RIGHT_BOUND, Float.floatToIntBits(Constants.INF));
             }
+
+            Map.checkMapBounds();
+            float score = getInitialScore();
+            System.out.println("my score: " + score);
+            rc.broadcast(Communication.ARCHON_INIT_SCORE[whoAmI],Float.floatToIntBits(score));
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -168,6 +173,7 @@ public class Archon {
         }
         if (bestArchon == whoAmI){
             leader = true;
+            System.out.println("I'm the leader ");
             //bestZone = firstGardener();
             tryConstruct();
         }
@@ -185,6 +191,7 @@ public class Archon {
         enemyTrees = rc.senseNearbyTrees(-1, rc.getTeam().opponent());
         Bot.shake(rc);
         Bot.donate(rc);
+        sv = Sight.computeSightRange(rc);;
         readMessages(); //aqui sap si cal que construeixi un pages
         if (secondTurn && !firstTurn) {
             secondTurn = false;
@@ -201,7 +208,7 @@ public class Archon {
             init();
         }
         broadcastLocations();
-        Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
+        if(!firstTurn) Map.checkMapBounds(); //aixo ha d'anar al final del initturn, sino dona excepcio pq s'ha d'inicialitzar
         checkSuicide();
         if (whoAmI < 5){
             MapLocation myPos = rc.getLocation();
@@ -210,30 +217,16 @@ public class Archon {
     }
 
 
+
     private static float getInitialScore(){
-        float distToEnemy = Constants.INF;
-        MapLocation myPos = rc.getLocation();
-        MapLocation enemies[] = rc.getInitialArchonLocations(rc.getTeam().opponent());
-        for (MapLocation enemy: enemies){
-            distToEnemy = Math.min(distToEnemy,myPos.distanceTo(enemy));
-        }
-
-        float totalArea = getSurfaceArea();
-        float treeArea = 0;
-        TreeInfo[] trees = rc.senseNearbyTrees(-1,Team.NEUTRAL);
-        float extraBullets = GameConstants.BULLETS_INITIAL_AMOUNT;
-        for (TreeInfo tree: trees){
-            //se que aixo no esta be pero es una merda fer-ho exacte
-            treeArea += tree.getRadius()*tree.getRadius()*(float)Math.PI;
-            if (tree.getContainedRobot() == null) continue;
-            extraBullets += tree.getContainedRobot().bulletCost;
-        }
-
-        float freeArea = totalArea - treeArea;
-        float score = distToEnemy * extraBullets * freeArea;
-        System.out.println("dist bullets area " + distToEnemy + "," + extraBullets + "," + freeArea);
-        System.out.println("Score = " + score);
-        return score;
+        float sightScore = sv/10000.0f;
+        Direction canBuild = Build.findDirectionToBuild(Direction.NORTH, 3.0f);
+        if (canBuild != null) return sightScore + 3.0f;
+        canBuild = Build.findDirectionToBuild(Direction.NORTH, 2.0f);
+        if (canBuild != null) return sightScore + 2.0f;
+        canBuild = Build.findDirectionToBuild(Direction.NORTH, 1.0f);
+        if (canBuild != null) return sightScore + 1.0f;
+        return 0.0f;
     }
 
     private static MapLocation checkShakeTrees(){
