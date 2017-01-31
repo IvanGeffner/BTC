@@ -12,7 +12,7 @@ public class Gardener {
     private static MapLocation realTarget;
     private static int initialMessageNeedTroop = 0;
     private static int initialMessageEmergency = 0;
-    static boolean lumberjackBuilt = false;
+    static int lumbersToBuild = 2;
     static boolean shouldBuildSoldier = false;
     static boolean shouldBuildLumber = false;
     static boolean shouldBuildScout = false;
@@ -171,7 +171,7 @@ public class Gardener {
                 int t = workMessageTroopNeeded(bitmap);
                 if(t == -1) continue;
                 if(t == Communication.NEEDSOLDIERTANK) shouldBuildSoldier = true;
-                if(t == Communication.NEEDLUMBERJACK && !lumberjackBuilt) shouldBuildLumber = true;
+                if(t == Communication.NEEDLUMBERJACK) shouldBuildLumber = true;
                 if(t == Communication.NEEDSCOUT) shouldBuildScout = true;
             }
             initialMessageNeedTroop = lastMessage;
@@ -201,15 +201,18 @@ public class Gardener {
             if(m[0] == Constants.GARDENER){
                 if(rc.getLocation().distanceTo(sender) > 1.0f) return -1;
             }
-            if(m[0] == 5)
-            {
+            if(m[0] == 5) { //si es archon
                 float toMessage = rc.getLocation().distanceTo(sender);
                 if(toMessage > rc.getType().sensorRadius) return -1;
             }
             if(rc.getLocation().distanceTo(sender) > 20.0f) return -1;
-
             //Els 200 primers torns no fa lumbs excepte per pagesos o archons
             if (rc.getRoundNum() < 200 && m[0] != Constants.GARDENER  && m[0] != 5) return -1;
+            if (lumbersToBuild == 2) return m[3];
+            if (lumbersToBuild == 0) return -1;
+            if (m[0] == 5) return m[3];
+            if (rc.getTeamBullets() > 300) return m[3];
+            return -1;
         }
         return m[3];
     }
@@ -399,7 +402,7 @@ public class Gardener {
     private static void checkNeutralTreesInZone(){
         ZoneG.messageNeutralTreesInCircle(ZoneG.center(), ZoneG.neutralTrees);
         // trees = arbres del inner circle
-        if (!lumberjackBuilt && ZoneG.shouldRequestLumberjack())
+        if (ZoneG.shouldRequestLumberjack())
             Communication.sendMessage(Communication.NEEDTROOPCHANNEL, Math.round(rc.getLocation().x), Math.round(rc.getLocation().y), Communication.NEEDLUMBERJACK);
     }
 
@@ -571,7 +574,7 @@ public class Gardener {
             System.out.println("- unit = -1");
             return false;
         }
-        if (unit == Constants.LUMBERJACK && lumberjackBuilt && rc.getTeamBullets() < 500) {
+        if (unit == Constants.LUMBERJACK && !shouldBuildLumber && rc.getTeamBullets() < 500) {
             System.out.println("- Ja he fet un lumberjack");
             return false;
         }
@@ -627,7 +630,7 @@ public class Gardener {
                 System.out.println("- Construeix " + Constants.getRobotTypeFromIndex(unit));
                 rc.buildRobot(Constants.getRobotTypeFromIndex(unit),dirToBuild);
                 Build.incrementRobotsBuilt();
-                if (unit == Constants.LUMBERJACK) lumberjackBuilt = true;
+                if (unit == Constants.LUMBERJACK) lumbersToBuild--;
                 if (unit == Constants.SCOUT) rc.broadcast(Communication.SCOUT_LAST_TURN_BUILT,rc.getRoundNum());
                 return true;
             } catch (GameActionException e) {
