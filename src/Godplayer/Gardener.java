@@ -21,6 +21,7 @@ public class Gardener {
 
     private static int father; //ID del archon que l'ha creat (modul 0xFFF)
 
+    private static int[] firstExtremeRushQueue = {2,2,5,5,5,5,5};
     private static int[] firstRushQueue = {2,5,2,5,5,2,5,5};
     private static int[] firstQueue = {5,2,5,2,5,5,2,5};
     private static int[] normalQueue = {5,2,5,5,5,5};
@@ -101,6 +102,7 @@ public class Gardener {
             MapLocation[] enemies = rc.getInitialArchonLocations(rc.getTeam().opponent());
             float minDist = 9999;
             for (MapLocation enemy: enemies) minDist = Math.min(minDist, rc.getLocation().distanceTo(enemy));
+            if (minDist < 6) myQueue = firstExtremeRushQueue;
             if (minDist < 30) myQueue = firstRushQueue;
             else myQueue = firstQueue;
         }else {
