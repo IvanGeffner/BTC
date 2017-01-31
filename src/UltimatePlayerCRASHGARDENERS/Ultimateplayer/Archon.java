@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package UltimatePlayerCRASHGARDENERS.Ultimateplayer;
 
 import battlecode.common.*;
 
@@ -23,7 +23,7 @@ public class Archon {
 
     static boolean initializedZone = false;
     static MapLocation bestZ = new MapLocation(-Constants.INF, 0);
-    static Direction firstVertical; 
+    static Direction firstVertical;
     static Direction firstHorizontal;
 
     //coses de buscar zona per pagesos
@@ -46,9 +46,9 @@ public class Archon {
     static TreeInfo[] neutralTrees;
     static TreeInfo[] enemyTrees;
 
-    static int turnsSinceLastGardener = 0; 
+    static int turnsSinceLastGardener = 0;
 
-    static MapLocation[] enemyArchons; 
+    static MapLocation[] enemyArchons;
 
     @SuppressWarnings("unused")
     public static void run(RobotController rcc) {
@@ -174,7 +174,7 @@ public class Archon {
         shouldBuildGardener = false;
         if(turnsSinceLastGardener > 40 && rc.getRoundNum() < 25000 && rc.getTeamBullets() > 150) shouldBuildGardener = true;
         totalFreeSpots = 0;
-        ++turnsSinceLastGardener; 
+        ++turnsSinceLastGardener;
         allies = rc.senseNearbyRobots(-1, rc.getTeam());
         enemies = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
         neutralTrees = rc.senseNearbyTrees(-1, Team.NEUTRAL);
@@ -377,7 +377,7 @@ public class Archon {
                             }
         	    			else
         	    			{
-        	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius); 
+        	    				d = Build.findDirectionToBuild(firstHorizontal, RobotType.GARDENER.bodyRadius);
         	    				if(rc.canBuildRobot(RobotType.GARDENER, d))
                                 {
                                     rc.buildRobot(RobotType.GARDENER, d);
@@ -460,15 +460,15 @@ public class Archon {
             e.printStackTrace();
         }
 
-        if (aliveGardeners == 0) 
-        { 
+        if (aliveGardeners == 0)
+        {
         	shouldBuildGardener = true;
         }
         else{
             float ratio = (float) totalFreeSpots/(float) aliveGardeners;
             float maxRatioToBuildGardener = 0.6f;
             if (ratio < maxRatioToBuildGardener && rc.getRoundNum() > 30) shouldBuildGardener = true;
-            
+
         }
 
     }
@@ -652,15 +652,15 @@ public class Archon {
         try {
         	if (!rc.canSenseAllOfCircle(center, R)) return -1.0f;
             if(!rc.onTheMap(center, R)) return -1.0f;
-            
+
             RobotInfo gardener = rc.senseRobotAtLocation(center);
             if(gardener != null && gardener.getType().equals(RobotType.GARDENER)) return -1.0f;
-            
+
             float r = GameConstants.BULLET_TREE_RADIUS;
 
             float a = (float)Math.PI/6; //ara l'angle es 30
 	        Direction dBase = new Direction(a);
-            
+
             TreeInfo[] trees = rc.senseNearbyTrees(center, R + r, null);
             for (int i = 0; i < 6; i++) {
             	float score_i = 2;
@@ -669,7 +669,7 @@ public class Archon {
                 else if (!rc.onTheMap(toBuild, r)) score_i = -0.5f;
 		        for (TreeInfo tree: trees) {
 		            if (i == 0 && center.distanceTo(tree.getLocation()) <= R + tree.getRadius()) return -1; //si l'arbre talla el centre
-		
+
 	                if (toBuild.distanceTo(tree.getLocation()) <= r + tree.getRadius()){
 	                    score_i = Math.min(score_i,0);
 	                }
@@ -682,11 +682,11 @@ public class Archon {
         }catch (GameActionException e) {
             e.printStackTrace();
         }
-        
-        
+
+
         float score2 = 9999.0f;
         for (MapLocation m : enemyArchons) score2 = Math.min(score2, center.distanceTo(m));
-        
+
         return score + score2/10000;
     }
     private static void drawZone() {
@@ -762,7 +762,7 @@ public class Archon {
     
     private static boolean cornered()
     {
-    	float maxDist = (float) 4.7f + Constants.eps; 
+    	float maxDist = (float) 4.7f + Constants.eps;
     	float myX = rc.getLocation().x; 
     	float myY = rc.getLocation().y; 
     	boolean first = false; 

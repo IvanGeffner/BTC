@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package UltimatePlayerCRASHGARDENERS.Ultimateplayer;
 
 import battlecode.common.*;
 
