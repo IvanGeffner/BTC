@@ -86,9 +86,39 @@ public class Greedy {
         Greedy.resetObstacle(rc);
     }
 
+    static MapLocation fixTarget(RobotController rc, MapLocation tar){
+        try {
+            float r = rc.getType().bodyRadius;
+            if (!rc.canSenseAllOfCircle(tar, r) || rc.onTheMap(tar, r)) return tar;
+            Map.init(rc);
+            Map.checkMapBounds();
+            float x = tar.x, y = tar.y;
+
+            float minX = Map.minX + r + Constants.eps;
+            if (tar.x <= minX) x = minX;
+
+            float maxX = Map.maxX - r - Constants.eps;
+            if (tar.x >= maxX) x = maxX;
+
+
+            float minY = Map.minY + r + Constants.eps;
+            if (tar.y <= minY) y = minY;
+
+            float maxY = Map.maxY - r - Constants.eps;
+            if (tar.y >= maxY) y = maxY;
+
+            return new MapLocation(x, y);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+     }
+
 
 
     static void moveGreedy(RobotController rc, MapLocation tar, int bytecodeleft){
+        tar = fixTarget(rc, tar);
         changeTarget(tar, rc);
         if (target == null) return;
 
