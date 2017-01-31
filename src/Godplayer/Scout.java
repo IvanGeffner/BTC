@@ -63,7 +63,7 @@ public class Scout {
             System.out.println("0");
             MapLocation newTarget = findBestTree();
             // si no estem escapant, o si ho estem fent pero la direccio de l'arbre es semblant a la d'escapament
-            if (escaping <= 0 || (newTarget != null && Math.abs(currentDirection.degreesBetween(pos.directionTo(newTarget))) < 90)) {
+            if (escaping <= 0 || (newTarget != null && newTarget != pos && currentDirection != null &&  Math.abs(currentDirection.degreesBetween(pos.directionTo(newTarget))) < 90)) {
                 updateTarget(newTarget);
             }
 

@@ -136,6 +136,8 @@ public class Shoot {
                 System.out.println("max oberture: " + maxOberture);
                 float multiplier = 1;
 
+                if (ri.getType() == RobotType.SOLDIER || ri.getType() == RobotType.TANK) multiplier = 2;
+
 
                 float x;
                 if (r == RobotType.ARCHON) x = 2.5f;
