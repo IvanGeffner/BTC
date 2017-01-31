@@ -1,4 +1,4 @@
-package Ultimateplayer;
+package UltimateplayerNoEmergency;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
