@@ -160,9 +160,8 @@ public class Constants {
 
     static float safetyDistance(RobotType r){
         if (r == RobotType.LUMBERJACK) return 2f;
-        else if (r == RobotType.SOLDIER) return 3.1f;
-        else if (r == RobotType.TANK) return 3.1f;
-        else if (r == RobotType.SCOUT) return 0.25f;
+        else if (r == RobotType.SOLDIER) return 5f;
+        else if (r == RobotType.TANK) return 5f;
         return 0;
     }
 

@@ -8,6 +8,7 @@ import battlecode.common.*;
 public class Shoot {
 
     static float t = 0.75f;
+    static int WASTEBULLETTURN = 200;
 
 
     static boolean tryShoot(RobotController rc, int tries){
@@ -41,7 +42,8 @@ public class Shoot {
             Direction dirRightExact = dir.rotateRightRads(a);
             Direction dirLeftExact = dir.rotateLeftRads(a);
 
-            float R2 = R + r.strideRadius;
+            float R2 = R;
+            ir (rc.getRoundNum() > WASTEBULLETTURN) R2 += r.strideRadius;
             R2 = Math.min(d - rc.getType().bodyRadius, R2);
             a = (float) Math.asin(R2 / d);
             //if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
