@@ -370,8 +370,9 @@ public class ZoneG {
     static boolean shouldRequestLumberjack(){
         //si no te cap lloc lliure i hi ha algun arbre neutral/enemic
         if (surroundings[2] != 0 && surroundings[0] <= 1) return true;
-        if (rc.getRoundNum() < 300) return false;
+        if (rc.getTeamBullets() < 500) return false;
         TreeInfo[] trees = rc.senseNearbyTrees(5f, Team.NEUTRAL);
+        //fem request quan hi ha un arbre a distancia <5 i tenim moltes bullets
         return trees.length > 0;
     }
 
