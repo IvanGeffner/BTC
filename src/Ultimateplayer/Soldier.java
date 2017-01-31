@@ -86,7 +86,7 @@ public class Soldier {
     }
 
     static void Initialize(){
-        enemyBase = rc.getInitialArchonLocations(rc.getTeam().opponent())[0];
+        enemyBase = findClosestArchon();
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
@@ -112,6 +112,19 @@ public class Soldier {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static MapLocation findClosestArchon(){
+        MapLocation[] locs = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        float mindist = 999;
+        MapLocation ans = null;
+        for (MapLocation loc : locs){
+            if (rc.getLocation().distanceTo(loc) < mindist){
+                mindist = rc.getLocation().distanceTo(loc);
+                ans = loc;
+            }
+        }
+        return ans;
     }
 
     static void beginRound(){

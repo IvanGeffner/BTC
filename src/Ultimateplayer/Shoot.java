@@ -41,7 +41,8 @@ public class Shoot {
             Direction dirRightExact = dir.rotateRightRads(a);
             Direction dirLeftExact = dir.rotateLeftRads(a);
 
-            float R2 = R + r.strideRadius;
+            float R2 = R;
+            if (rc.getRoundNum() >=  200) R2 += r.strideRadius;
             R2 = Math.min(d - rc.getType().bodyRadius, R2);
             a = (float) Math.asin(R2 / d);
             //if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;

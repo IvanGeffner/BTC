@@ -86,7 +86,7 @@ public class Tank {
     }
 
     static void Initialize(){
-        enemyBase = rc.getInitialArchonLocations(rc.getTeam().opponent())[0];
+        enemyBase = findClosestArchon();
         base = rc.getInitialArchonLocations(rc.getTeam())[0];
         xBase = Math.round(base.x);
         yBase = Math.round(base.y);
@@ -112,6 +112,19 @@ public class Tank {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    static MapLocation findClosestArchon(){
+        MapLocation[] locs = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        float mindist = 999;
+        MapLocation ans = null;
+        for (MapLocation loc : locs){
+            if (rc.getLocation().distanceTo(loc) < mindist){
+                mindist = rc.getLocation().distanceTo(loc);
+                ans = loc;
+            }
+        }
+        return ans;
     }
 
     static void beginRound(){
@@ -367,6 +380,7 @@ public class Tank {
         Ti = rc.senseNearbyTrees(-1, Team.NEUTRAL);
         for (TreeInfo ti : Ti) {
             if (Clock.getBytecodeNum() - byte1 >= Constants.BROADCASTMAXSOLDIER) return;
+            System.out.println("miro arbres ");
             MapLocation treePos = ti.getLocation();
             int x = Math.round(treePos.x);
             int y = Math.round(treePos.y);
