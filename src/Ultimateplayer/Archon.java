@@ -553,7 +553,7 @@ public class Archon {
         if (numberOfBullets >= 40) {
             int x = Math.round(rc.getLocation().x);
             int y = Math.round(rc.getLocation().y);
-            Communication.sendMessage(Communication.NEEDTROOPCHANNEL, );
+            Communication.sendMessage(Communication.NEEDTROOPCHANNEL, x, y, Communication.NEEDSCOUT);
         }
 
 
