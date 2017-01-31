@@ -32,18 +32,13 @@ public class Communication {
 
     //CANALS GARDENERS
 
-    //teoricament ocupo del 600 al 656 pero no estic segur
-    static final int ZONE_FIRST_POSITION = 600;
+    //ocupa rollo 350 canals, potser mes
+    static final int ZONE_FIRST_POSITION = 5000;
     static final int ROBOTS_BUILT = 695;
 
     static int ZONE_ORIGIN_X = 697;//coordenades del centre de la zona (0,0)
     static int ZONE_ORIGIN_Y = 698;//son les coordenades on spawneja el primer gardener
 
-    static int MIN_ZONE_X = 691;//tenen els valors de les zones desfasats +-20 per tal que el 0 mai caigui entre minim i maxim
-    static int MIN_ZONE_Y = 692;//osigui si la x de zona maxima es 6, aqui es guardara un -14
-    static int MAX_ZONE_X = 693;//i si la de zona minima es -3 aqui es guardara un 17
-    static int MAX_ZONE_Y = 694;
-    static int ZONE_LIMIT_OFFSET = 20;
 
     static final int MAP_UPPER_BOUND = 700; // valors amb precisio de Constants.PRECISION_MAP_BOUNDS de
     static final int MAP_LOWER_BOUND = 701; // les coordenades x o y respecte l'archon 0 dels limits del mapa
@@ -60,6 +55,8 @@ public class Communication {
     static final int ARCHONS_SUICIDED = 754;
 
     static final int[] ARCHON_INIT_SCORE = {760,761,762};
+    static final int[] ARCHON_IDS = {770,771,772,773,774};
+    static final int[] ARCHON_POS = {775,776,777,778,779};
 
 
     static final int NEEDSOLDIERTANK = 0;

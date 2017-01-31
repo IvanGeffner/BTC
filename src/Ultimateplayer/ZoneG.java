@@ -54,6 +54,12 @@ public class ZoneG {
 
     static void init(RobotController rc2){
         rc = rc2;
+        try {
+            initialMessageGardCount = rc.readBroadcast(Communication.GARD_COUNT + Communication.CYCLIC_CHANNEL_LENGTH);
+            initialMessageClosedGard = rc.readBroadcast(Communication.CLOSED_GARDENERS + Communication.CYCLIC_CHANNEL_LENGTH);
+        } catch (GameActionException e) {
+            e.printStackTrace();
+        }
     }
 
     static void initTurn() {
