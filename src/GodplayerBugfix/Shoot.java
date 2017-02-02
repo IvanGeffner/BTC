@@ -29,6 +29,8 @@ public class Shoot {
             float R = r.bodyRadius;
             float d = m.distanceTo(pos);
 
+            if(ri.getType() != RobotType.GARDENER && d > 5f && rc.getRoundNum() < 800) continue;
+
             Direction dir = pos.directionTo(m);
 
             float a = (float) Math.asin(R / d);

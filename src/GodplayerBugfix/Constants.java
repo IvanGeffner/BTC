@@ -70,7 +70,7 @@ public class Constants {
     public static int MAXSORT = 22;
     public static int GREEDYTRIES = 8;
 
-    public static float SAFETYDISTANCE = 5f;
+    public static float SAFETYDISTANCE = 3f;
     public static float EMERGENCYSCORE = 25f;
 
     public static final int COSTCYCLE1 = 135;
