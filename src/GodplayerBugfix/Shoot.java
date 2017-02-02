@@ -29,8 +29,6 @@ public class Shoot {
             float R = r.bodyRadius;
             float d = m.distanceTo(pos);
 
-            if(ri.getType() != RobotType.GARDENER && d > 5f && rc.getRoundNum() < 800) continue;
-
             Direction dir = pos.directionTo(m);
 
             float a = (float) Math.asin(R / d);
@@ -45,7 +43,7 @@ public class Shoot {
             Direction dirLeftExact = dir.rotateLeftRads(a);
 
             float R2 = R;
-            if (rc.getRoundNum() > WASTEBULLETTURN) R2 += r.strideRadius;
+            //if (rc.getRoundNum() > WASTEBULLETTURN) R2 += r.strideRadius;
             R2 = Math.min(d - rc.getType().bodyRadius, R2);
             a = (float) Math.asin(R2 / d);
             //if (r == RobotType.SOLDIER || r == RobotType.TANK) a = 31;
